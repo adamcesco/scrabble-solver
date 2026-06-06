@@ -9,7 +9,7 @@
 
 static char temp_board_path[128];
 
-static void setup_all(void)
+static void setup(void)
 {
     snprintf(temp_board_path, sizeof(temp_board_path), "/tmp/scrabble_board_%ld.csv", (long)getpid());
 
@@ -140,6 +140,7 @@ static void returns_zeroed_board_when_first_csv_row_is_malformed(void)
 
 static void run_test(const char *name, void (*test)(void))
 {
+    setup();
     test();
     cleanup_after_each();
     printf("PASS %s\n", name);
@@ -147,8 +148,6 @@ static void run_test(const char *name, void (*test)(void))
 
 int main(void)
 {
-    setup_all();
-
     run_test("loads_letters_from_csv_board", loads_letters_from_csv_board);
     run_test("keeps_empty_tiles_as_blank_values", keeps_empty_tiles_as_blank_values);
     run_test("returns_zeroed_board_when_first_csv_row_is_malformed", returns_zeroed_board_when_first_csv_row_is_malformed);
