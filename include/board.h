@@ -14,12 +14,12 @@
 
 #define WORD_START_POSITION_UNUSED UINT16_MAX
 
+typedef __uint128_t RowTiles;
+
 typedef struct {
-    uint16_t first3Tiles;
-    uint16_t first3CareMask;
+    RowTiles tiles;
+    RowTiles careMask;
     uint16_t occupiedMask; // when or-ed with another Row's occupiedMask, assuming that this row can house the other, it returned the new occupiedMask for that row.
-    uint64_t last12Tiles;
-    uint64_t last12CareMask;
 } Row;
 
 typedef struct {

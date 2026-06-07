@@ -26,11 +26,9 @@ static void write_text_file(const char *contents)
 
 static void assert_rows_equal(Row actual, Row expected)
 {
-    assert(actual.first3Tiles == expected.first3Tiles);
-    assert(actual.first3CareMask == expected.first3CareMask);
+    assert(actual.tiles == expected.tiles);
+    assert(actual.careMask == expected.careMask);
     assert(actual.occupiedMask == expected.occupiedMask);
-    assert(actual.last12Tiles == expected.last12Tiles);
-    assert(actual.last12CareMask == expected.last12CareMask);
 }
 
 static void builds_rows_for_words_at_requested_start_positions(void)

@@ -7,54 +7,33 @@
 /* Constants */
 
 #define BOARD_CSV_LINE_MAX 64
-#define FIRST_TILE_GROUP_SIZE 3
-#define LAST_TILE_GROUP_SIZE (BOARD_SIZE - FIRST_TILE_GROUP_SIZE)
 #define TILE_BITS 5
-#define TILE_MASK UINT64_C(0x1F)
+#define TILE_MASK ((RowTiles)0x1F)
 #define BLANK_TILE_VALUE TILE_MASK
 
 /* Row encoding */
 
-static uint64_t tile_mask_at_shift(int shift)
+static RowTiles tile_mask_at_shift(int shift)
 {
     return TILE_MASK << shift;
 }
 
-static uint64_t packed_tile_value(unsigned char tile)
+static RowTiles packed_tile_value(unsigned char tile)
 {
-    return (uint64_t)(tile & TILE_MASK);
+    return (RowTiles)(tile & (unsigned char)TILE_MASK);
 }
 
-static uint16_t pack_first3(const char tiles[BOARD_SIZE + 1])
+static RowTiles pack_tiles(const char tiles[BOARD_SIZE + 1])
 {
-    uint16_t packed = UINT16_MAX;
+    RowTiles packed = (RowTiles)-1;
 
-    for (int col_index = 0; col_index < FIRST_TILE_GROUP_SIZE; ++col_index) {
-        unsigned char tile = (unsigned char)tiles[col_index];
-
-        if (isalpha(tile)) {
-            int shift = (FIRST_TILE_GROUP_SIZE - 1 - col_index) * TILE_BITS;
-            uint16_t mask = (uint16_t)tile_mask_at_shift(shift);
-            uint16_t value = (uint16_t)(packed_tile_value(tile) << shift);
-
-            packed = (uint16_t)((packed & ~mask) | value);
-        }
-    }
-
-    return packed;
-}
-
-static uint64_t pack_last12(const char tiles[BOARD_SIZE + 1])
-{
-    uint64_t packed = UINT64_MAX;
-
-    for (int col_index = FIRST_TILE_GROUP_SIZE; col_index < BOARD_SIZE; ++col_index) {
+    for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
         unsigned char tile = (unsigned char)tiles[col_index];
 
         if (isalpha(tile)) {
             int shift = (BOARD_SIZE - 1 - col_index) * TILE_BITS;
-            uint64_t mask = tile_mask_at_shift(shift);
-            uint64_t value = packed_tile_value(tile) << shift;
+            RowTiles mask = tile_mask_at_shift(shift);
+            RowTiles value = packed_tile_value(tile) << shift;
 
             packed = (packed & ~mask) | value;
         }
@@ -63,13 +42,13 @@ static uint64_t pack_last12(const char tiles[BOARD_SIZE + 1])
     return packed;
 }
 
-static uint64_t make_care_mask(uint64_t packed_tiles, int tile_count)
+static RowTiles make_care_mask(RowTiles packed_tiles)
 {
-    uint64_t care = 0;
+    RowTiles care = 0;
 
-    for (int tile_index = 0; tile_index < tile_count; ++tile_index) {
+    for (int tile_index = 0; tile_index < BOARD_SIZE; ++tile_index) {
         int shift = tile_index * TILE_BITS;
-        uint64_t mask = tile_mask_at_shift(shift);
+        RowTiles mask = tile_mask_at_shift(shift);
 
         if ((packed_tiles & mask) != mask) {
             care |= mask;
@@ -79,35 +58,15 @@ static uint64_t make_care_mask(uint64_t packed_tiles, int tile_count)
     return care;
 }
 
-static uint16_t make_first3_care_mask(uint16_t tiles)
-{
-    return (uint16_t)make_care_mask(tiles, FIRST_TILE_GROUP_SIZE);
-}
-
-static uint64_t make_last12_care_mask(uint64_t tiles)
-{
-    return make_care_mask(tiles, LAST_TILE_GROUP_SIZE);
-}
-
 static uint16_t make_occupied_mask(Row row)
 {
     uint16_t occupied = 0;
 
-    occupied |= (uint16_t)(((row.first3CareMask >> 10) & UINT16_C(1)) << 0);
-    occupied |= (uint16_t)(((row.first3CareMask >> 5) & UINT16_C(1)) << 1);
-    occupied |= (uint16_t)((row.first3CareMask & UINT16_C(1)) << 2);
-    occupied |= (uint16_t)(((row.last12CareMask >> 55) & UINT64_C(1)) << 3);
-    occupied |= (uint16_t)(((row.last12CareMask >> 50) & UINT64_C(1)) << 4);
-    occupied |= (uint16_t)(((row.last12CareMask >> 45) & UINT64_C(1)) << 5);
-    occupied |= (uint16_t)(((row.last12CareMask >> 40) & UINT64_C(1)) << 6);
-    occupied |= (uint16_t)(((row.last12CareMask >> 35) & UINT64_C(1)) << 7);
-    occupied |= (uint16_t)(((row.last12CareMask >> 30) & UINT64_C(1)) << 8);
-    occupied |= (uint16_t)(((row.last12CareMask >> 25) & UINT64_C(1)) << 9);
-    occupied |= (uint16_t)(((row.last12CareMask >> 20) & UINT64_C(1)) << 10);
-    occupied |= (uint16_t)(((row.last12CareMask >> 15) & UINT64_C(1)) << 11);
-    occupied |= (uint16_t)(((row.last12CareMask >> 10) & UINT64_C(1)) << 12);
-    occupied |= (uint16_t)(((row.last12CareMask >> 5) & UINT64_C(1)) << 13);
-    occupied |= (uint16_t)((row.last12CareMask & UINT64_C(1)) << 14);
+    for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
+        int shift = (BOARD_SIZE - 1 - col_index) * TILE_BITS;
+
+        occupied |= (uint16_t)(((row.careMask >> shift) & (RowTiles)1) << col_index);
+    }
 
     return occupied;
 }
@@ -120,12 +79,10 @@ uint16_t make_word_start_mask(uint16_t occupied)
 Row make_row(const char tiles[BOARD_SIZE + 1])
 {
     Row row = {
-        .first3Tiles = pack_first3(tiles),
-        .last12Tiles = pack_last12(tiles),
+        .tiles = pack_tiles(tiles),
     };
 
-    row.first3CareMask = make_first3_care_mask(row.first3Tiles);
-    row.last12CareMask = make_last12_care_mask(row.last12Tiles);
+    row.careMask = make_care_mask(row.tiles);
     row.occupiedMask = make_occupied_mask(row);
 
     return row;
@@ -133,8 +90,7 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
 
 int row_can_house(Row board_row, Row row_with_just_proposed_word)
 {
-    return (((board_row.first3Tiles ^ row_with_just_proposed_word.first3Tiles) & board_row.first3CareMask & row_with_just_proposed_word.first3CareMask) == 0)
-        && (((board_row.last12Tiles ^ row_with_just_proposed_word.last12Tiles) & board_row.last12CareMask & row_with_just_proposed_word.last12CareMask) == 0);
+    return (((board_row.tiles ^ row_with_just_proposed_word.tiles) & board_row.careMask & row_with_just_proposed_word.careMask) == 0);
 }
 
 /* Word-start config maps */
@@ -289,10 +245,10 @@ Board board_from_csv(const char *board_file_path)
 
 /* Diagnostics */
 
-static void print_bits(uint64_t value, int bit_count)
+static void print_bits(RowTiles value, int bit_count)
 {
     for (int bit_index = bit_count - 1; bit_index >= 0; --bit_index) {
-        putchar((value & ((uint64_t)1 << bit_index)) ? '1' : '0');
+        putchar((value & ((RowTiles)1 << bit_index)) ? '1' : '0');
 
         if (bit_index > 0 && bit_index % TILE_BITS == 0) {
             putchar(' ');
@@ -300,16 +256,16 @@ static void print_bits(uint64_t value, int bit_count)
     }
 }
 
-static void print_tile_chars(uint64_t packed_tiles, int tile_count)
+static void print_tile_chars(RowTiles packed_tiles)
 {
-    for (int tile_index = 0; tile_index < tile_count; ++tile_index) {
-        int shift = (tile_count - 1 - tile_index) * TILE_BITS;
+    for (int tile_index = 0; tile_index < BOARD_SIZE; ++tile_index) {
+        int shift = (BOARD_SIZE - 1 - tile_index) * TILE_BITS;
         unsigned char tile = (unsigned char)((packed_tiles >> shift) & TILE_MASK);
         char tile_char = tile == BLANK_TILE_VALUE ? '.' : (char)(tile | 0x40);
 
         printf("  %c  ", tile_char);
 
-        if (tile_index < tile_count - 1) {
+        if (tile_index < BOARD_SIZE - 1) {
             putchar(' ');
         }
     }
@@ -321,14 +277,10 @@ void board_print(Board board)
         Row row = board.rows[row_index];
 
         printf("row %2d ", row_index + 1);
-        print_bits(row.first3Tiles, FIRST_TILE_GROUP_SIZE * TILE_BITS);
-        printf(" | ");
-        print_bits(row.last12Tiles, LAST_TILE_GROUP_SIZE * TILE_BITS);
+        print_bits(row.tiles, BOARD_SIZE * TILE_BITS);
         putchar('\n');
         printf("       ");
-        print_tile_chars(row.first3Tiles, FIRST_TILE_GROUP_SIZE);
-        printf(" | ");
-        print_tile_chars(row.last12Tiles, LAST_TILE_GROUP_SIZE);
+        print_tile_chars(row.tiles);
         putchar('\n');
     }
 }

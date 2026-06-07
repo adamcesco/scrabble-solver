@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define TILE_MASK UINT64_C(0x1F)
+#define TILE_BITS 5
+#define TILE_MASK ((RowTiles)0x1F)
 #define ROW_WORD_START_MASK(tiles) make_word_start_mask(make_row(tiles).occupiedMask)
 #define ASSERT_SINGLE_LETTER_ROW_WORD_START_MASKS(letter) \
     assert(ROW_WORD_START_MASK(#letter "..............") == UINT16_C(0x0001)); \
@@ -23,37 +24,44 @@
     assert(ROW_WORD_START_MASK("............." #letter ".") == UINT16_C(0x2000)); \
     assert(ROW_WORD_START_MASK(".............." #letter) == UINT16_C(0x4000))
 
-static uint64_t packed_tile(char tile, int shift)
+static RowTiles packed_tile(char tile, int shift)
 {
-    return ((uint64_t)(tile & TILE_MASK)) << shift;
+    return ((RowTiles)(tile & (unsigned char)TILE_MASK)) << shift;
+}
+
+static RowTiles packed_row_with_tile(char tile, int col_index)
+{
+    int shift = (BOARD_SIZE - 1 - col_index) * TILE_BITS;
+
+    return (((RowTiles)-1) & ~(TILE_MASK << shift)) | packed_tile(tile, shift);
 }
 
 static void make_row_packs_blank_tiles_as_all_ones_without_care_masks(void)
 {
     Row row = make_row("...............");
 
-    assert(row.first3Tiles == UINT16_MAX);
-    assert(row.first3CareMask == 0);
+    assert(row.tiles == (RowTiles)-1);
+    assert(row.careMask == 0);
     assert(row.occupiedMask == UINT16_C(0x0000));
-    assert(row.last12Tiles == UINT64_MAX);
-    assert(row.last12CareMask == 0);
 }
 
 static void make_row_packs_first_three_tiles_from_left_to_right(void)
 {
     Row row = make_row("ABC............");
+    RowTiles expected_tiles = ((RowTiles)-1 & ~(TILE_MASK << 70) & ~(TILE_MASK << 65) & ~(TILE_MASK << 60))
+                            | packed_tile('A', 70)
+                            | packed_tile('B', 65)
+                            | packed_tile('C', 60);
 
-    assert(row.first3Tiles == UINT16_C(0x8443));
-    assert(row.first3CareMask == UINT16_C(0x7FFF));
+    assert(row.tiles == expected_tiles);
+    assert(row.careMask == (((RowTiles)0x7FFF) << 60));
     assert(row.occupiedMask == UINT16_C(0x0007));
-    assert(row.last12Tiles == UINT64_MAX);
-    assert(row.last12CareMask == 0);
 }
 
 static void make_row_packs_last_twelve_tiles_from_left_to_right(void)
 {
     Row row = make_row("...ABCDEFGHIJKL");
-    uint64_t expected_tiles = UINT64_C(0xF000000000000000)
+    RowTiles expected_tiles = ((RowTiles)-1 & ~(((RowTiles)0x0FFFFFFFFFFFFFFF) << 0))
                             | packed_tile('A', 55)
                             | packed_tile('B', 50)
                             | packed_tile('C', 45)
@@ -67,31 +75,33 @@ static void make_row_packs_last_twelve_tiles_from_left_to_right(void)
                             | packed_tile('K', 5)
                             | packed_tile('L', 0);
 
-    assert(row.first3Tiles == UINT16_MAX);
-    assert(row.first3CareMask == 0);
+    assert(row.tiles == expected_tiles);
+    assert(row.careMask == (RowTiles)0x0FFFFFFFFFFFFFFF);
     assert(row.occupiedMask == UINT16_C(0x7FF8));
-    assert(row.last12Tiles == expected_tiles);
-    assert(row.last12CareMask == UINT64_C(0x0FFFFFFFFFFFFFFF));
 }
 
 static void make_row_keeps_blank_tiles_uncared_between_letters(void)
 {
     Row row = make_row(".Z.A...........");
-    uint64_t expected_last12_tiles = (UINT64_MAX & ~(TILE_MASK << 55)) | packed_tile('A', 55);
+    RowTiles expected_tiles = packed_row_with_tile('Z', 1);
 
-    assert(row.first3Tiles == UINT16_C(0xFF5F));
-    assert(row.first3CareMask == UINT16_C(0x03E0));
+    expected_tiles = (expected_tiles & ~(TILE_MASK << 55)) | packed_tile('A', 55);
+
+    assert(row.tiles == expected_tiles);
+    assert(row.careMask == ((((RowTiles)0x03E0) << 60) | ((RowTiles)0x0F80000000000000)));
     assert(row.occupiedMask == UINT16_C(0x000A));
-    assert(row.last12Tiles == expected_last12_tiles);
-    assert(row.last12CareMask == UINT64_C(0x0F80000000000000));
 }
 
 static void make_row_treats_lowercase_letters_as_letters(void)
 {
     Row row = make_row("aBc............");
+    RowTiles expected_tiles = ((RowTiles)-1 & ~(TILE_MASK << 70) & ~(TILE_MASK << 65) & ~(TILE_MASK << 60))
+                            | packed_tile('a', 70)
+                            | packed_tile('B', 65)
+                            | packed_tile('c', 60);
 
-    assert(row.first3Tiles == UINT16_C(0x8443));
-    assert(row.first3CareMask == UINT16_C(0x7FFF));
+    assert(row.tiles == expected_tiles);
+    assert(row.careMask == (((RowTiles)0x7FFF) << 60));
     assert(row.occupiedMask == UINT16_C(0x0007));
 }
 

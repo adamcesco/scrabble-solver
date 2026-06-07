@@ -59,9 +59,8 @@ static void write_text_file(const char *contents)
 static void assert_board_is_zeroed(Board board)
 {
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
-        assert(board.rows[row_index].first3Tiles == 0);
+        assert(board.rows[row_index].tiles == 0);
         assert(board.rows[row_index].occupiedMask == 0);
-        assert(board.rows[row_index].last12Tiles == 0);
     }
 }
 
@@ -74,12 +73,10 @@ static void loads_letters_from_csv_board(void)
 
     Board board = board_from_csv(temp_board_path);
 
-    assert(board.rows[0].first3Tiles == expected_first_row.first3Tiles);
-    assert(board.rows[0].last12Tiles == expected_first_row.last12Tiles);
+    assert(board.rows[0].tiles == expected_first_row.tiles);
 
     for (int row_index = 1; row_index < BOARD_SIZE; ++row_index) {
-        assert(board.rows[row_index].first3Tiles == UINT16_MAX);
-        assert(board.rows[row_index].last12Tiles == UINT64_MAX);
+        assert(board.rows[row_index].tiles == (RowTiles)-1);
     }
 }
 
@@ -92,8 +89,7 @@ static void keeps_empty_tiles_as_blank_values(void)
 
     Board board = board_from_csv(temp_board_path);
 
-    assert(board.rows[0].first3Tiles == expected_first_row.first3Tiles);
-    assert(board.rows[0].last12Tiles == expected_first_row.last12Tiles);
+    assert(board.rows[0].tiles == expected_first_row.tiles);
 }
 
 static void returns_zeroed_board_when_first_csv_row_is_malformed(void)
