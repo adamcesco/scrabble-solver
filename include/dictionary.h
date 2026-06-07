@@ -9,7 +9,7 @@ typedef struct {
 } WordTable;
 
 WordTable words_from_file(const char *file_path);
-int word_table_contains(const char *word);
+int word_table_contains(const WordTable *table, const char *word);
 void word_table_destroy(WordTable *table);
 
 #endif

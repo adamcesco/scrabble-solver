@@ -55,6 +55,37 @@ static void free_words(char **words, size_t count)
     free(words);
 }
 
+static int add_unique_word(WordTable *table, const char *line)
+{
+    ENTRY item;
+    ENTRY *found;
+    char *word;
+
+    item.key = (char *)line;
+    item.data = NULL;
+    if (hsearch(item, FIND) != NULL) {
+        return 1;
+    }
+
+    word = copy_word(line);
+    if (word == NULL) {
+        return 0;
+    }
+
+    item.key = word;
+    item.data = word;
+    found = hsearch(item, ENTER);
+    if (found == NULL) {
+        free(word);
+        return 0;
+    }
+
+    table->words[table->count] = word;
+    table->count++;
+
+    return 1;
+}
+
 WordTable words_from_file(const char *file_path)
 {
     WordTable table = {0};
@@ -87,42 +118,17 @@ WordTable words_from_file(const char *file_path)
     active_hash_table = 1;
 
     while (getline(&line, &line_capacity, file) != -1) {
-        ENTRY item;
-        ENTRY *found;
-        char *word;
-
         trim_line_ending(line);
         if (line[0] == '\0') {
             continue;
         }
 
-        item.key = line;
-        item.data = NULL;
-        if (hsearch(item, FIND) != NULL) {
-            continue;
-        }
-
-        word = copy_word(line);
-        if (word == NULL) {
+        if (!add_unique_word(&table, line)) {
             word_table_destroy(&table);
             free(line);
             fclose(file);
             return (WordTable){0};
         }
-
-        item.key = word;
-        item.data = word;
-        found = hsearch(item, ENTER);
-        if (found == NULL) {
-            free(word);
-            word_table_destroy(&table);
-            free(line);
-            fclose(file);
-            return (WordTable){0};
-        }
-
-        table.words[table.count] = word;
-        table.count++;
     }
 
     free(line);
@@ -131,11 +137,11 @@ WordTable words_from_file(const char *file_path)
     return table;
 }
 
-int word_table_contains(const char *word)
+int word_table_contains(const WordTable *table, const char *word)
 {
     ENTRY item;
 
-    if (!active_hash_table) {
+    if (table == NULL || table->words == NULL || !active_hash_table) {
         return 0;
     }
 

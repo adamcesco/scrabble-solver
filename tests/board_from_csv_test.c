@@ -1,7 +1,6 @@
 #include "board.h"
 
 #include <assert.h>
-#include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -97,40 +96,6 @@ static void write_text_file(const char *contents)
     fclose(file);
 }
 
-static uint16_t pack_first3(const char tiles[BOARD_SIZE + 1])
-{
-    uint16_t packed = UINT16_MAX;
-
-    for (int col_index = 0; col_index < 3; ++col_index) {
-        unsigned char tile = (unsigned char)tiles[col_index];
-
-        if (isalpha(tile)) {
-            uint16_t packed_tile = (uint16_t)(tile & 0x1F);
-            int shift = (2 - col_index) * 5;
-            packed = (uint16_t)((packed & ~(uint16_t)(0x1F << shift)) | (uint16_t)(packed_tile << shift));
-        }
-    }
-
-    return packed;
-}
-
-static uint64_t pack_last12(const char tiles[BOARD_SIZE + 1])
-{
-    uint64_t packed = UINT64_MAX;
-
-    for (int col_index = 3; col_index < BOARD_SIZE; ++col_index) {
-        unsigned char tile = (unsigned char)tiles[col_index];
-
-        if (isalpha(tile)) {
-            uint64_t packed_tile = (uint64_t)(tile & 0x1F);
-            int shift = (BOARD_SIZE - 1 - col_index) * 5;
-            packed = (packed & ~((uint64_t)0x1F << shift)) | (packed_tile << shift);
-        }
-    }
-
-    return packed;
-}
-
 static void assert_board_is_zeroed(Board board)
 {
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
@@ -142,13 +107,14 @@ static void assert_board_is_zeroed(Board board)
 static void loads_letters_from_csv_board(void)
 {
     const char first_row[BOARD_SIZE + 1] = "ABCDEFGHIJKLMNO";
+    Row expected_first_row = make_row(first_row);
 
     write_board_with_first_row(first_row);
 
     Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
 
-    assert(board.rows[0].first3Tiles == pack_first3(first_row));
-    assert(board.rows[0].last12Tiles == pack_last12(first_row));
+    assert(board.rows[0].first3Tiles == expected_first_row.first3Tiles);
+    assert(board.rows[0].last12Tiles == expected_first_row.last12Tiles);
 
     for (int row_index = 1; row_index < BOARD_SIZE; ++row_index) {
         assert(board.rows[row_index].first3Tiles == UINT16_MAX);
@@ -159,13 +125,14 @@ static void loads_letters_from_csv_board(void)
 static void keeps_empty_tiles_as_blank_values(void)
 {
     const char first_row[BOARD_SIZE + 1] = ".Z.A...........";
+    Row expected_first_row = make_row(first_row);
 
     write_board_with_first_row(first_row);
 
     Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
 
-    assert(board.rows[0].first3Tiles == pack_first3(first_row));
-    assert(board.rows[0].last12Tiles == pack_last12(first_row));
+    assert(board.rows[0].first3Tiles == expected_first_row.first3Tiles);
+    assert(board.rows[0].last12Tiles == expected_first_row.last12Tiles);
 }
 
 static void returns_zeroed_board_when_first_csv_row_is_malformed(void)
@@ -187,7 +154,7 @@ static void loads_word_config_indices_and_lengths(void)
 
     Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
 
-    assert(board.wordsConfigs[0] == ((lookup_index & UINT16_C(0x01FF)) | (UINT32_C(2) << 9)));
+    assert(board.wordsConfigs[0] == ((lookup_index & WORD_CONFIG_INDEX_MASK) | (UINT32_C(2) << WORD_CONFIG_INDEX_BITS)));
 }
 
 static void run_test(const char *name, void (*test)(void))
