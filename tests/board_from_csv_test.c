@@ -101,6 +101,7 @@ static void assert_board_is_zeroed(Board board)
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         assert(board.rows[row_index].first3Tiles == 0);
         assert(board.rows[row_index].last12Tiles == 0);
+        assert(board.wordsConfigs[row_index] == 0);
     }
 }
 
@@ -157,6 +158,46 @@ static void loads_word_config_indices_and_lengths(void)
     assert(board.wordsConfigs[0] == ((lookup_index & WORD_CONFIG_INDEX_MASK) | (UINT32_C(2) << WORD_CONFIG_INDEX_BITS)));
 }
 
+static void loads_multi_digit_word_config_lengths(void)
+{
+    uint16_t config_mask = (uint16_t)(1u << 0);
+    uint16_t lookup_index = config_to_index[config_mask];
+
+    write_board_with_first_row("...............");
+    write_config_with_first_row("S,15,.,.,.,.,.,.,.,.,.,.,.,.,.");
+
+    Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
+
+    assert(board.wordsConfigs[0] == ((lookup_index & WORD_CONFIG_INDEX_MASK) | (UINT32_C(15) << WORD_CONFIG_INDEX_BITS)));
+}
+
+static void loads_multiple_word_config_starts_and_lengths(void)
+{
+    uint16_t config_mask = (uint16_t)((1u << 2) | (1u << 11));
+    uint16_t lookup_index = config_to_index[config_mask];
+
+    write_board_with_first_row("...............");
+    write_config_with_first_row(".,.,S,6,.,.,.,.,.,.,.,S,3,.,.");
+
+    Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
+
+    assert(board.wordsConfigs[0] == (
+        (lookup_index & WORD_CONFIG_INDEX_MASK)
+        | (UINT32_C(6) << WORD_CONFIG_INDEX_BITS)
+        | (UINT32_C(3) << (WORD_CONFIG_INDEX_BITS + WORD_CONFIG_LENGTH_BITS))
+    ));
+}
+
+static void returns_zeroed_board_when_config_row_is_malformed(void)
+{
+    write_board_with_first_row("...............");
+    write_config_with_first_row("S,15,.,.,.,.,.,.,.,.,.,.,.,.,.,.");
+
+    Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
+
+    assert_board_is_zeroed(board);
+}
+
 static void run_test(const char *name, void (*test)(void))
 {
     setup();
@@ -171,6 +212,9 @@ int main(void)
     run_test("keeps_empty_tiles_as_blank_values", keeps_empty_tiles_as_blank_values);
     run_test("returns_zeroed_board_when_first_csv_row_is_malformed", returns_zeroed_board_when_first_csv_row_is_malformed);
     run_test("loads_word_config_indices_and_lengths", loads_word_config_indices_and_lengths);
+    run_test("loads_multi_digit_word_config_lengths", loads_multi_digit_word_config_lengths);
+    run_test("loads_multiple_word_config_starts_and_lengths", loads_multiple_word_config_starts_and_lengths);
+    run_test("returns_zeroed_board_when_config_row_is_malformed", returns_zeroed_board_when_config_row_is_malformed);
 
     return 0;
 }

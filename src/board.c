@@ -173,8 +173,9 @@ static int parse_csv_row(const char *line, char tiles[BOARD_SIZE + 1])
     return col == BOARD_SIZE;
 }
 
-static int parse_config_csv_row(const char *line, uint16_t lengths[MAX_NUMBER_OF_WORDS_PER_ROW])
+static int parse_config_csv_row(const char *line, char start_flags[BOARD_SIZE + 1], uint16_t lengths[MAX_NUMBER_OF_WORDS_PER_ROW])
 {
+    int col = 0;
     int length_count = 0;
 
     for (int i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
@@ -182,40 +183,55 @@ static int parse_config_csv_row(const char *line, uint16_t lengths[MAX_NUMBER_OF
     }
 
     for (int i = 0; line[i] != '\0' && line[i] != '\n';) {
-        if (line[i] == ',') {
-            i++;
-            continue;
-        }
-
-        if (!isdigit((unsigned char)line[i])) {
-            while (line[i] != '\0' && line[i] != '\n' && line[i] != ',') {
-                i++;
-            }
-            continue;
-        }
-
-        if (length_count >= MAX_NUMBER_OF_WORDS_PER_ROW) {
+        if (col >= BOARD_SIZE) {
             return 0;
         }
 
+        int field_start = i;
+        int has_start_flag = 0;
+        int all_digits = line[i] != ',' && line[i] != '\0' && line[i] != '\n';
         uint16_t value = 0;
-        while (isdigit((unsigned char)line[i])) {
-            value = (uint16_t)(value * 10u + (uint16_t)(line[i] - '0'));
-            if (value > WORD_CONFIG_LENGTH_MASK) {
+
+        while (line[i] != '\0' && line[i] != '\n' && line[i] != ',') {
+            unsigned char ch = (unsigned char)line[i];
+
+            if (isalpha(ch)) {
+                has_start_flag = 1;
+            }
+
+            if (isdigit(ch)) {
+                value = (uint16_t)(value * 10u + (uint16_t)(line[i] - '0'));
+                if (value > WORD_CONFIG_LENGTH_MASK) {
+                    return 0;
+                }
+            } else {
+                all_digits = 0;
+            }
+
+            i++;
+        }
+
+        start_flags[col] = has_start_flag ? 'S' : '.';
+
+        if (all_digits && i > field_start) {
+            if (length_count >= MAX_NUMBER_OF_WORDS_PER_ROW) {
                 return 0;
             }
+
+            lengths[length_count] = value;
+            length_count++;
+        }
+
+        col++;
+
+        if (line[i] == ',') {
             i++;
         }
-
-        if (line[i] != '\0' && line[i] != '\n' && line[i] != ',') {
-            return 0;
-        }
-
-        lengths[length_count] = value;
-        length_count++;
     }
 
-    return 1;
+    start_flags[col] = '\0';
+
+    return col == BOARD_SIZE;
 }
 
 static uint16_t word_start_mask_from_flags(const char start_flags[BOARD_SIZE + 1])
@@ -304,8 +320,7 @@ static int load_word_configs(Board *board, const char *word_config_file_path, ui
         uint16_t lengths[MAX_NUMBER_OF_WORDS_PER_ROW];
 
         if (!read_csv_line(word_config_file, line)
-            || !parse_csv_row(line, start_flags)
-            || !parse_config_csv_row(line, lengths)) {
+            || !parse_config_csv_row(line, start_flags, lengths)) {
             fclose(word_config_file);
             return 0;
         }
@@ -326,7 +341,9 @@ Board board_from_csv(const char *board_file_path, const char *word_config_file_p
         return (Board){0};
     }
 
-    load_word_configs(&board, word_config_file_path, config_to_index);
+    if (!load_word_configs(&board, word_config_file_path, config_to_index)) {
+        return (Board){0};
+    }
 
     return board;
 }
