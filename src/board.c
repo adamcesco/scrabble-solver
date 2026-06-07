@@ -110,7 +110,31 @@ int row_can_house(Row board_row, Row proposed_row)
 
 /* Word-start config maps */
 
-static void add_config(uint16_t config, size_t *config_count, uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
+static void set_config_start_positions(uint16_t config, uint16_t start_positions[MAX_NUMBER_OF_WORDS_PER_ROW])
+{
+    size_t position_count = 0;
+
+    for (uint16_t start = 0; start < BOARD_SIZE; ++start) {
+        if ((config & (uint16_t)(1u << start)) == 0) {
+            continue;
+        }
+
+        if (position_count >= MAX_NUMBER_OF_WORDS_PER_ROW) {
+            return;
+        }
+
+        start_positions[position_count] = start;
+        position_count++;
+    }
+}
+
+static void add_config(
+    uint16_t config,
+    size_t *config_count,
+    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS],
+    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE],
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW]
+)
 {
     if (*config_count >= MAX_NUMBER_OF_START_CONFIGS) {
         return;
@@ -118,12 +142,20 @@ static void add_config(uint16_t config, size_t *config_count, uint16_t index_to_
 
     index_to_config[*config_count] = config;
     config_to_index[config] = (uint16_t)*config_count;
+    set_config_start_positions(config, config_to_start_positions[config]);
     (*config_count)++;
 }
 
-static void generate_configs_from(int min_start, uint16_t current_config, size_t *config_count, uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
+static void generate_configs_from(
+    int min_start,
+    uint16_t current_config,
+    size_t *config_count,
+    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS],
+    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE],
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW]
+)
 {
-    add_config(current_config, config_count, index_to_config, config_to_index);
+    add_config(current_config, config_count, index_to_config, config_to_index, config_to_start_positions);
 
     for (int start = min_start; start <= MAX_START_CONFIG; start++) {
         uint16_t next_config = current_config | (uint16_t)(1u << start);
@@ -133,20 +165,28 @@ static void generate_configs_from(int min_start, uint16_t current_config, size_t
             next_config,
             config_count,
             index_to_config,
-            config_to_index
+            config_to_index,
+            config_to_start_positions
         );
     }
 }
 
-void init_config_maps(uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
+void init_config_maps(
+    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS],
+    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE],
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW]
+)
 {
     size_t config_count = 0;
 
     for (size_t i = 0; i < WORD_START_CONFIG_LOOKUP_SIZE; i++) {
         config_to_index[i] = UINT16_MAX;
+        for (size_t j = 0; j < MAX_NUMBER_OF_WORDS_PER_ROW; j++) {
+            config_to_start_positions[i][j] = WORD_START_POSITION_UNUSED;
+        }
     }
 
-    generate_configs_from(0, 0, &config_count, index_to_config, config_to_index);
+    generate_configs_from(0, 0, &config_count, index_to_config, config_to_index, config_to_start_positions);
 }
 
 /* CSV parsing and board loading */
@@ -388,17 +428,14 @@ void board_print(Board board)
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         Row row = board.rows[row_index];
 
-        printf("row %d first3Tiles: ", row_index + 1);
+        printf("row %2d ", row_index + 1);
         print_bits(row.first3Tiles, FIRST_TILE_GROUP_SIZE * TILE_BITS);
-        putchar('\n');
-        printf("                   ");
-        print_tile_chars(row.first3Tiles, FIRST_TILE_GROUP_SIZE);
-        putchar('\n');
-
-        printf("row %d last12Tiles: ", row_index + 1);
+        printf(" | ");
         print_bits(row.last12Tiles, LAST_TILE_GROUP_SIZE * TILE_BITS);
         putchar('\n');
-        printf("                   ");
+        printf("       ");
+        print_tile_chars(row.first3Tiles, FIRST_TILE_GROUP_SIZE);
+        printf(" | ");
         print_tile_chars(row.last12Tiles, LAST_TILE_GROUP_SIZE);
         putchar('\n');
     }
@@ -409,7 +446,7 @@ void board_print_words_configs(Board board)
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         uint32_t words_config = board.wordsConfigs[row_index];
 
-        printf("row %d wordsConfig: ", row_index + 1);
+        printf("row %2d wordsConfig: ", row_index + 1);
         print_bits_compact(words_config & WORD_CONFIG_INDEX_MASK, WORD_CONFIG_INDEX_BITS);
 
         for (int i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
@@ -419,13 +456,13 @@ void board_print_words_configs(Board board)
             print_bits((words_config >> shift) & WORD_CONFIG_LENGTH_MASK, WORD_CONFIG_LENGTH_BITS);
         }
 
-        printf(" (index %u", (unsigned int)(words_config & WORD_CONFIG_INDEX_MASK));
+        printf(" (index %3u", (unsigned int)(words_config & WORD_CONFIG_INDEX_MASK));
 
         for (int i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
             int shift = WORD_CONFIG_INDEX_BITS + (i * WORD_CONFIG_LENGTH_BITS);
             unsigned int length = (unsigned int)((words_config >> shift) & WORD_CONFIG_LENGTH_MASK);
 
-            printf(", length%d %u", i + 1, length);
+            printf(", length%d %2u", i + 1, length);
         }
 
         printf(")\n");

@@ -16,6 +16,7 @@
 #define WORD_CONFIG_LENGTH_BITS 4
 #define WORD_CONFIG_INDEX_MASK UINT32_C(0x01FF)
 #define WORD_CONFIG_LENGTH_MASK UINT32_C(0x000F)
+#define WORD_START_POSITION_UNUSED UINT16_MAX
 
 typedef struct {
     uint16_t first3Tiles;
@@ -32,7 +33,11 @@ typedef struct {
 Row make_row(const char tiles[BOARD_SIZE + 1]);
 int row_can_house(Row board_row, Row proposed_row);
 
-void init_config_maps(uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE]);
+void init_config_maps(
+    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS],
+    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE],
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW]
+);
 
 Board board_from_csv(const char *board_file_path, const char *word_config_file_path, uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE]);
 

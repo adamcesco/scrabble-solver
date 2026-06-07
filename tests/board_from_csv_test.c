@@ -10,13 +10,14 @@ static char temp_board_path[128];
 static char temp_config_path[128];
 static uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS];
 static uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE];
+static uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW];
 
 static void setup(void)
 {
     snprintf(temp_board_path, sizeof(temp_board_path), "/tmp/scrabble_board_%ld.csv", (long)getpid());
     snprintf(temp_config_path, sizeof(temp_config_path), "/tmp/scrabble_board_config_%ld.csv", (long)getpid());
     memset(index_to_config, 0, sizeof(index_to_config));
-    init_config_maps(index_to_config, config_to_index);
+    init_config_maps(index_to_config, config_to_index, config_to_start_positions);
 
     FILE *file = fopen(temp_board_path, "w");
     assert(file != NULL);

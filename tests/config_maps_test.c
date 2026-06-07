@@ -12,6 +12,7 @@ typedef struct {
 
 static uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS];
 static uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE];
+static uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW];
 
 static const ExpectedConfig expected_configs[] = {
     {UINT16_C(0x0000), "..............."}, // 0
@@ -335,7 +336,7 @@ static int config_is_valid(uint16_t config)
 
 static void setup(void)
 {
-    init_config_maps(index_to_config, config_to_index);
+    init_config_maps(index_to_config, config_to_index, config_to_start_positions);
 }
 
 static void hardcoded_index_configs_match_expected_order(void)
@@ -389,6 +390,46 @@ static void rejects_configs_with_invalid_word_starts(void)
     assert(config_to_index[UINT16_C(1) << (MAX_START_CONFIG + 1)] == UINT16_MAX);
 }
 
+static void maps_configs_to_start_positions(void)
+{
+    uint16_t empty_config = UINT16_C(0x0000);
+    uint16_t one_start_config = UINT16_C(1) << 7;
+    uint16_t multi_start_config = (uint16_t)((1u << 2) | (1u << 6) | (1u << 11));
+
+    for (size_t i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+        assert(config_to_start_positions[empty_config][i] == WORD_START_POSITION_UNUSED);
+    }
+
+    assert(config_to_start_positions[one_start_config][0] == 7);
+    for (size_t i = 1; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+        assert(config_to_start_positions[one_start_config][i] == WORD_START_POSITION_UNUSED);
+    }
+
+    assert(config_to_start_positions[multi_start_config][0] == 2);
+    assert(config_to_start_positions[multi_start_config][1] == 6);
+    assert(config_to_start_positions[multi_start_config][2] == 11);
+    for (size_t i = 3; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+        assert(config_to_start_positions[multi_start_config][i] == WORD_START_POSITION_UNUSED);
+    }
+}
+
+static void leaves_invalid_config_start_positions_empty(void)
+{
+    uint16_t invalid_configs[] = {
+        UINT16_C(0x0003),
+        UINT16_C(0x0005),
+        UINT16_C(1) << (MAX_START_CONFIG + 1),
+    };
+
+    for (size_t config_index = 0; config_index < sizeof(invalid_configs) / sizeof(invalid_configs[0]); ++config_index) {
+        uint16_t config = invalid_configs[config_index];
+
+        for (size_t i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+            assert(config_to_start_positions[config][i] == WORD_START_POSITION_UNUSED);
+        }
+    }
+}
+
 static void run_test(const char *name, void (*test)(void))
 {
     setup();
@@ -402,6 +443,8 @@ int main(void)
     run_test("hardcoded_configs_map_to_expected_indexes", hardcoded_configs_map_to_expected_indexes);
     run_test("lookup_contains_each_valid_config_once", lookup_contains_each_valid_config_once);
     run_test("rejects_configs_with_invalid_word_starts", rejects_configs_with_invalid_word_starts);
+    run_test("maps_configs_to_start_positions", maps_configs_to_start_positions);
+    run_test("leaves_invalid_config_start_positions_empty", leaves_invalid_config_start_positions_empty);
 
     return 0;
 }
