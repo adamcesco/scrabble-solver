@@ -14,6 +14,7 @@ typedef struct {
 
 typedef struct {
     Row rows[BOARD_SIZE];
+    uint64_t wordStarts[BOARD_SIZE];
 } Board;
 
 Board board_from_csv(const char *file_path);
