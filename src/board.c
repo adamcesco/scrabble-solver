@@ -90,7 +90,9 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
 
 int row_can_house(Row board_row, Row row_with_just_proposed_word)
 {
-    return (((board_row.tiles ^ row_with_just_proposed_word.tiles) & board_row.careMask & row_with_just_proposed_word.careMask) == 0);
+    return (((board_row.tiles ^ row_with_just_proposed_word.tiles)
+                & board_row.careMask
+                & (row_with_just_proposed_word.careMask << TILE_BITS) | (row_with_just_proposed_word.careMask >> TILE_BITS)) == 0);
 }
 
 /* Word-start config maps */
