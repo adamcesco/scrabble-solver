@@ -29,6 +29,7 @@ typedef struct {
 Row make_row(const char tiles[BOARD_SIZE + 1]);
 uint16_t make_word_start_mask(uint16_t occupied);
 int row_can_house(Row board_row, Row row_with_just_proposed_word); // row_with_just_proposed_word should only house the new word that is to be potentially added to board_row
+Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word);
 
 void init_config_maps(
     uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], // when given an index, it provides an 15 bit map of the word-start configuration associated with that index

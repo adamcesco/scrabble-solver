@@ -92,7 +92,16 @@ int row_can_house(Row board_row, Row row_with_just_proposed_word)
 {
     return (((board_row.tiles ^ row_with_just_proposed_word.tiles)
                 & board_row.careMask
-                & (row_with_just_proposed_word.careMask << TILE_BITS) | (row_with_just_proposed_word.careMask >> TILE_BITS)) == 0);
+                & ((row_with_just_proposed_word.careMask << TILE_BITS) | (row_with_just_proposed_word.careMask >> TILE_BITS))) == 0);
+}
+
+Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word)
+{
+    return (Row){
+        .tiles = board_row.tiles & row_with_just_proposed_word.tiles,
+        .careMask = board_row.careMask | row_with_just_proposed_word.careMask,
+        .occupiedMask = board_row.occupiedMask | row_with_just_proposed_word.occupiedMask,
+    };
 }
 
 /* Word-start config maps */

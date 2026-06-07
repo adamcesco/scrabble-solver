@@ -75,6 +75,18 @@ static void row_can_house_when_proposed_word_ends_at_end_of_row(void)
     assert(row_can_house(board_row, proposed_row));
 }
 
+static void add_proposed_word_to_row_returns_new_row_with_existing_and_proposed_tiles(void)
+{
+    Row board_row = make_row("AB.....OR......");
+    Row proposed_row = make_row("......WORD.....");
+    Row expected_row = make_row("AB....WORD.....");
+    Row row = add_proposed_word_to_row(board_row, proposed_row);
+
+    assert(row.tiles == expected_row.tiles);
+    assert(row.careMask == expected_row.careMask);
+    assert(row.occupiedMask == expected_row.occupiedMask);
+}
+
 static void run_test(const char *name, void (*test)(void))
 {
     test();
@@ -92,6 +104,7 @@ int main(void)
     run_test("row_cannot_house_when_tile_after_proposed_word_is_occupied", row_cannot_house_when_tile_after_proposed_word_is_occupied);
     run_test("row_can_house_when_proposed_word_starts_at_beginning_of_row", row_can_house_when_proposed_word_starts_at_beginning_of_row);
     run_test("row_can_house_when_proposed_word_ends_at_end_of_row", row_can_house_when_proposed_word_ends_at_end_of_row);
+    run_test("add_proposed_word_to_row_returns_new_row_with_existing_and_proposed_tiles", add_proposed_word_to_row_returns_new_row_with_existing_and_proposed_tiles);
 
     return 0;
 }
