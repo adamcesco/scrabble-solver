@@ -8,12 +8,22 @@
 #include <unistd.h>
 
 static char temp_board_path[128];
+static char temp_config_path[128];
+static uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS];
+static uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE];
 
 static void setup(void)
 {
     snprintf(temp_board_path, sizeof(temp_board_path), "/tmp/scrabble_board_%ld.csv", (long)getpid());
+    snprintf(temp_config_path, sizeof(temp_config_path), "/tmp/scrabble_board_config_%ld.csv", (long)getpid());
+    memset(index_to_config, 0, sizeof(index_to_config));
+    init_config_maps(index_to_config, config_to_index);
 
     FILE *file = fopen(temp_board_path, "w");
+    assert(file != NULL);
+    fclose(file);
+
+    file = fopen(temp_config_path, "w");
     assert(file != NULL);
     fclose(file);
 }
@@ -21,6 +31,7 @@ static void setup(void)
 static void cleanup_after_each(void)
 {
     remove(temp_board_path);
+    remove(temp_config_path);
 }
 
 static void write_csv_row(FILE *file, const char tiles[BOARD_SIZE + 1])
@@ -36,6 +47,33 @@ static void write_csv_row(FILE *file, const char tiles[BOARD_SIZE + 1])
     fputc('\n', file);
 }
 
+static void write_empty_config(void)
+{
+    FILE *file = fopen(temp_config_path, "w");
+    assert(file != NULL);
+
+    for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+        write_csv_row(file, "...............");
+    }
+
+    fclose(file);
+}
+
+static void write_config_with_first_row(const char *first_row)
+{
+    FILE *file = fopen(temp_config_path, "w");
+    assert(file != NULL);
+
+    fputs(first_row, file);
+    fputc('\n', file);
+
+    for (int row_index = 1; row_index < BOARD_SIZE; ++row_index) {
+        write_csv_row(file, "...............");
+    }
+
+    fclose(file);
+}
+
 static void write_board_with_first_row(const char first_row[BOARD_SIZE + 1])
 {
     FILE *file = fopen(temp_board_path, "w");
@@ -48,6 +86,7 @@ static void write_board_with_first_row(const char first_row[BOARD_SIZE + 1])
     }
 
     fclose(file);
+    write_empty_config();
 }
 
 static void write_text_file(const char *contents)
@@ -106,7 +145,7 @@ static void loads_letters_from_csv_board(void)
 
     write_board_with_first_row(first_row);
 
-    Board board = board_from_csv(temp_board_path);
+    Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
 
     assert(board.rows[0].first3Tiles == pack_first3(first_row));
     assert(board.rows[0].last12Tiles == pack_last12(first_row));
@@ -123,7 +162,7 @@ static void keeps_empty_tiles_as_blank_values(void)
 
     write_board_with_first_row(first_row);
 
-    Board board = board_from_csv(temp_board_path);
+    Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
 
     assert(board.rows[0].first3Tiles == pack_first3(first_row));
     assert(board.rows[0].last12Tiles == pack_last12(first_row));
@@ -133,9 +172,22 @@ static void returns_zeroed_board_when_first_csv_row_is_malformed(void)
 {
     write_text_file("A,B,C\n");
 
-    Board board = board_from_csv(temp_board_path);
+    Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
 
     assert_board_is_zeroed(board);
+}
+
+static void loads_word_config_indices_and_lengths(void)
+{
+    uint16_t config_mask = (uint16_t)(1u << 7);
+    uint16_t lookup_index = config_to_index[config_mask];
+
+    write_board_with_first_row("...............");
+    write_config_with_first_row(".,.,.,.,.,.,.,S,2,.,.,.,.,.,.");
+
+    Board board = board_from_csv(temp_board_path, temp_config_path, config_to_index);
+
+    assert(board.wordsConfigs[0] == ((lookup_index & UINT16_C(0x01FF)) | (UINT32_C(2) << 9)));
 }
 
 static void run_test(const char *name, void (*test)(void))
@@ -151,6 +203,7 @@ int main(void)
     run_test("loads_letters_from_csv_board", loads_letters_from_csv_board);
     run_test("keeps_empty_tiles_as_blank_values", keeps_empty_tiles_as_blank_values);
     run_test("returns_zeroed_board_when_first_csv_row_is_malformed", returns_zeroed_board_when_first_csv_row_is_malformed);
+    run_test("loads_word_config_indices_and_lengths", loads_word_config_indices_and_lengths);
 
     return 0;
 }

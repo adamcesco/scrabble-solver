@@ -40,6 +40,13 @@ static void print_bits(uint64_t value, int bit_count)
     }
 }
 
+static void print_bits_compact(uint64_t value, int bit_count)
+{
+    for (int bit_index = bit_count - 1; bit_index >= 0; --bit_index) {
+        putchar((value & ((uint64_t)1 << bit_index)) ? '1' : '0');
+    }
+}
+
 static void print_tile_chars(uint64_t packed_tiles, int tile_count)
 {
     for (int tile_index = 0; tile_index < tile_count; ++tile_index) {
@@ -53,6 +60,110 @@ static void print_tile_chars(uint64_t packed_tiles, int tile_count)
             putchar(' ');
         }
     }
+}
+
+static void add_config(uint16_t config, size_t *config_count, uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
+{
+    if (*config_count >= MAX_NUMBER_OF_START_CONFIGS) {
+        return;
+    }
+
+    index_to_config[*config_count] = config;
+    config_to_index[config] = (uint16_t)*config_count;
+    (*config_count)++;
+}
+
+static void generate_configs_from(int min_start, uint16_t current_config, size_t *config_count, uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
+{
+    add_config(current_config, config_count, index_to_config, config_to_index);
+
+    for (int start = min_start; start <= MAX_START_CONFIG; start++) {
+        uint16_t next_config = current_config | (uint16_t)(1u << start);
+
+        generate_configs_from(
+            start + NEXT_START_CONFIG_OFFSET,
+            next_config,
+            config_count,
+            index_to_config,
+            config_to_index
+        );
+    }
+}
+
+void init_config_maps(uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
+{
+    size_t config_count = 0;
+
+    for (size_t i = 0; i < WORD_START_CONFIG_LOOKUP_SIZE; i++) {
+        config_to_index[i] = UINT16_MAX;
+    }
+
+    generate_configs_from(0, 0, &config_count, index_to_config, config_to_index);
+}
+
+static int parse_config_csv_row(const char *line, uint16_t lengths[MAX_NUMBER_OF_WORDS_PER_ROW])
+{
+    int length_count = 0;
+
+    for (int i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+        lengths[i] = 0;
+    }
+
+    for (int i = 0; line[i] != '\0' && line[i] != '\n';) {
+        if (line[i] == ',') {
+            i++;
+            continue;
+        }
+
+        if (!isdigit((unsigned char)line[i])) {
+            while (line[i] != '\0' && line[i] != '\n' && line[i] != ',') {
+                i++;
+            }
+            continue;
+        }
+
+        if (length_count >= MAX_NUMBER_OF_WORDS_PER_ROW) {
+            return 0;
+        }
+
+        uint16_t value = 0;
+        while (isdigit((unsigned char)line[i])) {
+            value = (uint16_t)(value * 10u + (uint16_t)(line[i] - '0'));
+            if (value > 15u) {
+                return 0;
+            }
+            i++;
+        }
+
+        if (line[i] != '\0' && line[i] != '\n' && line[i] != ',') {
+            return 0;
+        }
+
+        lengths[length_count] = value;
+        length_count++;
+    }
+
+    return 1;
+}
+
+static uint32_t get_words_config(const char start_flags[BOARD_SIZE + 1], uint16_t lengths[MAX_NUMBER_OF_WORDS_PER_ROW], uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
+{
+    uint16_t config_mask = 0;
+
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        if (isalpha(start_flags[i])) {
+            config_mask |= (uint16_t)(1u << i);
+        }
+    }
+
+    uint16_t index = config_to_index[config_mask];
+    uint32_t words_config = (uint32_t)(index & UINT16_C(0x01FF));
+
+    for (int i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+        words_config |= (uint32_t)(lengths[i] & UINT16_C(0x000F)) << (9 + (i * 4));
+    }
+
+    return words_config;
 }
 
 static uint16_t pack_first3(const char tiles[BOARD_SIZE + 1])
@@ -133,38 +244,74 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
     return row;
 }
 
-Board board_from_csv(const char *file_path)
+Board board_from_csv(const char *baord_file_path, const char *word_config_file_path, uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE])
 {
     Board board = {0};
-    FILE *file = fopen(file_path, "r");
+    FILE *board_file = fopen(baord_file_path, "r");
     char line[BOARD_CSV_LINE_MAX];
 
-    if (file == NULL) {
+    if (board_file == NULL) {
         return board;
     }
 
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         char tiles[BOARD_SIZE + 1];
 
-        if (fgets(line, sizeof(line), file) == NULL) {
-            fclose(file);
+        if (fgets(line, sizeof(line), board_file) == NULL) {
+            fclose(board_file);
             return board;
         }
 
-        if (strchr(line, '\n') == NULL && !feof(file)) {
-            fclose(file);
+        if (strchr(line, '\n') == NULL && !feof(board_file)) {
+            fclose(board_file);
             return board;
         }
 
         if (!parse_csv_row(line, tiles)) {
-            fclose(file);
+            fclose(board_file);
             return board;
         }
 
         board.rows[row_index] = make_row(tiles);
     }
+    
+    fclose(board_file);
+    
+    FILE *word_config_file = fopen(word_config_file_path, "r");
 
-    fclose(file);
+    if (word_config_file == NULL) {
+        return board;
+    }
+
+    for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+        char start_flags[BOARD_SIZE + 1];
+        uint16_t lengths[MAX_NUMBER_OF_WORDS_PER_ROW];
+
+        if (fgets(line, sizeof(line), word_config_file) == NULL) {
+            fclose(word_config_file);
+            return board;
+        }
+
+        if (strchr(line, '\n') == NULL && !feof(word_config_file)) {
+            fclose(word_config_file);
+            return board;
+        }
+
+        if (!parse_csv_row(line, start_flags)) {
+            fclose(word_config_file);
+            return board;
+        }
+
+        if (!parse_config_csv_row(line, lengths)) {
+            fclose(word_config_file);
+            return board;
+        }
+
+        board.wordsConfigs[row_index] = get_words_config(start_flags, lengths, config_to_index);
+    }
+    
+    fclose(word_config_file);
+
     return board;
 }
 
@@ -192,5 +339,29 @@ void board_print(Board board)
         printf("                   ");
         print_tile_chars(row.last12Tiles, BOARD_SIZE - 3);
         putchar('\n');
+    }
+}
+
+void board_print_words_configs(Board board)
+{
+    for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+        uint32_t words_config = board.wordsConfigs[row_index];
+
+        printf("row %d wordsConfig: ", row_index + 1);
+        print_bits_compact(words_config & UINT32_C(0x01FF), 9);
+
+        for (int i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+            putchar(' ');
+            print_bits((words_config >> (9 + (i * 4))) & UINT32_C(0x000F), 4);
+        }
+
+        printf(" (index %u", (unsigned int)(words_config & UINT32_C(0x01FF)));
+
+        for (int i = 0; i < MAX_NUMBER_OF_WORDS_PER_ROW; ++i) {
+            unsigned int length = (unsigned int)((words_config >> (9 + (i * 4))) & UINT32_C(0x000F));
+            printf(", length%d %u", i + 1, length);
+        }
+
+        printf(")\n");
     }
 }
