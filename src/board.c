@@ -89,6 +89,34 @@ static uint64_t make_last12_care_mask(uint64_t tiles)
     return make_care_mask(tiles, LAST_TILE_GROUP_SIZE);
 }
 
+static uint16_t make_occupied_mask(Row row)
+{
+    uint16_t occupied = 0;
+
+    occupied |= (uint16_t)(((row.first3CareMask >> 10) & UINT16_C(1)) << 0);
+    occupied |= (uint16_t)(((row.first3CareMask >> 5) & UINT16_C(1)) << 1);
+    occupied |= (uint16_t)((row.first3CareMask & UINT16_C(1)) << 2);
+    occupied |= (uint16_t)(((row.last12CareMask >> 55) & UINT64_C(1)) << 3);
+    occupied |= (uint16_t)(((row.last12CareMask >> 50) & UINT64_C(1)) << 4);
+    occupied |= (uint16_t)(((row.last12CareMask >> 45) & UINT64_C(1)) << 5);
+    occupied |= (uint16_t)(((row.last12CareMask >> 40) & UINT64_C(1)) << 6);
+    occupied |= (uint16_t)(((row.last12CareMask >> 35) & UINT64_C(1)) << 7);
+    occupied |= (uint16_t)(((row.last12CareMask >> 30) & UINT64_C(1)) << 8);
+    occupied |= (uint16_t)(((row.last12CareMask >> 25) & UINT64_C(1)) << 9);
+    occupied |= (uint16_t)(((row.last12CareMask >> 20) & UINT64_C(1)) << 10);
+    occupied |= (uint16_t)(((row.last12CareMask >> 15) & UINT64_C(1)) << 11);
+    occupied |= (uint16_t)(((row.last12CareMask >> 10) & UINT64_C(1)) << 12);
+    occupied |= (uint16_t)(((row.last12CareMask >> 5) & UINT64_C(1)) << 13);
+    occupied |= (uint16_t)((row.last12CareMask & UINT64_C(1)) << 14);
+
+    return occupied;
+}
+
+uint16_t make_word_start_mask(uint16_t occupied)
+{
+    return (uint16_t)(occupied & (uint16_t)~(occupied << 1));
+}
+
 Row make_row(const char tiles[BOARD_SIZE + 1])
 {
     Row row = {
@@ -98,6 +126,7 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
 
     row.first3CareMask = make_first3_care_mask(row.first3Tiles);
     row.last12CareMask = make_last12_care_mask(row.last12Tiles);
+    row.occupiedMask = make_occupied_mask(row);
 
     return row;
 }

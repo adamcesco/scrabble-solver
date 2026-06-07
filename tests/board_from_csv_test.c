@@ -101,6 +101,7 @@ static void assert_board_is_zeroed(Board board)
 {
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         assert(board.rows[row_index].first3Tiles == 0);
+        assert(board.rows[row_index].occupiedMask == 0);
         assert(board.rows[row_index].last12Tiles == 0);
         assert(board.wordsConfigs[row_index] == 0);
     }

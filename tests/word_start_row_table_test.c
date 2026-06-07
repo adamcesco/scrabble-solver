@@ -28,6 +28,7 @@ static void assert_rows_equal(Row actual, Row expected)
 {
     assert(actual.first3Tiles == expected.first3Tiles);
     assert(actual.first3CareMask == expected.first3CareMask);
+    assert(actual.occupiedMask == expected.occupiedMask);
     assert(actual.last12Tiles == expected.last12Tiles);
     assert(actual.last12CareMask == expected.last12CareMask);
 }
