@@ -61,7 +61,23 @@ static void assert_board_is_zeroed(Board board)
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         assert(board.rows[row_index].tiles == 0);
         assert(board.rows[row_index].occupiedMask == 0);
+        assert(board.perpendicularRows[row_index].tiles == 0);
+        assert(board.perpendicularRows[row_index].occupiedMask == 0);
     }
+}
+
+static void write_board_with_diagonal_letters(void)
+{
+    FILE *file = fopen(temp_board_path, "w");
+    assert(file != NULL);
+
+    for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+        char tiles[BOARD_SIZE + 1] = "...............";
+        tiles[row_index] = (char)('A' + row_index);
+        write_csv_row(file, tiles);
+    }
+
+    fclose(file);
 }
 
 static void loads_letters_from_csv_board(void)
@@ -92,6 +108,23 @@ static void keeps_empty_tiles_as_blank_values(void)
     assert(board.rows[0].tiles == expected_first_row.tiles);
 }
 
+static void loads_perpendicular_rows_from_csv_board(void)
+{
+    write_board_with_diagonal_letters();
+
+    Board board = board_from_csv(temp_board_path);
+
+    for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
+        char expected_tiles[BOARD_SIZE + 1] = "...............";
+        expected_tiles[col_index] = (char)('A' + col_index);
+        Row expected_row = make_row(expected_tiles);
+
+        assert(board.perpendicularRows[col_index].tiles == expected_row.tiles);
+        assert(board.perpendicularRows[col_index].careMask == expected_row.careMask);
+        assert(board.perpendicularRows[col_index].occupiedMask == expected_row.occupiedMask);
+    }
+}
+
 static void returns_zeroed_board_when_first_csv_row_is_malformed(void)
 {
     write_text_file("A,B,C\n");
@@ -113,6 +146,7 @@ int main(void)
 {
     run_test("loads_letters_from_csv_board", loads_letters_from_csv_board);
     run_test("keeps_empty_tiles_as_blank_values", keeps_empty_tiles_as_blank_values);
+    run_test("loads_perpendicular_rows_from_csv_board", loads_perpendicular_rows_from_csv_board);
     run_test("returns_zeroed_board_when_first_csv_row_is_malformed", returns_zeroed_board_when_first_csv_row_is_malformed);
 
     return 0;

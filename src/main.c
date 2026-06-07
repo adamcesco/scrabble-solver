@@ -17,6 +17,8 @@ int main(int argc, char **argv)
 
     // printing
     board_print(board);
+    printf("\n");
+    board_print_perpendicular(board);
 
     printf("loaded %zu words from %s\n", dictionary.count, dictionary_path);
     word_table_print(&dictionary);

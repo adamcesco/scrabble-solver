@@ -104,6 +104,26 @@ Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word)
     };
 }
 
+Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t word_start, uint16_t word_length)
+{
+    board.rows[row_index] = row;
+
+    for (uint16_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
+        int row_shift = (BOARD_SIZE - 1 - col_index) * TILE_BITS;
+        int perpendicular_shift = (BOARD_SIZE - 1 - row_index) * TILE_BITS;
+        RowTiles tile = (row.tiles & tile_mask_at_shift(row_shift)) >> row_shift;
+        RowTiles perpendicular_tile_mask = tile_mask_at_shift(perpendicular_shift);
+        Row *perpendicular_row = &board.perpendicularRows[col_index];
+
+        perpendicular_row->tiles = (perpendicular_row->tiles & ~perpendicular_tile_mask)
+                                 | (tile << perpendicular_shift);
+        perpendicular_row->careMask |= perpendicular_tile_mask;
+        perpendicular_row->occupiedMask |= (uint16_t)(1u << row_index);
+    }
+
+    return board;
+}
+
 /* Word-start config maps */
 
 static void set_config_start_positions(uint16_t config, uint16_t start_positions[MAX_NUMBER_OF_WORDS_PER_ROW])
@@ -222,6 +242,7 @@ static int load_board_rows(Board *board, const char *board_file_path)
 {
     FILE *board_file = fopen(board_file_path, "r");
     char line[BOARD_CSV_LINE_MAX];
+    char perpendicular_tiles[BOARD_SIZE][BOARD_SIZE + 1];
 
     if (board_file == NULL) {
         return 0;
@@ -236,9 +257,18 @@ static int load_board_rows(Board *board, const char *board_file_path)
         }
 
         board->rows[row_index] = make_row(tiles);
+
+        for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
+            perpendicular_tiles[col_index][row_index] = tiles[col_index];
+        }
     }
 
     fclose(board_file);
+
+    for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
+        perpendicular_tiles[col_index][BOARD_SIZE] = '\0';
+        board->perpendicularRows[col_index] = make_row(perpendicular_tiles[col_index]);
+    }
 
     return 1;
 }
@@ -286,6 +316,20 @@ void board_print(Board board)
 {
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         Row row = board.rows[row_index];
+
+        printf("row %2d ", row_index + 1);
+        print_bits(row.tiles, BOARD_SIZE * TILE_BITS);
+        putchar('\n');
+        printf("       ");
+        print_tile_chars(row.tiles);
+        putchar('\n');
+    }
+}
+
+void board_print_perpendicular(Board board)
+{
+    for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+        Row row = board.perpendicularRows[row_index];
 
         printf("row %2d ", row_index + 1);
         print_bits(row.tiles, BOARD_SIZE * TILE_BITS);

@@ -24,12 +24,14 @@ typedef struct {
 
 typedef struct {
     Row rows[BOARD_SIZE];
+    Row perpendicularRows[BOARD_SIZE];
 } Board;
 
 Row make_row(const char tiles[BOARD_SIZE + 1]);
 uint16_t make_word_start_mask(uint16_t occupied);
 int row_can_house(Row board_row, Row row_with_just_proposed_word); // row_with_just_proposed_word should only house the new word that is to be potentially added to board_row
 Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word);
+Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t word_start, uint16_t word_length);
 
 void init_config_maps(
     uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], // when given an index, it provides an 15 bit map of the word-start configuration associated with that index
@@ -40,5 +42,6 @@ void init_config_maps(
 Board board_from_csv(const char *board_file_path);
 
 void board_print(Board board);
+void board_print_perpendicular(Board board);
 
 #endif
