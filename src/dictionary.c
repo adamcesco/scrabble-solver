@@ -2,6 +2,7 @@
 
 #include "dictionary.h"
 
+#include <ctype.h>
 #include <search.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,17 @@
 static void trim_line_ending(char *line)
 {
     line[strcspn(line, "\r\n")] = '\0';
+}
+
+static void uppercase_alpha_chars(char *word)
+{
+    for (size_t i = 0; word[i] != '\0'; ++i) {
+        unsigned char ch = (unsigned char)word[i];
+
+        if (isalpha(ch)) {
+            word[i] = (char)toupper(ch);
+        }
+    }
 }
 
 static void print_bits(RowTiles value, int bit_count)
@@ -148,6 +160,7 @@ WordTable words_from_file(const char *file_path)
 
     while (getline(&line, &line_capacity, file) != -1) {
         trim_line_ending(line);
+        uppercase_alpha_chars(line);
         if (line[0] == '\0') {
             continue;
         }

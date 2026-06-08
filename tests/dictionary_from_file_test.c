@@ -64,6 +64,23 @@ static void ignores_empty_lines_and_duplicate_words(void)
     word_table_destroy(&table);
 }
 
+static void uppercases_alpha_characters_when_loading_words(void)
+{
+    WordTable table;
+
+    write_text_file("apple\nbErry\nCHERRY\n");
+
+    table = words_from_file(temp_dictionary_path);
+
+    assert(table.count == 3);
+    assert(word_table_contains(&table, "APPLE"));
+    assert(word_table_contains(&table, "BERRY"));
+    assert(word_table_contains(&table, "CHERRY"));
+    assert(!word_table_contains(&table, "apple"));
+
+    word_table_destroy(&table);
+}
+
 static void returns_empty_table_when_file_cannot_be_opened(void)
 {
     WordTable table = words_from_file("/tmp/scrabble_dictionary_missing.txt");
@@ -117,6 +134,7 @@ int main(void)
 {
     run_test("loads_one_word_per_line_into_hash_table", loads_one_word_per_line_into_hash_table);
     run_test("ignores_empty_lines_and_duplicate_words", ignores_empty_lines_and_duplicate_words);
+    run_test("uppercases_alpha_characters_when_loading_words", uppercases_alpha_characters_when_loading_words);
     run_test("returns_empty_table_when_file_cannot_be_opened", returns_empty_table_when_file_cannot_be_opened);
     run_test("searches_multiple_tables_independently", searches_multiple_tables_independently);
 

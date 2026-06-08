@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 
     // test add a word
     int row_index = 8;
+    int count = 0;
     for (size_t entry_index = 0; entry_index < starting_position_to_row.count; ++entry_index) {
         const WordStartRowEntry *entry = &starting_position_to_row.entries[entry_index];
 
@@ -49,12 +50,14 @@ int main(int argc, char **argv)
                     start,
                     entry->word_length);
                 if (validate_perpendicular_rows(&dictionary, config_to_start_positions, new_board, start, entry->word_length)) {
-                    printf("row %2d ", row_index + 1);
-                    print_row(new_board.rows[row_index]);
+                    ++count;
+                    // printf("row %2d ", row_index + 1);
+                    // print_row(new_board.rows[row_index]);
                 }
             }
         }
     }
+    printf("There are %2d possible moves", count);
 
     // destroy hash-tables and hash-maps
     word_start_row_table_destroy(&starting_position_to_row);
