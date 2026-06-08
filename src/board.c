@@ -311,17 +311,19 @@ static void print_tile_chars(RowTiles packed_tiles)
     }
 }
 
+void print_row(Row row) {
+    print_bits(row.tiles, BOARD_SIZE * TILE_BITS);
+    putchar('\n');
+    printf("       ");
+    print_tile_chars(row.tiles);
+    putchar('\n');
+}
+
 static void print_rows(const Row rows[BOARD_SIZE])
 {
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
-        Row row = rows[row_index];
-
         printf("row %2d ", row_index + 1);
-        print_bits(row.tiles, BOARD_SIZE * TILE_BITS);
-        putchar('\n');
-        printf("       ");
-        print_tile_chars(row.tiles);
-        putchar('\n');
+        print_row(rows[row_index]);
     }
 }
 

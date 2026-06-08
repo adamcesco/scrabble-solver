@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TILE_BITS ROW_TILE_BITS
-
 static void trim_line_ending(char *line)
 {
     line[strcspn(line, "\r\n")] = '\0';
@@ -19,7 +17,7 @@ static void print_bits(RowTiles value, int bit_count)
     for (int bit_index = bit_count - 1; bit_index >= 0; --bit_index) {
         putchar((value & ((RowTiles)1 << bit_index)) ? '1' : '0');
 
-        if (bit_index > 0 && bit_index % TILE_BITS == 0) {
+        if (bit_index > 0 && bit_index % ROW_TILE_BITS == 0) {
             putchar(' ');
         }
     }
@@ -226,6 +224,7 @@ WordStartRowTable word_start_row_table_from_word_table(const WordTable *words)
         size_t word_length = strlen(words->words[word_index]);
 
         entry->word = words->words[word_index];
+        entry->word_length = (uint16_t)word_length;
 
         for (size_t start = 0; start < BOARD_SIZE; ++start) {
             if (word_length <= BOARD_SIZE - start) {
@@ -291,7 +290,7 @@ void word_start_row_table_print(const WordStartRowTable *table)
 
             row = &entry->rows[start];
             printf("%s start %2zu ", entry->word, start);
-            print_bits(row->tiles, BOARD_SIZE * TILE_BITS);
+            print_bits(row->tiles, BOARD_SIZE * ROW_TILE_BITS);
             putchar('\n');
         }
     }

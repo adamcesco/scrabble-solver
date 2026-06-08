@@ -44,6 +44,8 @@ static void builds_rows_for_words_at_requested_start_positions(void)
     rows = word_start_row_table_from_word_table(&words);
 
     assert(rows.count == 2);
+    assert(rows.entries[0].word_length == 3);
+    assert(rows.entries[1].word_length == 5);
 
     cat_at_two = word_start_row_table_get(&rows, "CAT", 2);
     cat_at_twelve = word_start_row_table_get(&rows, "CAT", 12);

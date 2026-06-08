@@ -43,6 +43,7 @@ void init_config_map(
 
 Board board_from_csv(const char *board_file_path);
 
+void print_row(Row row);
 void board_print(Board board);
 void board_print_perpendicular(Board board);
 

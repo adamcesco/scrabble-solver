@@ -14,6 +14,7 @@ typedef struct {
 
 typedef struct {
     const char *word;
+    uint16_t word_length;
     Row rows[BOARD_SIZE];
     uint16_t valid_starts;
 } WordStartRowEntry;
