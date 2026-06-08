@@ -89,11 +89,12 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
     return row;
 }
 
-int row_can_house(Row board_row, Row row_with_just_proposed_word)
+int is_placeable_on_row(Row board_row, Row row_with_just_proposed_word)
 {
     return (((board_row.tiles ^ row_with_just_proposed_word.tiles)
                 & board_row.careMask
-                & ((row_with_just_proposed_word.careMask << TILE_BITS) | (row_with_just_proposed_word.careMask >> TILE_BITS))) == 0);
+                & ((row_with_just_proposed_word.careMask << TILE_BITS) | (row_with_just_proposed_word.careMask >> TILE_BITS))) == 0)
+            && ((board_row.occupiedMask & row_with_just_proposed_word.occupiedMask) != 0);
 }
 
 Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word)

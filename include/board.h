@@ -33,7 +33,7 @@ typedef struct {
 
 Row make_row(const char tiles[BOARD_SIZE + 1]);
 uint16_t make_word_start_mask(uint16_t occupied);
-int row_can_house(Row board_row, Row row_with_just_proposed_word); // row_with_just_proposed_word should only house the new word that is to be potentially added to board_row
+int is_placeable_on_row(Row board_row, Row row_with_just_proposed_word); // row_with_just_proposed_word should only house the new word that is to be potentially added to board_row
 Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word);
 Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t word_start, uint16_t word_length);
 

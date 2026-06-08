@@ -21,6 +21,7 @@ int main(int argc, char **argv)
     board_print(board);
     printf("\n");
     board_print_perpendicular(board);
+    printf("\n");
 
     // printf("loaded %zu words from %s\n", dictionary.count, dictionary_path);
     // word_table_print(&dictionary);
@@ -40,22 +41,20 @@ int main(int argc, char **argv)
             
             const Row *row_with_just_proposed_word = &entry->rows[start];
             
-            if (row_can_house(board.rows[row_index], *row_with_just_proposed_word)) {
+            if (is_placeable_on_row(board.rows[row_index], *row_with_just_proposed_word)) {
                 Board new_board = place_word_row_on_board(
                     board,
                     add_proposed_word_to_row(board.rows[row_index], *row_with_just_proposed_word),
                     row_index,
                     start,
                     entry->word_length);
-                if (validate_perpendicular_rows(&dictionary, config_to_start_positions, board, start, entry->word_length)) {
+                if (validate_perpendicular_rows(&dictionary, config_to_start_positions, new_board, start, entry->word_length)) {
                     printf("row %2d ", row_index + 1);
                     print_row(new_board.rows[row_index]);
                 }
             }
         }
     }
-
-
 
     // destroy hash-tables and hash-maps
     word_start_row_table_destroy(&starting_position_to_row);
