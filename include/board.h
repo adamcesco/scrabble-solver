@@ -1,6 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include <limits.h>
 #include <stdint.h>
 
 #define BOARD_SIZE 15
@@ -15,6 +16,9 @@
 #define WORD_START_POSITION_UNUSED UINT16_MAX
 
 typedef __uint128_t RowTiles;
+
+#define ROW_TILE_BITS CHAR_BIT
+#define ROW_TILE_MASK ((RowTiles)UCHAR_MAX)
 
 typedef struct {
     RowTiles tiles;
@@ -33,10 +37,8 @@ int row_can_house(Row board_row, Row row_with_just_proposed_word); // row_with_j
 Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word);
 Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t word_start, uint16_t word_length);
 
-void init_config_maps(
-    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS], // when given an index, it provides an 15 bit map of the word-start configuration associated with that index
-    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE], // when given a word-start configuration, it provides an index of that configuration to be used with index_to_config
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW] // when given a word-start configuration, it provides a list of all numeric starting positions for each word (0 - 14)
+void init_config_map(
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1] // when given a word-start configuration, [0] is the number of starts and [1..count] are the numeric starting positions (0 - 14)
 );
 
 Board board_from_csv(const char *board_file_path);

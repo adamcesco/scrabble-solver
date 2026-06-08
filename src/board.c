@@ -7,65 +7,66 @@
 /* Constants */
 
 #define BOARD_CSV_LINE_MAX 64
-#define TILE_BITS 5
-#define TILE_MASK ((RowTiles)0x1F)
-#define BLANK_TILE_VALUE TILE_MASK
+#define TILE_BITS ROW_TILE_BITS
+#define TILE_MASK ROW_TILE_MASK
+#define BLANK_TILE_VALUE 0
 
 /* Row encoding */
 
-static RowTiles tile_mask_at_shift(int shift)
+static int tile_shift_at_col(int col_index)
 {
-    return TILE_MASK << shift;
+    return col_index * TILE_BITS;
 }
 
-static RowTiles packed_tile_value(unsigned char tile)
+static RowTiles tile_mask_at_col(int col_index)
 {
-    return (RowTiles)(tile & (unsigned char)TILE_MASK);
+    return TILE_MASK << tile_shift_at_col(col_index);
+}
+
+static unsigned char tile_at_col(RowTiles packed_tiles, int col_index)
+{
+    return (unsigned char)((packed_tiles >> tile_shift_at_col(col_index)) & TILE_MASK);
 }
 
 static RowTiles pack_tiles(const char tiles[BOARD_SIZE + 1])
 {
-    RowTiles packed = (RowTiles)-1;
+    RowTiles packed = 0;
 
     for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
         unsigned char tile = (unsigned char)tiles[col_index];
 
         if (isalpha(tile)) {
-            int shift = (BOARD_SIZE - 1 - col_index) * TILE_BITS;
-            RowTiles mask = tile_mask_at_shift(shift);
-            RowTiles value = packed_tile_value(tile) << shift;
+            int shift = tile_shift_at_col(col_index);
+            RowTiles value = (RowTiles)tile << shift;
 
-            packed = (packed & ~mask) | value;
+            packed |= value;
         }
     }
 
     return packed;
 }
 
-static RowTiles make_care_mask(RowTiles packed_tiles)
+static RowTiles make_care_mask(const char tiles[BOARD_SIZE + 1])
 {
     RowTiles care = 0;
 
-    for (int tile_index = 0; tile_index < BOARD_SIZE; ++tile_index) {
-        int shift = tile_index * TILE_BITS;
-        RowTiles mask = tile_mask_at_shift(shift);
-
-        if ((packed_tiles & mask) != mask) {
-            care |= mask;
+    for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
+        if (isalpha((unsigned char)tiles[col_index])) {
+            care |= tile_mask_at_col(col_index);
         }
     }
 
     return care;
 }
 
-static uint16_t make_occupied_mask(Row row)
+static uint16_t make_occupied_mask(const char tiles[BOARD_SIZE + 1])
 {
     uint16_t occupied = 0;
 
     for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
-        int shift = (BOARD_SIZE - 1 - col_index) * TILE_BITS;
-
-        occupied |= (uint16_t)(((row.careMask >> shift) & (RowTiles)1) << col_index);
+        if (isalpha((unsigned char)tiles[col_index])) {
+            occupied |= (uint16_t)(1u << col_index);
+        }
     }
 
     return occupied;
@@ -73,7 +74,7 @@ static uint16_t make_occupied_mask(Row row)
 
 uint16_t make_word_start_mask(uint16_t occupied)
 {
-    return (uint16_t)(occupied & (uint16_t)~(occupied << 1));
+    return (uint16_t)((occupied & (uint16_t)~(occupied << 1)) & (occupied >> (MIN_WORD_LEN - 1)));
 }
 
 Row make_row(const char tiles[BOARD_SIZE + 1])
@@ -82,8 +83,8 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
         .tiles = pack_tiles(tiles),
     };
 
-    row.careMask = make_care_mask(row.tiles);
-    row.occupiedMask = make_occupied_mask(row);
+    row.careMask = make_care_mask(tiles);
+    row.occupiedMask = make_occupied_mask(tiles);
 
     return row;
 }
@@ -98,7 +99,7 @@ int row_can_house(Row board_row, Row row_with_just_proposed_word)
 Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word)
 {
     return (Row){
-        .tiles = board_row.tiles & row_with_just_proposed_word.tiles,
+        .tiles = board_row.tiles | row_with_just_proposed_word.tiles,
         .careMask = board_row.careMask | row_with_just_proposed_word.careMask,
         .occupiedMask = board_row.occupiedMask | row_with_just_proposed_word.occupiedMask,
     };
@@ -109,14 +110,13 @@ Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t
     board.rows[row_index] = row;
 
     for (uint16_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
-        int row_shift = (BOARD_SIZE - 1 - col_index) * TILE_BITS;
-        int perpendicular_shift = (BOARD_SIZE - 1 - row_index) * TILE_BITS;
-        RowTiles tile = (row.tiles & tile_mask_at_shift(row_shift)) >> row_shift;
-        RowTiles perpendicular_tile_mask = tile_mask_at_shift(perpendicular_shift);
+        int row_shift = tile_shift_at_col(col_index);
+        int perpendicular_shift = tile_shift_at_col(row_index);
+        RowTiles tile = (row.tiles & tile_mask_at_col(col_index)) >> row_shift;
+        RowTiles perpendicular_tile_mask = tile_mask_at_col(row_index);
         Row *perpendicular_row = &board.perpendicularRows[col_index];
 
-        perpendicular_row->tiles = (perpendicular_row->tiles & ~perpendicular_tile_mask)
-                                 | (tile << perpendicular_shift);
+        perpendicular_row->tiles = (perpendicular_row->tiles & ~perpendicular_tile_mask) | (tile << perpendicular_shift);
         perpendicular_row->careMask |= perpendicular_tile_mask;
         perpendicular_row->occupiedMask |= (uint16_t)(1u << row_index);
     }
@@ -124,9 +124,9 @@ Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t
     return board;
 }
 
-/* Word-start config maps */
+/* starting positions for words configurations map */
 
-static void set_config_start_positions(uint16_t config, uint16_t start_positions[MAX_NUMBER_OF_WORDS_PER_ROW])
+static void set_config_start_positions(uint16_t config, uint16_t start_positions[MAX_NUMBER_OF_WORDS_PER_ROW + 1])
 {
     size_t position_count = 0;
 
@@ -139,25 +139,23 @@ static void set_config_start_positions(uint16_t config, uint16_t start_positions
             return;
         }
 
-        start_positions[position_count] = start;
         position_count++;
+        start_positions[position_count] = start;
     }
+
+    start_positions[0] = (uint16_t)position_count;
 }
 
 static void add_config(
     uint16_t config,
     size_t *config_count,
-    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS],
-    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE],
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW]
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
 )
 {
     if (*config_count >= MAX_NUMBER_OF_START_CONFIGS) {
         return;
     }
 
-    index_to_config[*config_count] = config;
-    config_to_index[config] = (uint16_t)*config_count;
     set_config_start_positions(config, config_to_start_positions[config]);
     (*config_count)++;
 }
@@ -166,12 +164,10 @@ static void generate_configs_from(
     int min_start,
     uint16_t current_config,
     size_t *config_count,
-    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS],
-    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE],
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW]
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
 )
 {
-    add_config(current_config, config_count, index_to_config, config_to_index, config_to_start_positions);
+    add_config(current_config, config_count, config_to_start_positions);
 
     for (int start = min_start; start <= MAX_START_CONFIG; start++) {
         uint16_t next_config = current_config | (uint16_t)(1u << start);
@@ -180,29 +176,25 @@ static void generate_configs_from(
             start + NEXT_START_CONFIG_OFFSET,
             next_config,
             config_count,
-            index_to_config,
-            config_to_index,
             config_to_start_positions
         );
     }
 }
 
-void init_config_maps(
-    uint16_t index_to_config[MAX_NUMBER_OF_START_CONFIGS],
-    uint16_t config_to_index[WORD_START_CONFIG_LOOKUP_SIZE],
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW]
+void init_config_map(
+    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
 )
 {
     size_t config_count = 0;
 
     for (size_t i = 0; i < WORD_START_CONFIG_LOOKUP_SIZE; i++) {
-        config_to_index[i] = UINT16_MAX;
-        for (size_t j = 0; j < MAX_NUMBER_OF_WORDS_PER_ROW; j++) {
+        config_to_start_positions[i][0] = 0;
+        for (size_t j = 1; j <= MAX_NUMBER_OF_WORDS_PER_ROW; j++) {
             config_to_start_positions[i][j] = WORD_START_POSITION_UNUSED;
         }
     }
 
-    generate_configs_from(0, 0, &config_count, index_to_config, config_to_index, config_to_start_positions);
+    generate_configs_from(0, 0, &config_count, config_to_start_positions);
 }
 
 /* CSV parsing and board loading */
@@ -288,10 +280,18 @@ Board board_from_csv(const char *board_file_path)
 
 static void print_bits(RowTiles value, int bit_count)
 {
-    for (int bit_index = bit_count - 1; bit_index >= 0; --bit_index) {
-        putchar((value & ((RowTiles)1 << bit_index)) ? '1' : '0');
+    int tile_count = bit_count / TILE_BITS;
 
-        if (bit_index > 0 && bit_index % TILE_BITS == 0) {
+    for (int col_index = 0; col_index < tile_count; ++col_index) {
+        int tile_start_bit = col_index * TILE_BITS;
+
+        for (int bit_offset = TILE_BITS - 1; bit_offset >= 0; --bit_offset) {
+            int bit_index = tile_start_bit + bit_offset;
+
+            putchar((value & ((RowTiles)1 << bit_index)) ? '1' : '0');
+        }
+
+        if (col_index < tile_count - 1) {
             putchar(' ');
         }
     }
@@ -299,23 +299,22 @@ static void print_bits(RowTiles value, int bit_count)
 
 static void print_tile_chars(RowTiles packed_tiles)
 {
-    for (int tile_index = 0; tile_index < BOARD_SIZE; ++tile_index) {
-        int shift = (BOARD_SIZE - 1 - tile_index) * TILE_BITS;
-        unsigned char tile = (unsigned char)((packed_tiles >> shift) & TILE_MASK);
-        char tile_char = tile == BLANK_TILE_VALUE ? '.' : (char)(tile | 0x40);
+    for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
+        unsigned char tile = tile_at_col(packed_tiles, col_index);
+        char tile_char = tile == BLANK_TILE_VALUE ? '.' : (char)tile;
 
-        printf("  %c  ", tile_char);
+        printf("   %c    ", tile_char);
 
-        if (tile_index < BOARD_SIZE - 1) {
+        if (col_index < BOARD_SIZE - 1) {
             putchar(' ');
         }
     }
 }
 
-void board_print(Board board)
+static void print_rows(const Row rows[BOARD_SIZE])
 {
     for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
-        Row row = board.rows[row_index];
+        Row row = rows[row_index];
 
         printf("row %2d ", row_index + 1);
         print_bits(row.tiles, BOARD_SIZE * TILE_BITS);
@@ -326,16 +325,12 @@ void board_print(Board board)
     }
 }
 
+void board_print(Board board)
+{
+    print_rows(board.rows);
+}
+
 void board_print_perpendicular(Board board)
 {
-    for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
-        Row row = board.perpendicularRows[row_index];
-
-        printf("row %2d ", row_index + 1);
-        print_bits(row.tiles, BOARD_SIZE * TILE_BITS);
-        putchar('\n');
-        printf("       ");
-        print_tile_chars(row.tiles);
-        putchar('\n');
-    }
+    print_rows(board.perpendicularRows);
 }

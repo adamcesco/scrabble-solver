@@ -8,6 +8,7 @@ MAKE_ROW_TEST_SRC = tests/make_row_test.c src/board.c
 ROW_TEST_SRC = tests/row_can_house_test.c src/board.c
 DICTIONARY_TEST_SRC = tests/dictionary_from_file_test.c src/dictionary.c src/board.c
 WORD_START_ROW_TABLE_TEST_SRC = tests/word_start_row_table_test.c src/dictionary.c src/board.c
+VALIDATION_TEST_SRC = tests/validation_test.c src/validation.c src/dictionary.c src/board.c
 TARGET = build/main
 BOARD_FROM_CSV_TEST_TARGET = build/board_from_csv_test
 CONFIG_MAPS_TEST_TARGET = build/config_maps_test
@@ -15,7 +16,8 @@ MAKE_ROW_TEST_TARGET = build/make_row_test
 ROW_TEST_TARGET = build/row_can_house_test
 DICTIONARY_TEST_TARGET = build/dictionary_from_file_test
 WORD_START_ROW_TABLE_TEST_TARGET = build/word_start_row_table_test
-TEST_TARGETS = $(BOARD_FROM_CSV_TEST_TARGET) $(CONFIG_MAPS_TEST_TARGET) $(MAKE_ROW_TEST_TARGET) $(ROW_TEST_TARGET) $(DICTIONARY_TEST_TARGET) $(WORD_START_ROW_TABLE_TEST_TARGET)
+VALIDATION_TEST_TARGET = build/validation_test
+TEST_TARGETS = $(BOARD_FROM_CSV_TEST_TARGET) $(CONFIG_MAPS_TEST_TARGET) $(MAKE_ROW_TEST_TARGET) $(ROW_TEST_TARGET) $(DICTIONARY_TEST_TARGET) $(WORD_START_ROW_TABLE_TEST_TARGET) $(VALIDATION_TEST_TARGET)
 
 all: $(TARGET)
 
@@ -50,6 +52,10 @@ $(WORD_START_ROW_TABLE_TEST_TARGET): $(WORD_START_ROW_TABLE_TEST_SRC)
 	mkdir -p build
 	$(CC) $(CFLAGS) -o $@ $^
 
+$(VALIDATION_TEST_TARGET): $(VALIDATION_TEST_SRC)
+	mkdir -p build
+	$(CC) $(CFLAGS) -o $@ $^
+
 test: $(TEST_TARGETS)
 	./$(BOARD_FROM_CSV_TEST_TARGET)
 	./$(CONFIG_MAPS_TEST_TARGET)
@@ -57,6 +63,7 @@ test: $(TEST_TARGETS)
 	./$(ROW_TEST_TARGET)
 	./$(DICTIONARY_TEST_TARGET)
 	./$(WORD_START_ROW_TABLE_TEST_TARGET)
+	./$(VALIDATION_TEST_TARGET)
 
 clean:
 	rm -rf build/

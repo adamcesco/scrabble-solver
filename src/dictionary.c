@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TILE_BITS 5
+#define TILE_BITS ROW_TILE_BITS
 
 static void trim_line_ending(char *line)
 {

@@ -1,3 +1,6 @@
+.agents/
+.codex/
+.vscode/
 build/
 data/
 *.o

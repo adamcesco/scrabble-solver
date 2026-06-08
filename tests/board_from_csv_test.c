@@ -92,7 +92,7 @@ static void loads_letters_from_csv_board(void)
     assert(board.rows[0].tiles == expected_first_row.tiles);
 
     for (int row_index = 1; row_index < BOARD_SIZE; ++row_index) {
-        assert(board.rows[row_index].tiles == (RowTiles)-1);
+        assert(board.rows[row_index].tiles == 0);
     }
 }
 
