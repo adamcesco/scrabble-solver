@@ -6,7 +6,7 @@
 
 static char temp_dictionary_path[128];
 static WordTable dictionary;
-static uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
+static uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
 
 static void setup(void)
 {
@@ -37,54 +37,66 @@ static void load_dictionary(const char *contents)
 
 static void accepts_valid_perpendicular_words_in_played_span(void)
 {
+    Board old_board = {0};
     Board board = {0};
 
+    old_board.perpendicularRows[5] = make_row("......T........");
+    old_board.perpendicularRows[6] = make_row("......O........");
     board.perpendicularRows[5] = make_row(".....AT........");
     board.perpendicularRows[6] = make_row(".....TO........");
 
     load_dictionary("AT\nTO\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, board, 5, 2));
+    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 2, 5));
 }
 
 static void rejects_invalid_perpendicular_word_in_played_span(void)
 {
+    Board old_board = {0};
     Board board = {0};
 
+    old_board.perpendicularRows[5] = make_row("......T........");
+    old_board.perpendicularRows[6] = make_row("......Z........");
     board.perpendicularRows[5] = make_row(".....AT........");
     board.perpendicularRows[6] = make_row(".....ZZ........");
 
     load_dictionary("AT\nTO\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, board, 5, 2));
+    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 2, 5));
 }
 
 static void rejects_dictionary_words_that_extend_past_actual_perpendicular_word(void)
 {
+    Board old_board = {0};
     Board board = {0};
 
+    old_board.perpendicularRows[7] = make_row(".....CA........");
     board.perpendicularRows[7] = make_row(".....CAT.......");
 
     load_dictionary("CATS\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, board, 7, 1));
+    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 7, 1, 7));
 }
 
 static void ignores_single_tile_perpendicular_intersections(void)
 {
+    Board old_board = {0};
     Board board = {0};
 
     board.perpendicularRows[7] = make_row("......A........");
 
     load_dictionary("CAT\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, board, 7, 1));
+    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 7, 1, 6));
 }
 
 static void ignores_perpendicular_words_outside_played_span(void)
 {
+    Board old_board = {0};
     Board board = {0};
 
+    old_board.perpendicularRows[5] = make_row("......T........");
+    old_board.perpendicularRows[6] = make_row("......O........");
     board.perpendicularRows[4] = make_row(".....ZZ........");
     board.perpendicularRows[5] = make_row(".....AT........");
     board.perpendicularRows[6] = make_row(".....TO........");
@@ -92,18 +104,20 @@ static void ignores_perpendicular_words_outside_played_span(void)
 
     load_dictionary("AT\nTO\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, board, 5, 2));
+    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 2, 5));
 }
 
 static void validates_every_word_start_in_each_perpendicular_row(void)
 {
+    Board old_board = {0};
     Board board = {0};
 
+    old_board.perpendicularRows[5] = make_row(".T...N.........");
     board.perpendicularRows[5] = make_row("AT...IN........");
 
     load_dictionary("AT\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, board, 5, 1));
+    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 1, 5));
 }
 
 static void run_test(const char *name, void (*test)(void))

@@ -13,12 +13,12 @@
 
 /* Row encoding */
 
-static int tile_shift_at_col(int col_index)
+static inline int tile_shift_at_col(int col_index)
 {
     return col_index * TILE_BITS;
 }
 
-static RowTiles tile_mask_at_col(int col_index)
+static inline RowTiles tile_mask_at_col(int col_index)
 {
     return TILE_MASK << tile_shift_at_col(col_index);
 }
@@ -72,11 +72,6 @@ static uint16_t make_occupied_mask(const char tiles[BOARD_SIZE + 1])
     return occupied;
 }
 
-uint16_t make_word_start_mask(uint16_t occupied)
-{
-    return (uint16_t)((occupied & (uint16_t)~(occupied << 1)) & (occupied >> (MIN_WORD_LEN - 1)));
-}
-
 Row make_row(const char tiles[BOARD_SIZE + 1])
 {
     Row row = {
@@ -89,37 +84,21 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
     return row;
 }
 
-int is_placeable_on_row(Row board_row, Row row_with_just_proposed_word)
+Board place_word_row_on_board(Board board, const Row *row, uint16_t row_index, uint8_t word_start, uint8_t word_length)
 {
-    return (((board_row.tiles ^ row_with_just_proposed_word.tiles)
-                & board_row.careMask
-                & ((row_with_just_proposed_word.careMask << TILE_BITS) | (row_with_just_proposed_word.careMask >> TILE_BITS))) == 0)
-            && ((board_row.occupiedMask & row_with_just_proposed_word.occupiedMask) != 0);
-}
+    board.rows[row_index] = *row;
 
-Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word)
-{
-    return (Row){
-        .tiles = board_row.tiles | row_with_just_proposed_word.tiles,
-        .careMask = board_row.careMask | row_with_just_proposed_word.careMask,
-        .occupiedMask = board_row.occupiedMask | row_with_just_proposed_word.occupiedMask,
-    };
-}
-
-Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t word_start, uint16_t word_length)
-{
-    board.rows[row_index] = row;
-
-    for (uint16_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
+    int perpendicular_shift = tile_shift_at_col(row_index);
+    RowTiles perpendicular_tile_mask = tile_mask_at_col(row_index);
+    uint16_t perpendicular_row_occupiedMask = (uint16_t)(1u << row_index);
+    for (uint8_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
         int row_shift = tile_shift_at_col(col_index);
-        int perpendicular_shift = tile_shift_at_col(row_index);
-        RowTiles tile = (row.tiles & tile_mask_at_col(col_index)) >> row_shift;
-        RowTiles perpendicular_tile_mask = tile_mask_at_col(row_index);
+        RowTiles tile = (row->tiles & tile_mask_at_col(col_index)) >> row_shift;
         Row *perpendicular_row = &board.perpendicularRows[col_index];
 
         perpendicular_row->tiles = (perpendicular_row->tiles & ~perpendicular_tile_mask) | (tile << perpendicular_shift);
         perpendicular_row->careMask |= perpendicular_tile_mask;
-        perpendicular_row->occupiedMask |= (uint16_t)(1u << row_index);
+        perpendicular_row->occupiedMask |= perpendicular_row_occupiedMask;
     }
 
     return board;
@@ -127,7 +106,7 @@ Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t
 
 /* starting positions for words configurations map */
 
-static void set_config_start_positions(uint16_t config, uint16_t start_positions[MAX_NUMBER_OF_WORDS_PER_ROW + 1])
+static void set_config_start_positions(uint16_t config, uint8_t start_positions[MAX_NUMBER_OF_WORDS_PER_ROW + 1])
 {
     size_t position_count = 0;
 
@@ -141,16 +120,16 @@ static void set_config_start_positions(uint16_t config, uint16_t start_positions
         }
 
         position_count++;
-        start_positions[position_count] = start;
+        start_positions[position_count] = (uint8_t)start;
     }
 
-    start_positions[0] = (uint16_t)position_count;
+    start_positions[0] = (uint8_t)position_count;
 }
 
 static void add_config(
     uint16_t config,
     size_t *config_count,
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
+    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
 )
 {
     if (*config_count >= MAX_NUMBER_OF_START_CONFIGS) {
@@ -165,7 +144,7 @@ static void generate_configs_from(
     int min_start,
     uint16_t current_config,
     size_t *config_count,
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
+    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
 )
 {
     add_config(current_config, config_count, config_to_start_positions);
@@ -183,7 +162,7 @@ static void generate_configs_from(
 }
 
 void init_config_map(
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
+    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
 )
 {
     size_t config_count = 0;

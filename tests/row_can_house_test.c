@@ -8,7 +8,7 @@ static void row_is_placeable_when_existing_letters_match_proposed_letters(void)
     Row board_row = make_row(".......OR......");
     Row proposed_row = make_row("......WORD.....");
 
-    assert(is_placeable_on_row(board_row, proposed_row));
+    assert(is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_not_placeable_when_board_letters_do_not_overlap_proposed_letters(void)
@@ -16,7 +16,7 @@ static void row_is_not_placeable_when_board_letters_do_not_overlap_proposed_lett
     Row board_row = make_row("AB.............");
     Row proposed_row = make_row("......WORD.....");
 
-    assert(!is_placeable_on_row(board_row, proposed_row));
+    assert(!is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_placeable_when_board_letters_do_and_do_not_overlap_proposed_letters(void)
@@ -24,7 +24,7 @@ static void row_is_placeable_when_board_letters_do_and_do_not_overlap_proposed_l
     Row board_row = make_row("AB.....OR......");
     Row proposed_row = make_row("......WORD.....");
 
-    assert(is_placeable_on_row(board_row, proposed_row));
+    assert(is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_not_placeable_when_existing_letter_conflicts_with_proposed_letter(void)
@@ -32,7 +32,7 @@ static void row_is_not_placeable_when_existing_letter_conflicts_with_proposed_le
     Row board_row = make_row(".......AR......");
     Row proposed_row = make_row("......WORD.....");
 
-    assert(!is_placeable_on_row(board_row, proposed_row));
+    assert(!is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_not_placeable_when_existing_letter_conflicts_with_two_letter_proposed_word(void)
@@ -40,7 +40,7 @@ static void row_is_not_placeable_when_existing_letter_conflicts_with_two_letter_
     Row board_row = make_row(".A.............");
     Row proposed_row = make_row(".BC............");
 
-    assert(!is_placeable_on_row(board_row, proposed_row));
+    assert(!is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_not_placeable_when_tile_before_proposed_word_is_occupied(void)
@@ -48,7 +48,7 @@ static void row_is_not_placeable_when_tile_before_proposed_word_is_occupied(void
     Row board_row = make_row(".....A.........");
     Row proposed_row = make_row("......WORD.....");
 
-    assert(!is_placeable_on_row(board_row, proposed_row));
+    assert(!is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_not_placeable_when_tile_after_proposed_word_is_occupied(void)
@@ -56,7 +56,7 @@ static void row_is_not_placeable_when_tile_after_proposed_word_is_occupied(void)
     Row board_row = make_row("..........A....");
     Row proposed_row = make_row("......WORD.....");
 
-    assert(!is_placeable_on_row(board_row, proposed_row));
+    assert(!is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_placeable_when_proposed_word_starts_at_beginning_of_row(void)
@@ -64,7 +64,7 @@ static void row_is_placeable_when_proposed_word_starts_at_beginning_of_row(void)
     Row board_row = make_row("T..............");
     Row proposed_row = make_row("TO.............");
 
-    assert(is_placeable_on_row(board_row, proposed_row));
+    assert(is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void row_is_placeable_when_proposed_word_ends_at_end_of_row(void)
@@ -72,7 +72,7 @@ static void row_is_placeable_when_proposed_word_ends_at_end_of_row(void)
     Row board_row = make_row("..............O");
     Row proposed_row = make_row(".............TO");
 
-    assert(is_placeable_on_row(board_row, proposed_row));
+    assert(is_placeable_on_row(&board_row, &proposed_row));
 }
 
 static void add_proposed_word_to_row_returns_new_row_with_existing_and_proposed_tiles(void)
@@ -80,7 +80,9 @@ static void add_proposed_word_to_row_returns_new_row_with_existing_and_proposed_
     Row board_row = make_row("AB.....OR......");
     Row proposed_row = make_row("......WORD.....");
     Row expected_row = make_row("AB....WORD.....");
-    Row row = add_proposed_word_to_row(board_row, proposed_row);
+    Row row;
+
+    add_proposed_word_to_row(&row, &board_row, &proposed_row);
 
     assert(row.tiles == expected_row.tiles);
     assert(row.careMask == expected_row.careMask);
@@ -104,7 +106,7 @@ static void place_word_row_on_board_overwrites_row_and_updates_perpendicular_row
 {
     Board board = make_empty_board();
     Row row = make_row("......WORD.....");
-    Board updated_board = place_word_row_on_board(board, row, 3, 6, 4);
+    Board updated_board = place_word_row_on_board(board, &row, 3, 6, 4);
 
     assert(updated_board.rows[3].tiles == row.tiles);
     assert(updated_board.rows[3].careMask == row.careMask);
@@ -138,7 +140,7 @@ static void place_word_row_on_board_leaves_perpendicular_rows_outside_word_uncha
     board.perpendicularRows[5] = original_perpendicular_row;
     board.perpendicularRows[10] = original_perpendicular_row;
 
-    Board updated_board = place_word_row_on_board(board, row, 3, 6, 4);
+    Board updated_board = place_word_row_on_board(board, &row, 3, 6, 4);
 
     assert(updated_board.perpendicularRows[5].tiles == original_perpendicular_row.tiles);
     assert(updated_board.perpendicularRows[5].careMask == original_perpendicular_row.careMask);

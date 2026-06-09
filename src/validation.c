@@ -1,27 +1,42 @@
 #include "validation.h"
 
-#define TILE_BITS ROW_TILE_BITS
-#define TILE_MASK ROW_TILE_MASK
+#include <stdio.h>
+#include <stdint.h>
+#include <stdio.h>
 
-static int is_word_at_pos_in_perpendicular_row_valid(
-    const WordTable *dictionary,
-    Row perpendicular_row,
-    uint16_t starting_pos
-)
+static inline uint16_t get_start_pos_mask_of_housting_perpendicular_word(uint16_t perpendicular_row_occupied, uint16_t new_word_perpendicular_occupied)
 {
-    return word_table_contains(dictionary, ((char *)&perpendicular_row) + starting_pos);
+    // Assumes bit is a single-bit mask.
+    // If selected bit is not inside a 1-group, return 0.
+    if ((perpendicular_row_occupied & new_word_perpendicular_occupied) == 0)
+        return 0;
+
+    // Find zeros below the selected bit.
+    uint16_t z = (uint16_t)(~perpendicular_row_occupied & (new_word_perpendicular_occupied - 1u));
+
+    // Smear the highest zero-below bit downward.
+    z |= z >> 1;
+    z |= z >> 2;
+    z |= z >> 4;
+    z |= z >> 8;
+
+    // bottom is the least-significant 1 bit of the containing group.
+    return z + 1u;
 }
 
-int validate_perpendicular_rows(const WordTable *dictionary, const uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1], Board board, uint16_t word_start, uint16_t word_length)
+int validate_perpendicular_rows(const WordTable *dictionary, const uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1], const Board *new_board, const Board *old_board, uint8_t word_start, uint8_t word_length, uint8_t row_that_houses_new_word)
 {
-    for (uint16_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
-        Row perpendicular_row = board.perpendicularRows[col_index];
-        uint16_t start_mask = make_word_start_mask(perpendicular_row.occupiedMask);
-        for (uint16_t starting_pos_index = 1; starting_pos_index <= config_to_start_positions[start_mask][0]; ++starting_pos_index) {
-            uint16_t starting_pos = config_to_start_positions[start_mask][starting_pos_index];
-            if (!is_word_at_pos_in_perpendicular_row_valid(dictionary, perpendicular_row, starting_pos)) {
-                return 0;
-            }
+    uint16_t new_word_perpendicular_occupied = 1u << row_that_houses_new_word;
+    
+    for (uint8_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
+        if ((old_board->perpendicularRows[col_index].occupiedMask & new_word_perpendicular_occupied) == old_board->perpendicularRows[col_index].occupiedMask) {
+            continue;
+        }
+        const Row *perpendicular_row = &new_board->perpendicularRows[col_index];
+        const uint16_t start_mask = get_start_pos_mask_of_housting_perpendicular_word(perpendicular_row->occupiedMask, new_word_perpendicular_occupied);
+        const char * tile_c_string = ((const char *)&perpendicular_row->tiles) + config_to_start_positions[start_mask][1];
+        if (tile_c_string[1] != '\0' && !word_table_contains(dictionary, tile_c_string)) {
+            return 0;
         }
     }
 

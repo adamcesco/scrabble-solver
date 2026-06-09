@@ -13,7 +13,7 @@
 #define MAX_START_CONFIG (BOARD_SIZE - MIN_WORD_LEN)
 #define NEXT_START_CONFIG_OFFSET (MIN_WORD_LEN + 1)
 
-#define WORD_START_POSITION_UNUSED UINT16_MAX
+#define WORD_START_POSITION_UNUSED UINT8_MAX
 
 typedef __uint128_t RowTiles;
 
@@ -23,7 +23,7 @@ typedef __uint128_t RowTiles;
 typedef struct {
     RowTiles tiles;
     RowTiles careMask;
-    uint16_t occupiedMask; // when or-ed with another Row's occupiedMask, assuming that this row can house the other, it returned the new occupiedMask for that row.
+    uint16_t occupiedMask;
 } Row;
 
 typedef struct {
@@ -32,13 +32,32 @@ typedef struct {
 } Board;
 
 Row make_row(const char tiles[BOARD_SIZE + 1]);
-uint16_t make_word_start_mask(uint16_t occupied);
-int is_placeable_on_row(Row board_row, Row row_with_just_proposed_word); // row_with_just_proposed_word should only house the new word that is to be potentially added to board_row
-Row add_proposed_word_to_row(Row board_row, Row row_with_just_proposed_word);
-Board place_word_row_on_board(Board board, Row row, uint16_t row_index, uint16_t word_start, uint16_t word_length);
+
+static inline uint16_t make_word_start_mask(uint16_t occupied)
+{
+    return (uint16_t)((occupied & (uint16_t)~(occupied << 1)) & (occupied >> 1));
+}
+
+// row_with_just_proposed_word should only house the new word that is to be potentially added to board_row
+static inline int is_placeable_on_row(const Row *board_row, const Row *row_with_just_proposed_word)
+{
+    return (((board_row->tiles ^ row_with_just_proposed_word->tiles)
+                & board_row->careMask
+                & ((row_with_just_proposed_word->careMask << ROW_TILE_BITS) | (row_with_just_proposed_word->careMask >> ROW_TILE_BITS))) == 0)
+            && ((board_row->occupiedMask & row_with_just_proposed_word->occupiedMask) != 0);
+}
+
+static inline void add_proposed_word_to_row(Row *ouput_row, const Row *board_row, const Row *row_with_just_proposed_word)
+{
+    ouput_row->tiles = board_row->tiles | row_with_just_proposed_word->tiles;
+    ouput_row->careMask = board_row->careMask | row_with_just_proposed_word->careMask;
+    ouput_row->occupiedMask = board_row->occupiedMask | row_with_just_proposed_word->occupiedMask;
+}
+
+Board place_word_row_on_board(Board board, const Row *row, uint16_t row_index, uint8_t word_start, uint8_t word_length);
 
 void init_config_map(
-    uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1] // when given a word-start configuration, [0] is the number of starts and [1..count] are the numeric starting positions (0 - 14)
+    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1] // when given a word-start configuration, [0] is the number of starts and [1..count] are the numeric starting positions (0 - 14)
 );
 
 Board board_from_csv(const char *board_file_path);

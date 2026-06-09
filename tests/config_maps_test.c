@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-static uint16_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
+static uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
 
 static int config_is_valid(uint16_t config)
 {
@@ -69,7 +69,7 @@ static void maps_each_valid_config_once(void)
             continue;
         }
 
-        uint16_t expected_count = 0;
+        uint8_t expected_count = 0;
 
         for (uint16_t start = 0; start < BOARD_SIZE; ++start) {
             if ((config & (uint16_t)(1u << start)) == 0) {

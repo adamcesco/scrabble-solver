@@ -237,7 +237,7 @@ WordStartRowTable word_start_row_table_from_word_table(const WordTable *words)
         size_t word_length = strlen(words->words[word_index]);
 
         entry->word = words->words[word_index];
-        entry->word_length = (uint16_t)word_length;
+        entry->word_length = (uint8_t)word_length;
 
         for (size_t start = 0; start < BOARD_SIZE; ++start) {
             if (word_length <= BOARD_SIZE - start) {
