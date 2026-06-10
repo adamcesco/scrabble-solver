@@ -54,7 +54,7 @@ static inline void add_proposed_word_to_row(Row *ouput_row, const Row *board_row
     ouput_row->occupiedMask = board_row->occupiedMask | row_with_just_proposed_word->occupiedMask;
 }
 
-Board place_word_row_on_board(Board board, const Row *row, uint16_t row_index, uint8_t word_start, uint8_t word_length);
+void place_row_with_new_word_on_board(Board *board, const Row *row, uint8_t row_index, uint8_t word_start, uint8_t word_length);
 
 void init_config_map(
     uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1] // when given a word-start configuration, [0] is the number of starts and [1..count] are the numeric starting positions (0 - 14)

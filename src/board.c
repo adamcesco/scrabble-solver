@@ -84,9 +84,9 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
     return row;
 }
 
-Board place_word_row_on_board(Board board, const Row *row, uint16_t row_index, uint8_t word_start, uint8_t word_length)
+void place_row_with_new_word_on_board(Board *board, const Row *row, uint8_t row_index, uint8_t word_start, uint8_t word_length)
 {
-    board.rows[row_index] = *row;
+    board->rows[row_index] = *row;
 
     int perpendicular_shift = tile_shift_at_col(row_index);
     RowTiles perpendicular_tile_mask = tile_mask_at_col(row_index);
@@ -94,14 +94,12 @@ Board place_word_row_on_board(Board board, const Row *row, uint16_t row_index, u
     for (uint8_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
         int row_shift = tile_shift_at_col(col_index);
         RowTiles tile = (row->tiles & tile_mask_at_col(col_index)) >> row_shift;
-        Row *perpendicular_row = &board.perpendicularRows[col_index];
+        Row *perpendicular_row = &board->perpendicularRows[col_index];
 
         perpendicular_row->tiles = (perpendicular_row->tiles & ~perpendicular_tile_mask) | (tile << perpendicular_shift);
         perpendicular_row->careMask |= perpendicular_tile_mask;
         perpendicular_row->occupiedMask |= perpendicular_row_occupiedMask;
     }
-
-    return board;
 }
 
 /* starting positions for words configurations map */

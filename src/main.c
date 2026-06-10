@@ -3,6 +3,7 @@
 #include "validation.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 int main(int argc, char **argv)
@@ -34,31 +35,43 @@ int main(int argc, char **argv)
     // test add a word
     clock_t move_generate_start = clock();
     int count = 0;
-    Row row_with_newly_added_word = {0}; // placed outside all of the loops to avoid repeated destructions and initializations
-    for (int row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+    
+    // these values placed outside all of the loops to avoid repeated destructions and initializations
+    Row row_with_newly_added_word = {0};
+    Board copy_of_original_board = board;
+    // for each row in the board
+    for (uint8_t row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+        // for each word in the dictionary
         for (size_t entry_index = 0; entry_index < starting_position_to_row.count; ++entry_index) {
             const WordStartRowEntry *entry = &starting_position_to_row.entries[entry_index];
 
+            // for each possible placement of that word in a row on the board
             for (uint8_t start = 0; start < BOARD_SIZE; ++start) {
                 if ((entry->valid_starts & (uint16_t)(UINT16_C(1) << start)) == 0) {
                     continue;
                 }
                 
                 const Row *row_with_just_proposed_word = &entry->rows[start];
-                
+
                 if (is_placeable_on_row(&board.rows[row_index], row_with_just_proposed_word)) {
                     add_proposed_word_to_row(&row_with_newly_added_word, &board.rows[row_index], row_with_just_proposed_word);
-                    Board new_board = place_word_row_on_board(
-                        board,
+                    
+                    //todo: experiment with combining place_row_with_new_word_on_board and validate_perpendicular_rows to avoid looping over the same perpendicular rows twice
+                    place_row_with_new_word_on_board(
+                        &board,
                         &row_with_newly_added_word,
                         row_index,
                         start,
                         entry->word_length);
-                    if (validate_perpendicular_rows(&dictionary, config_to_start_positions, &new_board, &board, start, entry->word_length, row_index)) {
+                    if (validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, copy_of_original_board.perpendicularRows, start, entry->word_length, row_index)) {
+                        // `board` here is the new version of the board that has the new word placed within it
                         ++count;
                         // printf("row %2d ", row_index + 1);
-                        // print_row(new_board.rows[row_index]);
+                        // print_row(board.rows[row_index]);
                     }
+
+                    board.rows[row_index] = copy_of_original_board.rows[row_index];
+                    memcpy(board.perpendicularRows, copy_of_original_board.perpendicularRows, sizeof(board.perpendicularRows));
                 }
             }
         }

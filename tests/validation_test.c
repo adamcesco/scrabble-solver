@@ -47,7 +47,7 @@ static void accepts_valid_perpendicular_words_in_played_span(void)
 
     load_dictionary("AT\nTO\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 2, 5));
+    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 2, 5));
 }
 
 static void rejects_invalid_perpendicular_word_in_played_span(void)
@@ -62,7 +62,7 @@ static void rejects_invalid_perpendicular_word_in_played_span(void)
 
     load_dictionary("AT\nTO\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 2, 5));
+    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 2, 5));
 }
 
 static void rejects_dictionary_words_that_extend_past_actual_perpendicular_word(void)
@@ -75,7 +75,7 @@ static void rejects_dictionary_words_that_extend_past_actual_perpendicular_word(
 
     load_dictionary("CATS\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 7, 1, 7));
+    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 7, 1, 7));
 }
 
 static void ignores_single_tile_perpendicular_intersections(void)
@@ -87,7 +87,7 @@ static void ignores_single_tile_perpendicular_intersections(void)
 
     load_dictionary("CAT\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 7, 1, 6));
+    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 7, 1, 6));
 }
 
 static void ignores_perpendicular_words_outside_played_span(void)
@@ -104,7 +104,7 @@ static void ignores_perpendicular_words_outside_played_span(void)
 
     load_dictionary("AT\nTO\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 2, 5));
+    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 2, 5));
 }
 
 static void validates_every_word_start_in_each_perpendicular_row(void)
@@ -117,7 +117,7 @@ static void validates_every_word_start_in_each_perpendicular_row(void)
 
     load_dictionary("AT\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, &old_board, 5, 1, 5));
+    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 1, 5));
 }
 
 static void run_test(const char *name, void (*test)(void))

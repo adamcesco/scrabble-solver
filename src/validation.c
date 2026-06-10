@@ -24,12 +24,12 @@ static inline uint16_t get_start_pos_mask_of_housting_perpendicular_word(uint16_
     return z + 1u;
 }
 
-int validate_perpendicular_rows(const WordTable *dictionary, const uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1], const Board *new_board, const Board *old_board, uint8_t word_start, uint8_t word_length, uint8_t row_that_houses_new_word)
+int validate_perpendicular_rows(const WordTable *dictionary, const uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1], const Board *new_board, const Row old_board_perpendicular_rows[BOARD_SIZE], uint8_t word_start, uint8_t word_length, uint8_t row_that_houses_new_word)
 {
     uint16_t new_word_perpendicular_occupied = 1u << row_that_houses_new_word;
     
     for (uint8_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
-        if ((old_board->perpendicularRows[col_index].occupiedMask & new_word_perpendicular_occupied) == old_board->perpendicularRows[col_index].occupiedMask) {
+        if ((old_board_perpendicular_rows[col_index].occupiedMask & new_word_perpendicular_occupied) == old_board_perpendicular_rows[col_index].occupiedMask) {
             continue;
         }
         const Row *perpendicular_row = &new_board->perpendicularRows[col_index];

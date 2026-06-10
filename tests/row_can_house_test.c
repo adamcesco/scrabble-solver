@@ -106,29 +106,29 @@ static void place_word_row_on_board_overwrites_row_and_updates_perpendicular_row
 {
     Board board = make_empty_board();
     Row row = make_row("......WORD.....");
-    Board updated_board = place_word_row_on_board(board, &row, 3, 6, 4);
+    place_row_with_new_word_on_board(&board, &row, 3, 6, 4);
 
-    assert(updated_board.rows[3].tiles == row.tiles);
-    assert(updated_board.rows[3].careMask == row.careMask);
-    assert(updated_board.rows[3].occupiedMask == row.occupiedMask);
+    assert(board.rows[3].tiles == row.tiles);
+    assert(board.rows[3].careMask == row.careMask);
+    assert(board.rows[3].occupiedMask == row.occupiedMask);
 
     Row expected_w_col = make_row("...W...........");
     Row expected_o_col = make_row("...O...........");
     Row expected_r_col = make_row("...R...........");
     Row expected_d_col = make_row("...D...........");
 
-    assert(updated_board.perpendicularRows[6].tiles == expected_w_col.tiles);
-    assert(updated_board.perpendicularRows[6].careMask == expected_w_col.careMask);
-    assert(updated_board.perpendicularRows[6].occupiedMask == expected_w_col.occupiedMask);
-    assert(updated_board.perpendicularRows[7].tiles == expected_o_col.tiles);
-    assert(updated_board.perpendicularRows[7].careMask == expected_o_col.careMask);
-    assert(updated_board.perpendicularRows[7].occupiedMask == expected_o_col.occupiedMask);
-    assert(updated_board.perpendicularRows[8].tiles == expected_r_col.tiles);
-    assert(updated_board.perpendicularRows[8].careMask == expected_r_col.careMask);
-    assert(updated_board.perpendicularRows[8].occupiedMask == expected_r_col.occupiedMask);
-    assert(updated_board.perpendicularRows[9].tiles == expected_d_col.tiles);
-    assert(updated_board.perpendicularRows[9].careMask == expected_d_col.careMask);
-    assert(updated_board.perpendicularRows[9].occupiedMask == expected_d_col.occupiedMask);
+    assert(board.perpendicularRows[6].tiles == expected_w_col.tiles);
+    assert(board.perpendicularRows[6].careMask == expected_w_col.careMask);
+    assert(board.perpendicularRows[6].occupiedMask == expected_w_col.occupiedMask);
+    assert(board.perpendicularRows[7].tiles == expected_o_col.tiles);
+    assert(board.perpendicularRows[7].careMask == expected_o_col.careMask);
+    assert(board.perpendicularRows[7].occupiedMask == expected_o_col.occupiedMask);
+    assert(board.perpendicularRows[8].tiles == expected_r_col.tiles);
+    assert(board.perpendicularRows[8].careMask == expected_r_col.careMask);
+    assert(board.perpendicularRows[8].occupiedMask == expected_r_col.occupiedMask);
+    assert(board.perpendicularRows[9].tiles == expected_d_col.tiles);
+    assert(board.perpendicularRows[9].careMask == expected_d_col.careMask);
+    assert(board.perpendicularRows[9].occupiedMask == expected_d_col.occupiedMask);
 }
 
 static void place_word_row_on_board_leaves_perpendicular_rows_outside_word_unchanged(void)
@@ -140,14 +140,14 @@ static void place_word_row_on_board_leaves_perpendicular_rows_outside_word_uncha
     board.perpendicularRows[5] = original_perpendicular_row;
     board.perpendicularRows[10] = original_perpendicular_row;
 
-    Board updated_board = place_word_row_on_board(board, &row, 3, 6, 4);
+    place_row_with_new_word_on_board(&board, &row, 3, 6, 4);
 
-    assert(updated_board.perpendicularRows[5].tiles == original_perpendicular_row.tiles);
-    assert(updated_board.perpendicularRows[5].careMask == original_perpendicular_row.careMask);
-    assert(updated_board.perpendicularRows[5].occupiedMask == original_perpendicular_row.occupiedMask);
-    assert(updated_board.perpendicularRows[10].tiles == original_perpendicular_row.tiles);
-    assert(updated_board.perpendicularRows[10].careMask == original_perpendicular_row.careMask);
-    assert(updated_board.perpendicularRows[10].occupiedMask == original_perpendicular_row.occupiedMask);
+    assert(board.perpendicularRows[5].tiles == original_perpendicular_row.tiles);
+    assert(board.perpendicularRows[5].careMask == original_perpendicular_row.careMask);
+    assert(board.perpendicularRows[5].occupiedMask == original_perpendicular_row.occupiedMask);
+    assert(board.perpendicularRows[10].tiles == original_perpendicular_row.tiles);
+    assert(board.perpendicularRows[10].careMask == original_perpendicular_row.careMask);
+    assert(board.perpendicularRows[10].occupiedMask == original_perpendicular_row.occupiedMask);
 }
 
 static void run_test(const char *name, void (*test)(void))
