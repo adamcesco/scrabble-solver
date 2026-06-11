@@ -11,21 +11,9 @@
 #define TILE_MASK ROW_TILE_MASK
 #define BLANK_TILE_VALUE 0
 
-/* Row encoding */
-
-static inline int tile_shift_at_col(int col_index)
-{
-    return col_index * TILE_BITS;
-}
-
-static inline RowTiles tile_mask_at_col(int col_index)
-{
-    return TILE_MASK << tile_shift_at_col(col_index);
-}
-
 static unsigned char tile_at_col(RowTiles packed_tiles, int col_index)
 {
-    return (unsigned char)((packed_tiles >> tile_shift_at_col(col_index)) & TILE_MASK);
+    return (unsigned char)((packed_tiles >> row_tile_shift_at_col(col_index)) & TILE_MASK);
 }
 
 static RowTiles pack_tiles(const char tiles[BOARD_SIZE + 1])
@@ -36,7 +24,7 @@ static RowTiles pack_tiles(const char tiles[BOARD_SIZE + 1])
         unsigned char tile = (unsigned char)tiles[col_index];
 
         if (isalpha(tile)) {
-            int shift = tile_shift_at_col(col_index);
+            int shift = row_tile_shift_at_col(col_index);
             RowTiles value = (RowTiles)tile << shift;
 
             packed |= value;
@@ -52,7 +40,7 @@ static RowTiles make_care_mask(const char tiles[BOARD_SIZE + 1])
 
     for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
         if (isalpha((unsigned char)tiles[col_index])) {
-            care |= tile_mask_at_col(col_index);
+            care |= row_tile_mask_at_col(col_index);
         }
     }
 
@@ -82,24 +70,6 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
     row.occupiedMask = make_occupied_mask(tiles);
 
     return row;
-}
-
-void place_row_with_new_word_on_board(Board *board, const Row *row, uint8_t row_index, uint8_t word_start, uint8_t word_length)
-{
-    board->rows[row_index] = *row;
-
-    int perpendicular_shift = tile_shift_at_col(row_index);
-    RowTiles perpendicular_tile_mask = tile_mask_at_col(row_index);
-    uint16_t perpendicular_row_occupiedMask = (uint16_t)(1u << row_index);
-    for (uint8_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
-        int row_shift = tile_shift_at_col(col_index);
-        RowTiles tile = (row->tiles & tile_mask_at_col(col_index)) >> row_shift;
-        Row *perpendicular_row = &board->perpendicularRows[col_index];
-
-        perpendicular_row->tiles = (perpendicular_row->tiles & ~perpendicular_tile_mask) | (tile << perpendicular_shift);
-        perpendicular_row->careMask |= perpendicular_tile_mask;
-        perpendicular_row->occupiedMask |= perpendicular_row_occupiedMask;
-    }
 }
 
 /* starting positions for words configurations map */

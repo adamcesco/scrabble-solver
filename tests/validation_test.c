@@ -35,89 +35,95 @@ static void load_dictionary(const char *contents)
     dictionary = words_from_file(temp_dictionary_path);
 }
 
+static int place_and_validate(Board *board, const Board *old_board, const char row_tiles[BOARD_SIZE + 1], uint8_t row_index, uint8_t word_start, uint8_t word_length)
+{
+    Row row = make_row(row_tiles);
+
+    return place_word_onto_perpendicular_rows_and_validate(
+        &dictionary,
+        config_to_start_positions,
+        old_board->perpendicularRows,
+        board,
+        &row,
+        row_index,
+        word_start,
+        word_length
+    );
+}
+
 static void accepts_valid_perpendicular_words_in_played_span(void)
 {
     Board old_board = {0};
-    Board board = {0};
 
     old_board.perpendicularRows[5] = make_row("......T........");
     old_board.perpendicularRows[6] = make_row("......O........");
-    board.perpendicularRows[5] = make_row(".....AT........");
-    board.perpendicularRows[6] = make_row(".....TO........");
+    Board board = old_board;
 
     load_dictionary("AT\nTO\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 2, 5));
+    assert(place_and_validate(&board, &old_board, ".....AT........", 5, 5, 2));
 }
 
 static void rejects_invalid_perpendicular_word_in_played_span(void)
 {
     Board old_board = {0};
-    Board board = {0};
 
     old_board.perpendicularRows[5] = make_row("......T........");
     old_board.perpendicularRows[6] = make_row("......Z........");
-    board.perpendicularRows[5] = make_row(".....AT........");
-    board.perpendicularRows[6] = make_row(".....ZZ........");
+    Board board = old_board;
 
     load_dictionary("AT\nTO\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 2, 5));
+    assert(!place_and_validate(&board, &old_board, ".....AZ........", 5, 5, 2));
 }
 
 static void rejects_dictionary_words_that_extend_past_actual_perpendicular_word(void)
 {
     Board old_board = {0};
-    Board board = {0};
 
     old_board.perpendicularRows[7] = make_row(".....CA........");
-    board.perpendicularRows[7] = make_row(".....CAT.......");
+    Board board = old_board;
 
     load_dictionary("CATS\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 7, 1, 7));
+    assert(!place_and_validate(&board, &old_board, ".......T.......", 7, 7, 1));
 }
 
 static void ignores_single_tile_perpendicular_intersections(void)
 {
     Board old_board = {0};
-    Board board = {0};
-
-    board.perpendicularRows[7] = make_row("......A........");
+    Board board = old_board;
 
     load_dictionary("CAT\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 7, 1, 6));
+    assert(place_and_validate(&board, &old_board, ".......A.......", 6, 7, 1));
 }
 
 static void ignores_perpendicular_words_outside_played_span(void)
 {
     Board old_board = {0};
-    Board board = {0};
 
     old_board.perpendicularRows[5] = make_row("......T........");
     old_board.perpendicularRows[6] = make_row("......O........");
+    Board board = old_board;
     board.perpendicularRows[4] = make_row(".....ZZ........");
-    board.perpendicularRows[5] = make_row(".....AT........");
-    board.perpendicularRows[6] = make_row(".....TO........");
     board.perpendicularRows[7] = make_row(".....ZZ........");
 
     load_dictionary("AT\nTO\n");
 
-    assert(validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 2, 5));
+    assert(place_and_validate(&board, &old_board, ".....AT........", 5, 5, 2));
 }
 
 static void validates_every_word_start_in_each_perpendicular_row(void)
 {
     Board old_board = {0};
-    Board board = {0};
 
-    old_board.perpendicularRows[5] = make_row(".T...N.........");
-    board.perpendicularRows[5] = make_row("AT...IN........");
+    old_board.perpendicularRows[5] = make_row(".T....N........");
+    Board board = old_board;
 
     load_dictionary("AT\n");
 
-    assert(!validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, old_board.perpendicularRows, 5, 1, 5));
+    assert(!place_and_validate(&board, &old_board, ".....I.........", 5, 5, 1));
 }
 
 static void run_test(const char *name, void (*test)(void))

@@ -54,23 +54,30 @@ int main(int argc, char **argv)
                 const Row *row_with_just_proposed_word = &entry->rows[start];
 
                 if (is_placeable_on_row(&board.rows[row_index], row_with_just_proposed_word)) {
-                    add_proposed_word_to_row(&row_with_newly_added_word, &board.rows[row_index], row_with_just_proposed_word);
-                    
-                    //todo: experiment with combining place_row_with_new_word_on_board and validate_perpendicular_rows to avoid looping over the same perpendicular rows twice
-                    place_row_with_new_word_on_board(
+                    if (place_word_onto_perpendicular_rows_and_validate(
+                        &dictionary,
+                        config_to_start_positions,
+                        copy_of_original_board.perpendicularRows,
                         &board,
-                        &row_with_newly_added_word,
+                        row_with_just_proposed_word,
                         row_index,
                         start,
-                        entry->word_length);
-                    if (validate_perpendicular_rows(&dictionary, config_to_start_positions, &board, copy_of_original_board.perpendicularRows, start, entry->word_length, row_index)) {
-                        // `board` here is the new version of the board that has the new word placed within it
+                        entry->word_length
+                    )) {
                         ++count;
-                        // printf("row %2d ", row_index + 1);
-                        // print_row(board.rows[row_index]);
+                        
+                        add_proposed_word_to_row(&row_with_newly_added_word, &board.rows[row_index], row_with_just_proposed_word);
+                        board.rows[row_index] = row_with_newly_added_word;
+                        // now `board` is the new version of the board that has the new word placed within it
+
+                        printf("row %2d ", row_index + 1);
+                        print_row(board.rows[row_index]);
+
+                        // restoring the board back to it's original state
+                        board.rows[row_index] = copy_of_original_board.rows[row_index];
                     }
 
-                    board.rows[row_index] = copy_of_original_board.rows[row_index];
+                    // restoring the board back to it's original state
                     memcpy(board.perpendicularRows, copy_of_original_board.perpendicularRows, sizeof(board.perpendicularRows));
                 }
             }
