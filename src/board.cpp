@@ -62,10 +62,9 @@ static uint16_t make_occupied_mask(const char tiles[BOARD_SIZE + 1])
 
 Row make_row(const char tiles[BOARD_SIZE + 1])
 {
-    Row row = {
-        .tiles = pack_tiles(tiles),
-    };
+    Row row = {};
 
+    row.tiles = pack_tiles(tiles);
     row.careMask = make_care_mask(tiles);
     row.occupiedMask = make_occupied_mask(tiles);
 
@@ -215,10 +214,10 @@ static int load_board_rows(Board *board, const char *board_file_path)
 
 Board board_from_csv(const char *board_file_path)
 {
-    Board board = {0};
+    Board board = {};
 
     if (!load_board_rows(&board, board_file_path)) {
-        return (Board){0};
+        return Board{};
     }
 
     return board;

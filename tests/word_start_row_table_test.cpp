@@ -80,7 +80,7 @@ static void returns_null_for_unknown_words_or_words_that_do_not_fit(void)
 
 static void returns_empty_table_for_empty_or_null_word_tables(void)
 {
-    WordTable words = {0};
+    WordTable words = {};
     WordStartRowTable rows = word_start_row_table_from_word_table(&words);
     WordStartRowTable null_rows = word_start_row_table_from_word_table(NULL);
 

@@ -10,7 +10,7 @@ static uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMB
 
 static void setup(void)
 {
-    dictionary = (WordTable){0};
+    dictionary = WordTable{};
     snprintf(temp_dictionary_path, sizeof(temp_dictionary_path), "/tmp/scrabble_validation_%ld.txt", (long)getpid());
     init_config_map(config_to_start_positions);
 }
@@ -53,7 +53,7 @@ static int place_and_validate(Board *board, const Board *old_board, const char r
 
 static void accepts_valid_perpendicular_words_in_played_span(void)
 {
-    Board old_board = {0};
+    Board old_board = {};
 
     old_board.perpendicularRows[5] = make_row("......T........");
     old_board.perpendicularRows[6] = make_row("......O........");
@@ -66,7 +66,7 @@ static void accepts_valid_perpendicular_words_in_played_span(void)
 
 static void rejects_invalid_perpendicular_word_in_played_span(void)
 {
-    Board old_board = {0};
+    Board old_board = {};
 
     old_board.perpendicularRows[5] = make_row("......T........");
     old_board.perpendicularRows[6] = make_row("......Z........");
@@ -79,7 +79,7 @@ static void rejects_invalid_perpendicular_word_in_played_span(void)
 
 static void rejects_dictionary_words_that_extend_past_actual_perpendicular_word(void)
 {
-    Board old_board = {0};
+    Board old_board = {};
 
     old_board.perpendicularRows[7] = make_row(".....CA........");
     Board board = old_board;
@@ -91,7 +91,7 @@ static void rejects_dictionary_words_that_extend_past_actual_perpendicular_word(
 
 static void ignores_single_tile_perpendicular_intersections(void)
 {
-    Board old_board = {0};
+    Board old_board = {};
     Board board = old_board;
 
     load_dictionary("CAT\n");
@@ -101,7 +101,7 @@ static void ignores_single_tile_perpendicular_intersections(void)
 
 static void ignores_perpendicular_words_outside_played_span(void)
 {
-    Board old_board = {0};
+    Board old_board = {};
 
     old_board.perpendicularRows[5] = make_row("......T........");
     old_board.perpendicularRows[6] = make_row("......O........");
@@ -116,7 +116,7 @@ static void ignores_perpendicular_words_outside_played_span(void)
 
 static void validates_every_word_start_in_each_perpendicular_row(void)
 {
-    Board old_board = {0};
+    Board old_board = {};
 
     old_board.perpendicularRows[5] = make_row(".T....N........");
     Board board = old_board;
