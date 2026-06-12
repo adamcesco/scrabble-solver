@@ -157,7 +157,7 @@ static inline PatternBytes put_byte(uint8_t c, unsigned i)
     return ((PatternBytes)c) << BYTE_SHIFT(i);
 }
 
-static uint16_t word_length_mask(uint8_t word_length)
+static inline uint16_t word_length_mask(uint8_t word_length)
 {
     return (uint16_t)((UINT16_C(1) << word_length) - 1u);
 }
@@ -606,6 +606,54 @@ const Row *word_start_row_table_get(const WordStartRowTable *table, const char *
     }
 
     entry = found->second;
+    if ((entry->valid_starts & (uint16_t)(UINT16_C(1) << start)) == 0) {
+        return NULL;
+    }
+
+    return &entry->rows[start];
+}
+
+WordIndexStartRowTable word_index_start_row_table_from_word_table(const WordTable *words)
+{
+    WordIndexStartRowTable table = {};
+
+    if (words == NULL || words->words == NULL || words->count == 0) {
+        return table;
+    }
+
+    table.entries = static_cast<WordIndexStartRowEntry *>(calloc(words->count, sizeof(table.entries[0])));
+    if (table.entries == NULL) {
+        return table;
+    }
+
+    for (size_t word_index = 0; word_index < words->count; ++word_index) {
+        WordIndexStartRowEntry *entry = &table.entries[word_index];
+        size_t word_length = strlen(words->words[word_index]);
+
+        entry->word_length = (uint8_t)word_length;
+
+        for (size_t start = 0; start < BOARD_SIZE; ++start) {
+            if (word_length <= BOARD_SIZE - start) {
+                entry->rows[start] = make_word_start_row_at(words->words[word_index], start);
+                entry->valid_starts |= (uint16_t)(UINT16_C(1) << start);
+            }
+        }
+
+        table.count++;
+    }
+
+    return table;
+}
+
+const Row *word_index_start_row_table_get(const WordIndexStartRowTable *table, size_t word_index, size_t start)
+{
+    const WordIndexStartRowEntry *entry;
+
+    if (table == NULL || table->entries == NULL || word_index >= table->count || start >= BOARD_SIZE) {
+        return NULL;
+    }
+
+    entry = &table->entries[word_index];
     if ((entry->valid_starts & (uint16_t)(UINT16_C(1) << start)) == 0) {
         return NULL;
     }
@@ -1170,4 +1218,15 @@ void word_start_row_table_destroy(WordStartRowTable *table)
     table->entries = NULL;
     table->count = 0;
     table->hash_state = NULL;
+}
+
+void word_index_start_row_table_destroy(WordIndexStartRowTable *table)
+{
+    if (table == NULL) {
+        return;
+    }
+
+    free(table->entries);
+    table->entries = NULL;
+    table->count = 0;
 }

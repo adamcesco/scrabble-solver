@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-static inline uint16_t get_start_pos_mask_of_housting_perpendicular_word(uint16_t perpendicular_row_occupied, uint16_t new_word_perpendicular_occupied)
+static inline uint16_t get_start_pos_mask_of_housing_perpendicular_word(uint16_t perpendicular_row_occupied, uint16_t new_word_perpendicular_occupied)
 {
     // Assumes bit is a single-bit mask.
     // If selected bit is not inside a 1-group, return 0.
@@ -41,7 +41,7 @@ static inline int validate_perpendicular_row(
         return 1;
     }
     
-    const uint16_t start_mask = get_start_pos_mask_of_housting_perpendicular_word(perpendicular_row->occupiedMask, new_tile_mask);
+    const uint16_t start_mask = get_start_pos_mask_of_housing_perpendicular_word(perpendicular_row->occupiedMask, new_tile_mask);
     const char * tile_c_string = ((const char *)&perpendicular_row->tiles) + config_to_start_positions[start_mask][1];
 
     if (tile_c_string[1] != '\0' && !word_table_contains(dictionary, tile_c_string)) {

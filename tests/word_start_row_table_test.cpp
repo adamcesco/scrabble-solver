@@ -92,6 +92,70 @@ static void returns_empty_table_for_empty_or_null_word_tables(void)
     assert(null_rows.count == 0);
 }
 
+static void builds_indexed_rows_for_word_indices_at_requested_start_positions(void)
+{
+    WordTable words;
+    WordIndexStartRowTable rows;
+    const Row *cat_at_two;
+    const Row *berry_at_ten;
+
+    write_text_file("CAT\nBERRY\n");
+
+    words = words_from_file(temp_dictionary_path);
+    rows = word_index_start_row_table_from_word_table(&words);
+
+    assert(rows.count == 2);
+    assert(rows.entries[0].word_length == 3);
+    assert(rows.entries[1].word_length == 5);
+
+    cat_at_two = word_index_start_row_table_get(&rows, 0, 2);
+    berry_at_ten = word_index_start_row_table_get(&rows, 1, 10);
+
+    assert(cat_at_two != NULL);
+    assert(berry_at_ten != NULL);
+    assert_rows_equal(*cat_at_two, make_row("..CAT.........."));
+    assert_rows_equal(*berry_at_ten, make_row("..........BERRY"));
+
+    word_index_start_row_table_destroy(&rows);
+    word_table_destroy(&words);
+}
+
+static void indexed_rows_return_null_for_unknown_indices_or_words_that_do_not_fit(void)
+{
+    WordTable words;
+    WordIndexStartRowTable rows;
+
+    write_text_file("CAT\nBERRY\n");
+
+    words = words_from_file(temp_dictionary_path);
+    rows = word_index_start_row_table_from_word_table(&words);
+
+    assert(word_index_start_row_table_get(&rows, 2, 0) == NULL);
+    assert(word_index_start_row_table_get(&rows, 0, BOARD_SIZE) == NULL);
+    assert(word_index_start_row_table_get(&rows, 0, 13) == NULL);
+    assert(word_index_start_row_table_get(&rows, 1, 11) == NULL);
+
+    word_index_start_row_table_destroy(&rows);
+    word_table_destroy(&words);
+}
+
+static void indexed_rows_return_empty_table_for_empty_or_null_word_tables(void)
+{
+    WordTable words = {};
+    WordIndexStartRowTable rows = word_index_start_row_table_from_word_table(&words);
+    WordIndexStartRowTable null_rows = word_index_start_row_table_from_word_table(NULL);
+
+    assert(rows.entries == NULL);
+    assert(rows.count == 0);
+    assert(word_index_start_row_table_get(&rows, 0, 0) == NULL);
+
+    assert(null_rows.entries == NULL);
+    assert(null_rows.count == 0);
+
+    word_index_start_row_table_destroy(&rows);
+    word_index_start_row_table_destroy(&null_rows);
+}
+
 static void run_test(const char *name, void (*test)(void))
 {
     setup();
@@ -105,6 +169,9 @@ int main(void)
     run_test("builds_rows_for_words_at_requested_start_positions", builds_rows_for_words_at_requested_start_positions);
     run_test("returns_null_for_unknown_words_or_words_that_do_not_fit", returns_null_for_unknown_words_or_words_that_do_not_fit);
     run_test("returns_empty_table_for_empty_or_null_word_tables", returns_empty_table_for_empty_or_null_word_tables);
+    run_test("builds_indexed_rows_for_word_indices_at_requested_start_positions", builds_indexed_rows_for_word_indices_at_requested_start_positions);
+    run_test("indexed_rows_return_null_for_unknown_indices_or_words_that_do_not_fit", indexed_rows_return_null_for_unknown_indices_or_words_that_do_not_fit);
+    run_test("indexed_rows_return_empty_table_for_empty_or_null_word_tables", indexed_rows_return_empty_table_for_empty_or_null_word_tables);
 
     return 0;
 }

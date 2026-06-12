@@ -153,6 +153,33 @@ static void returns_all_words_that_share_a_pattern_and_anagram_key_in_dictionary
     word_table_destroy(&words);
 }
 
+static void indexes_lowercase_dictionary_words_as_uppercase_anagrams(void)
+{
+    WordTable words = load_dictionary("chai\nciao\n");
+    WordPatternTable patterns = word_pattern_table_from_word_table(&words);
+    const char *blank_expected[] = {"CHAI"};
+    const char *fixed_h_expected[] = {"CHAI"};
+
+    assert_anagram_words(&patterns, &words, get_anagram_entry(&patterns, "    ", "ACHI"), blank_expected, 1);
+    assert_anagram_words(&patterns, &words, get_anagram_entry(&patterns, " H  ", "ACI"), fixed_h_expected, 1);
+
+    word_table_destroy(&words);
+}
+
+static void requires_sorted_anagram_keys(void)
+{
+    WordTable words = load_dictionary("CHAI\n");
+    WordPatternTable patterns = word_pattern_table_from_word_table(&words);
+    PatternRow blank_pattern = pattern_row_for_pattern("    ");
+    const WordPattern *pattern_entry = word_pattern_table_get(&patterns, &blank_pattern);
+
+    assert(pattern_entry != NULL);
+    assert(word_pattern_entry_get_anagram(&patterns, pattern_entry, packed_letters("ACHI")) != NULL);
+    assert(word_pattern_entry_get_anagram(&patterns, pattern_entry, packed_letters("CHAI")) == NULL);
+
+    word_table_destroy(&words);
+}
+
 static void returns_null_for_zero_wildcard_patterns(void)
 {
     WordTable words = load_dictionary("APPLE\nAPPLY\n");
@@ -349,6 +376,8 @@ int main(void)
     run_test("returns_words_matching_fixed_position_wildcards_and_anagram_letters", returns_words_matching_fixed_position_wildcards_and_anagram_letters);
     run_test("enforces_exact_pattern_length", enforces_exact_pattern_length);
     run_test("returns_all_words_that_share_a_pattern_and_anagram_key_in_dictionary_order", returns_all_words_that_share_a_pattern_and_anagram_key_in_dictionary_order);
+    run_test("indexes_lowercase_dictionary_words_as_uppercase_anagrams", indexes_lowercase_dictionary_words_as_uppercase_anagrams);
+    run_test("requires_sorted_anagram_keys", requires_sorted_anagram_keys);
     run_test("returns_null_for_zero_wildcard_patterns", returns_null_for_zero_wildcard_patterns);
     run_test("skips_patterns_with_more_than_seven_zero_mask_bits", skips_patterns_with_more_than_seven_zero_mask_bits);
     run_test("returns_null_for_no_packed_match", returns_null_for_no_packed_match);

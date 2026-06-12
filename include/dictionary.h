@@ -36,6 +36,17 @@ typedef struct {
 } WordStartRowTable; // hash-map that when given a word and starting location, it returns a Row that has that word at that starting location
 
 typedef struct {
+    uint8_t word_length;
+    Row rows[BOARD_SIZE];
+    uint16_t valid_starts;
+} WordIndexStartRowEntry;
+
+typedef struct {
+    WordIndexStartRowEntry *entries;
+    size_t count;
+} WordIndexStartRowTable; // array lookup that when given a word index and starting location, it returns that word's Row at that starting location
+
+typedef struct {
     uint32_t start;
     uint32_t count;
 } WordPatternRange;
@@ -70,6 +81,10 @@ WordStartRowTable word_start_row_table_from_word_table(const WordTable *words);
 const Row *word_start_row_table_get(const WordStartRowTable *table, const char *word, size_t start);
 void word_start_row_table_print(const WordStartRowTable *table);
 void word_start_row_table_destroy(WordStartRowTable *table);
+
+WordIndexStartRowTable word_index_start_row_table_from_word_table(const WordTable *words);
+const Row *word_index_start_row_table_get(const WordIndexStartRowTable *table, size_t word_index, size_t start);
+void word_index_start_row_table_destroy(WordIndexStartRowTable *table);
 
 WordPatternTable word_pattern_table_from_word_table(const WordTable *words);
 int word_pattern_table_is_empty(const WordPatternTable *table);
