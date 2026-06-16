@@ -1,4 +1,5 @@
 #include "board.h"
+#include "utils.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -62,10 +63,9 @@ static uint16_t make_occupied_mask(const char tiles[BOARD_SIZE + 1])
 
 Row make_row(const char tiles[BOARD_SIZE + 1])
 {
-    Row row = {
-        .tiles = pack_tiles(tiles),
-    };
+    Row row = {};
 
+    row.tiles = pack_tiles(tiles);
     row.careMask = make_care_mask(tiles);
     row.occupiedMask = make_occupied_mask(tiles);
 
@@ -215,35 +215,16 @@ static int load_board_rows(Board *board, const char *board_file_path)
 
 Board board_from_csv(const char *board_file_path)
 {
-    Board board = {0};
+    Board board = {};
 
     if (!load_board_rows(&board, board_file_path)) {
-        return (Board){0};
+        return Board{};
     }
 
     return board;
 }
 
 /* Diagnostics */
-
-static void print_bits(RowTiles value, int bit_count)
-{
-    int tile_count = bit_count / TILE_BITS;
-
-    for (int col_index = 0; col_index < tile_count; ++col_index) {
-        int tile_start_bit = col_index * TILE_BITS;
-
-        for (int bit_offset = TILE_BITS - 1; bit_offset >= 0; --bit_offset) {
-            int bit_index = tile_start_bit + bit_offset;
-
-            putchar((value & ((RowTiles)1 << bit_index)) ? '1' : '0');
-        }
-
-        if (col_index < tile_count - 1) {
-            putchar(' ');
-        }
-    }
-}
 
 static void print_tile_chars(RowTiles packed_tiles)
 {
@@ -260,7 +241,7 @@ static void print_tile_chars(RowTiles packed_tiles)
 }
 
 void print_row(Row row) {
-    print_bits(row.tiles, BOARD_SIZE * TILE_BITS);
+    print_bits_grouped(stdout, row.tiles, BOARD_SIZE * TILE_BITS, TILE_BITS, 1);
     putchar('\n');
     printf("       ");
     print_tile_chars(row.tiles);
