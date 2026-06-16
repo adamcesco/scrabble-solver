@@ -10,53 +10,17 @@
 #include <vector>
 
 #define UINT128_CSTRING_SLOTS 15
+#define MAX_RACK_TILES 7
+#define RACK_SUBSET_KEY_CAPACITY 128
 
-static const uint8_t RACK_SUBSET_MASKS_1[] = {
-    UINT8_C(0x01), UINT8_C(0x02), UINT8_C(0x04), UINT8_C(0x08), UINT8_C(0x10), UINT8_C(0x20), UINT8_C(0x40)
-};
-static const uint8_t RACK_SUBSET_MASKS_2[] = {
-    UINT8_C(0x03), UINT8_C(0x05), UINT8_C(0x09), UINT8_C(0x11), UINT8_C(0x21), UINT8_C(0x41), UINT8_C(0x06), UINT8_C(0x0A), UINT8_C(0x12), UINT8_C(0x22), UINT8_C(0x42), UINT8_C(0x0C), UINT8_C(0x14), UINT8_C(0x24), UINT8_C(0x44), UINT8_C(0x18), UINT8_C(0x28), UINT8_C(0x48), UINT8_C(0x30), UINT8_C(0x50), UINT8_C(0x60)
-};
-static const uint8_t RACK_SUBSET_MASKS_3[] = {
-    UINT8_C(0x07), UINT8_C(0x0B), UINT8_C(0x13), UINT8_C(0x23), UINT8_C(0x43), UINT8_C(0x0D), UINT8_C(0x15), UINT8_C(0x25), UINT8_C(0x45), UINT8_C(0x19), UINT8_C(0x29), UINT8_C(0x49), UINT8_C(0x31), UINT8_C(0x51), UINT8_C(0x61), UINT8_C(0x0E), UINT8_C(0x16), UINT8_C(0x26), UINT8_C(0x46), UINT8_C(0x1A), UINT8_C(0x2A), UINT8_C(0x4A), UINT8_C(0x32), UINT8_C(0x52), UINT8_C(0x62), UINT8_C(0x1C), UINT8_C(0x2C), UINT8_C(0x4C), UINT8_C(0x34), UINT8_C(0x54), UINT8_C(0x64), UINT8_C(0x38), UINT8_C(0x58), UINT8_C(0x68), UINT8_C(0x70)
-};
-static const uint8_t RACK_SUBSET_MASKS_4[] = {
-    UINT8_C(0x0F), UINT8_C(0x17), UINT8_C(0x27), UINT8_C(0x47), UINT8_C(0x1B), UINT8_C(0x2B), UINT8_C(0x4B), UINT8_C(0x33), UINT8_C(0x53), UINT8_C(0x63), UINT8_C(0x1D), UINT8_C(0x2D), UINT8_C(0x4D), UINT8_C(0x35), UINT8_C(0x55), UINT8_C(0x65), UINT8_C(0x39), UINT8_C(0x59), UINT8_C(0x69), UINT8_C(0x71), UINT8_C(0x1E), UINT8_C(0x2E), UINT8_C(0x4E), UINT8_C(0x36), UINT8_C(0x56), UINT8_C(0x66), UINT8_C(0x3A), UINT8_C(0x5A), UINT8_C(0x6A), UINT8_C(0x72), UINT8_C(0x3C), UINT8_C(0x5C), UINT8_C(0x6C), UINT8_C(0x74), UINT8_C(0x78)
-};
-static const uint8_t RACK_SUBSET_MASKS_5[] = {
-    UINT8_C(0x1F), UINT8_C(0x2F), UINT8_C(0x4F), UINT8_C(0x37), UINT8_C(0x57), UINT8_C(0x67), UINT8_C(0x3B), UINT8_C(0x5B), UINT8_C(0x6B), UINT8_C(0x73), UINT8_C(0x3D), UINT8_C(0x5D), UINT8_C(0x6D), UINT8_C(0x75), UINT8_C(0x79), UINT8_C(0x3E), UINT8_C(0x5E), UINT8_C(0x6E), UINT8_C(0x76), UINT8_C(0x7A), UINT8_C(0x7C)
-};
-static const uint8_t RACK_SUBSET_MASKS_6[] = {
-    UINT8_C(0x3F), UINT8_C(0x5F), UINT8_C(0x6F), UINT8_C(0x77), UINT8_C(0x7B), UINT8_C(0x7D), UINT8_C(0x7E)
-};
-static const uint8_t RACK_SUBSET_MASKS_7[] = {
-    UINT8_C(0x7F)
-};
+typedef struct {
+    uint64_t keys[MAX_RACK_TILES + 1][RACK_SUBSET_KEY_CAPACITY];
+    uint8_t counts[MAX_RACK_TILES + 1];
+} RackSubsetKeys;
 
-static inline const uint8_t *rack_subset_masks_for_length(uint8_t length, size_t *count)
+static inline int canonical_rack_subset_mask(uint8_t duplicate_follow_mask, uint8_t mask)
 {
-    switch (length) {
-        case 1: *count = sizeof(RACK_SUBSET_MASKS_1) / sizeof(RACK_SUBSET_MASKS_1[0]); return RACK_SUBSET_MASKS_1;
-        case 2: *count = sizeof(RACK_SUBSET_MASKS_2) / sizeof(RACK_SUBSET_MASKS_2[0]); return RACK_SUBSET_MASKS_2;
-        case 3: *count = sizeof(RACK_SUBSET_MASKS_3) / sizeof(RACK_SUBSET_MASKS_3[0]); return RACK_SUBSET_MASKS_3;
-        case 4: *count = sizeof(RACK_SUBSET_MASKS_4) / sizeof(RACK_SUBSET_MASKS_4[0]); return RACK_SUBSET_MASKS_4;
-        case 5: *count = sizeof(RACK_SUBSET_MASKS_5) / sizeof(RACK_SUBSET_MASKS_5[0]); return RACK_SUBSET_MASKS_5;
-        case 6: *count = sizeof(RACK_SUBSET_MASKS_6) / sizeof(RACK_SUBSET_MASKS_6[0]); return RACK_SUBSET_MASKS_6;
-        case 7: *count = sizeof(RACK_SUBSET_MASKS_7) / sizeof(RACK_SUBSET_MASKS_7[0]); return RACK_SUBSET_MASKS_7;
-        default: *count = 0; return NULL;
-    }
-}
-
-static inline int canonical_rack_subset_mask(uint64_t sorted_rack, uint8_t mask)
-{
-    return !(
-        (get_byte_64(sorted_rack, 1) == get_byte_64(sorted_rack, 0) && (mask & UINT8_C(0x02)) != 0 && (mask & UINT8_C(0x01)) == 0) ||
-        (get_byte_64(sorted_rack, 2) == get_byte_64(sorted_rack, 1) && (mask & UINT8_C(0x04)) != 0 && (mask & UINT8_C(0x02)) == 0) ||
-        (get_byte_64(sorted_rack, 3) == get_byte_64(sorted_rack, 2) && (mask & UINT8_C(0x08)) != 0 && (mask & UINT8_C(0x04)) == 0) ||
-        (get_byte_64(sorted_rack, 4) == get_byte_64(sorted_rack, 3) && (mask & UINT8_C(0x10)) != 0 && (mask & UINT8_C(0x08)) == 0) ||
-        (get_byte_64(sorted_rack, 5) == get_byte_64(sorted_rack, 4) && (mask & UINT8_C(0x20)) != 0 && (mask & UINT8_C(0x10)) == 0) ||
-        (get_byte_64(sorted_rack, 6) == get_byte_64(sorted_rack, 5) && (mask & UINT8_C(0x40)) != 0 && (mask & UINT8_C(0x20)) == 0)
-    );
+    return (duplicate_follow_mask & mask & (uint8_t)~(mask << 1u)) == 0;
 }
 
 static inline uint64_t compact_rack_subset(uint64_t sorted_rack, uint8_t mask)
@@ -92,6 +56,39 @@ static inline uint64_t compact_rack_subset(uint64_t sorted_rack, uint8_t mask)
         put_byte_64((uint8_t)(get_byte_64(sorted_rack, 4) & m4), p4) |
         put_byte_64((uint8_t)(get_byte_64(sorted_rack, 5) & m5), p5) |
         put_byte_64((uint8_t)(get_byte_64(sorted_rack, 6) & m6), p6);
+}
+
+static inline uint8_t duplicate_follow_mask_for_rack(uint64_t sorted_rack, uint8_t rack_length)
+{
+    uint8_t duplicate_follow_mask = 0;
+
+    for (uint8_t index = 1; index < rack_length; ++index) {
+        if (get_byte_64(sorted_rack, index) == get_byte_64(sorted_rack, (uint8_t)(index - 1u))) {
+            duplicate_follow_mask |= (uint8_t)(UINT8_C(1) << index);
+        }
+    }
+
+    return duplicate_follow_mask;
+}
+
+static RackSubsetKeys rack_subset_keys_for_rack(uint64_t sorted_rack, uint8_t rack_length)
+{
+    RackSubsetKeys subset_keys = {};
+    const uint8_t duplicate_follow_mask = duplicate_follow_mask_for_rack(sorted_rack, rack_length);
+    const uint8_t subset_count = (uint8_t)(UINT8_C(1) << rack_length);
+
+    for (uint8_t mask = 1; mask < subset_count; ++mask) {
+        if (!canonical_rack_subset_mask(duplicate_follow_mask, mask)) {
+            continue;
+        }
+
+        uint8_t key_length = (uint8_t)__builtin_popcount(mask);
+        uint8_t key_index = subset_keys.counts[key_length]++;
+
+        subset_keys.keys[key_length][key_index] = compact_rack_subset(sorted_rack, mask);
+    }
+
+    return subset_keys;
 }
 
 static inline RowTiles row_window_mask(uint8_t word_length)
@@ -149,6 +146,7 @@ static int validate_rack_window_placement(
 
     const WordPatternAnagramGroup *entry = word_pattern_entry_get_anagram(word_patterns, window->pattern_entry, rack_subset);
     if (entry == NULL) {
+        // todo: when does this happen?
         return 0;
     }
 
@@ -157,9 +155,6 @@ static int validate_rack_window_placement(
         uint32_t word_index = word_patterns->word_indices[(size_t)start + offset];
 
         const Row *row_with_just_proposed_word = word_index_start_row_table_get(word_start_rows, word_index, window->left);
-        if (row_with_just_proposed_word == NULL) {
-            continue;
-        }
 
         if (place_word_onto_perpendicular_rows_and_validate(
             dictionary,
@@ -288,6 +283,7 @@ static void collect_k_zero_slot_window_matches_u128(
     }
 }
 
+// note that the `rack_cstring` parameter must be passed in already sorted and with 1 to 7 characters.
 size_t rack_oriented_solver(
     const WordTable *dictionary,
     const WordPatternTable *word_patterns,
@@ -306,12 +302,16 @@ size_t rack_oriented_solver(
     
     uint64_t rack = 0;
     uint8_t rack_length = (uint8_t)strlen(rack_cstring);
+
     memcpy(&rack, rack_cstring, rack_length);
+    RackSubsetKeys subset_keys = rack_subset_keys_for_rack(rack, rack_length);
+    std::vector<RackWindowMatch> window_matches;
+    window_matches.reserve(BOARD_SIZE * BOARD_SIZE);
 
     for (uint8_t rack_pattern_length = 1; rack_pattern_length <= rack_length; ++rack_pattern_length) {
-        size_t pattern_count = 0;
-        const uint8_t *pattern_masks = rack_subset_masks_for_length(rack_pattern_length, &pattern_count);
-        std::vector<RackWindowMatch> window_matches;
+        uint8_t rack_subset_count = subset_keys.counts[rack_pattern_length];
+
+        window_matches.clear();
 
         for (uint8_t row_index = 0; row_index < BOARD_SIZE; ++row_index) {
             collect_k_zero_slot_window_matches_u128(
@@ -324,15 +324,10 @@ size_t rack_oriented_solver(
             );
         }
 
-        for (size_t pattern_index = 0; pattern_index < pattern_count; ++pattern_index) {
-            uint8_t pattern_mask = pattern_masks[pattern_index];
+        for (size_t match_index = 0; match_index < window_matches.size(); ++match_index) {
+            for (uint8_t rack_subset_index = 0; rack_subset_index < rack_subset_count; ++rack_subset_index) {
+                uint64_t rack_subset = subset_keys.keys[rack_pattern_length][rack_subset_index];
 
-            if (!canonical_rack_subset_mask(rack, pattern_mask)) {
-                continue;
-            }
-
-            uint64_t rack_subset = compact_rack_subset(rack, pattern_mask);
-            for (size_t match_index = 0; match_index < window_matches.size(); ++match_index) {
                 count += validate_rack_window_placement(
                     dictionary,
                     word_patterns,
