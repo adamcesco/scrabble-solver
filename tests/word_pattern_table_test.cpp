@@ -1,4 +1,5 @@
 #include "dictionary.h"
+#include "utils.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -28,12 +29,12 @@ static void write_text_file(const char *contents)
     fclose(file);
 }
 
-static void write_u32(FILE *file, uint32_t value)
+static void test_write_u32(FILE *file, uint32_t value)
 {
     assert(fwrite(&value, sizeof(value), 1, file) == 1);
 }
 
-static void write_u64(FILE *file, uint64_t value)
+static void test_write_u64(FILE *file, uint64_t value)
 {
     assert(fwrite(&value, sizeof(value), 1, file) == 1);
 }
@@ -46,20 +47,12 @@ static WordTable load_dictionary(const char *contents)
 
 static PatternBytes test_pattern_byte(uint8_t value, unsigned slot)
 {
-#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    return ((PatternBytes)value) << (8u * (15u - slot));
-#else
-    return ((PatternBytes)value) << (8u * slot);
-#endif
+    return put_byte_128(value, slot, BOARD_SIZE);
 }
 
 static uint8_t test_pattern_byte_at(PatternBytes value, unsigned slot)
 {
-#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    return (uint8_t)(value >> (8u * (15u - slot)));
-#else
-    return (uint8_t)(value >> (8u * slot));
-#endif
+    return get_byte_128(value, slot, BOARD_SIZE);
 }
 
 static PatternRow pattern_row_for_pattern(const char *pattern)
@@ -326,14 +319,14 @@ static void rejects_old_word_pattern_cache_version(void)
     assert(file != NULL);
 
     assert(fwrite(magic, sizeof(magic), 1, file) == 1);
-    write_u32(file, 1);
-    write_u32(file, BOARD_SIZE);
-    write_u32(file, UINT32_C(0x01020304));
-    write_u64(file, words.count);
-    write_u64(file, 0);
-    write_u64(file, 0);
-    write_u64(file, 0);
-    write_u64(file, 0);
+    test_write_u32(file, 1);
+    test_write_u32(file, BOARD_SIZE);
+    test_write_u32(file, UINT32_C(0x01020304));
+    test_write_u64(file, words.count);
+    test_write_u64(file, 0);
+    test_write_u64(file, 0);
+    test_write_u64(file, 0);
+    test_write_u64(file, 0);
     fclose(file);
 
     WordPatternTable old_cache = word_pattern_table_load(&words, temp_cache_path);
@@ -353,7 +346,7 @@ static void rejects_previous_zero_space_cache_version(void)
     FILE *file = fopen(temp_cache_path, "r+b");
     assert(file != NULL);
     assert(fseek(file, 8, SEEK_SET) == 0);
-    write_u32(file, 2);
+    test_write_u32(file, 2);
     fclose(file);
 
     WordPatternTable previous_cache = word_pattern_table_load(&words, temp_cache_path);

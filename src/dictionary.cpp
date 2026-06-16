@@ -3,6 +3,7 @@
 #endif
 
 #include "dictionary.h"
+#include "utils.h"
 
 #include <ctype.h>
 #include <new>
@@ -33,17 +34,6 @@ static void uppercase_alpha_chars(char *word)
 
         if (isalpha(ch)) {
             word[i] = (char)toupper(ch);
-        }
-    }
-}
-
-static void print_bits(RowTiles value, int bit_count)
-{
-    for (int bit_index = bit_count - 1; bit_index >= 0; --bit_index) {
-        putchar((value & ((RowTiles)1 << bit_index)) ? '1' : '0');
-
-        if (bit_index > 0 && bit_index % ROW_TILE_BITS == 0) {
-            putchar(' ');
         }
     }
 }
@@ -137,31 +127,6 @@ static int init_word_pattern_buckets(WordPatternTable *table)
     return 1;
 }
 
-/*
-    PatternBytes stores up to BOARD_SIZE bytes in one integer so wildcard
-    patterns can be built with masks instead of per-character loops.
-*/
-#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-#  define BYTE_SHIFT(i) (8u * (15u - (unsigned)(i)))
-#else
-#  define BYTE_SHIFT(i) (8u * (unsigned)(i))
-#endif
-
-static inline uint8_t get_byte(PatternBytes x, unsigned i)
-{
-    return (uint8_t)(x >> BYTE_SHIFT(i));
-}
-
-static inline PatternBytes put_byte(uint8_t c, unsigned i)
-{
-    return ((PatternBytes)c) << BYTE_SHIFT(i);
-}
-
-static inline uint16_t word_length_mask(uint8_t word_length)
-{
-    return (uint16_t)((UINT16_C(1) << word_length) - 1u);
-}
-
 static size_t pattern_record_count_for_word(const char *word)
 {
     size_t word_length = strlen(word);
@@ -215,12 +180,12 @@ static PatternRow make_pattern_row_for_mask(PatternBytes packed_word, uint16_t o
     row.length = word_length;
 
     for (uint8_t index = 0; index < word_length; ++index) {
-        if ((occupied_mask & (uint16_t)(UINT16_C(1) << index)) == 0) {
+        if ((occupied_mask & bit_at_u16(index)) == 0) {
             continue;
         }
 
-        row.tiles |= put_byte(get_byte(packed_word, index), index);
-        row.keepMask |= put_byte(UINT8_MAX, index);
+        row.tiles |= put_byte_128(get_byte_128(packed_word, index, BOARD_SIZE), index, BOARD_SIZE);
+        row.keepMask |= put_byte_128(UINT8_MAX, index, BOARD_SIZE);
     }
 
     return row;
@@ -233,11 +198,11 @@ static PatternBytes sorted_anagram_key_for_mask(PatternBytes packed_word, uint16
     PatternBytes key = 0;
 
     for (uint8_t index = 0; index < word_length; ++index) {
-        if ((pattern_mask & (uint16_t)(UINT16_C(1) << index)) == 0) {
+        if ((pattern_mask & bit_at_u16(index)) == 0) {
             continue;
         }
 
-        uint8_t letter = get_byte(packed_word, index);
+        uint8_t letter = get_byte_128(packed_word, index, BOARD_SIZE);
         uint8_t insert_at = letter_count;
 
         while (insert_at > 0 && letters[insert_at - 1] > letter) {
@@ -250,7 +215,7 @@ static PatternBytes sorted_anagram_key_for_mask(PatternBytes packed_word, uint16
     }
 
     for (uint8_t index = 0; index < letter_count; ++index) {
-        key |= put_byte(letters[index], index);
+        key |= put_byte_128(letters[index], index, BOARD_SIZE);
     }
 
     return key;
@@ -272,7 +237,7 @@ static int append_pattern_records_for_word(std::vector<PatternRecord> *records, 
         it has 1..7 wildcard letters because the rack can supply at most seven.
     */
     pattern_count = (uint16_t)(UINT16_C(1) << word_length);
-    active_bits = word_length_mask(word_length);
+    active_bits = low_bit_mask_u16(word_length);
     memcpy(&packed_word, word, word_length + 1);
 
     for (uint16_t pattern_mask = 0; pattern_mask < pattern_count; ++pattern_mask) {
@@ -679,7 +644,7 @@ void word_start_row_table_print(const WordStartRowTable *table)
 
             row = &entry->rows[start];
             printf("%s start %2zu ", entry->word, start);
-            print_bits(row->tiles, BOARD_SIZE * ROW_TILE_BITS);
+            print_bits_grouped(stdout, row->tiles, BOARD_SIZE * ROW_TILE_BITS, ROW_TILE_BITS, 0);
             putchar('\n');
         }
     }
@@ -764,7 +729,7 @@ const WordPattern *word_pattern_table_get(const WordPatternTable *table, const P
 
     if (table->buckets_by_length.size() <= pattern->length ||
         table->buckets_by_length[pattern->length].size() <= pattern->occupiedMask ||
-        pattern->occupiedMask > word_length_mask(pattern->length)) {
+        pattern->occupiedMask > low_bit_mask_u16(pattern->length)) {
         return NULL;
     }
 
@@ -847,36 +812,6 @@ int word_pattern_anagram_contains_word(const WordPatternTable *table, const Word
     }
 
     return 0;
-}
-
-static int write_exact(FILE *file, const void *data, size_t size)
-{
-    return fwrite(data, 1, size, file) == size;
-}
-
-static int read_exact(FILE *file, void *data, size_t size)
-{
-    return fread(data, 1, size, file) == size;
-}
-
-static int write_u32(FILE *file, uint32_t value)
-{
-    return write_exact(file, &value, sizeof(value));
-}
-
-static int read_u32(FILE *file, uint32_t *value)
-{
-    return read_exact(file, value, sizeof(*value));
-}
-
-static int write_u64(FILE *file, uint64_t value)
-{
-    return write_exact(file, &value, sizeof(value));
-}
-
-static int read_u64(FILE *file, uint64_t *value)
-{
-    return read_exact(file, value, sizeof(*value));
 }
 
 static int write_pattern_bytes(FILE *file, PatternBytes value)

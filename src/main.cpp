@@ -15,7 +15,6 @@ int main(int argc, char **argv)
     // load word-oriented tables
     WordTable dictionary = words_from_file(dictionary_path);
     
-    WordStartRowTable starting_position_to_row = word_start_row_table_from_word_table(&dictionary);
     WordIndexStartRowTable indexed_starting_position_to_row = word_index_start_row_table_from_word_table(&dictionary);
     
     WordPatternTable pattern_and_rack_anagram_to_words = word_pattern_table_load(&dictionary, "data/caches/pattern_and_rack_anagram_to_words.cache");
@@ -23,7 +22,6 @@ int main(int argc, char **argv)
         pattern_and_rack_anagram_to_words = word_pattern_table_from_word_table(&dictionary);
         (void)word_pattern_table_save(&pattern_and_rack_anagram_to_words, &dictionary, "data/caches/pattern_and_rack_anagram_to_words.cache");
     }
-    printf("Largest word-pattern binary search domain: %zu\n", word_pattern_table_largest_binary_search_domain(&pattern_and_rack_anagram_to_words));
     
     uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
     init_config_map(config_to_start_positions);
@@ -37,18 +35,20 @@ int main(int argc, char **argv)
 
     // solving
     clock_t rack_oriented_start = clock();
-    int horizontal_rack_oriented_count = rack_oriented_solver(
+    size_t horizontal_rack_oriented_count = rack_oriented_solver(
         &dictionary,
         &pattern_and_rack_anagram_to_words,
         &indexed_starting_position_to_row,
+        config_to_start_positions,
         &board,
         "ABFHIKU"
     );
     std::swap(board.rows, board.perpendicularRows);
-    int vertical_rack_oriented_count = rack_oriented_solver(
+    size_t vertical_rack_oriented_count = rack_oriented_solver(
         &dictionary,
         &pattern_and_rack_anagram_to_words,
         &indexed_starting_position_to_row,
+        config_to_start_positions,
         &board,
         "ABFHIKU"
     );
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     printf("Solver statistics\n");
     printf("-----------------\n");
     printf("%-28s %10s %14s\n", "Solver", "Moves", "Seconds");
-    printf("%-28s %10d %14.6f\n", "Rack oriented", (horizontal_rack_oriented_count + vertical_rack_oriented_count), rack_oriented_seconds);
+    printf("%-28s %10zu %14.6f\n", "Rack oriented", (horizontal_rack_oriented_count + vertical_rack_oriented_count), rack_oriented_seconds);
     printf("\n");
 
     // sanity print to insure that the original board was not modified
@@ -68,7 +68,6 @@ int main(int argc, char **argv)
     printf("\n");
 
     // destroy hash-tables and hash-maps
-    word_start_row_table_destroy(&starting_position_to_row);
     word_index_start_row_table_destroy(&indexed_starting_position_to_row);
     word_table_destroy(&dictionary);
 

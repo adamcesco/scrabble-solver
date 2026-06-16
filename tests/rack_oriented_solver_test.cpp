@@ -31,7 +31,9 @@ static int solve_with_dictionary(Board *board, const char *dictionary_contents, 
     WordTable dictionary = words_from_file(temp_dictionary_path);
     WordPatternTable patterns = word_pattern_table_from_word_table(&dictionary);
     WordIndexStartRowTable rows = word_index_start_row_table_from_word_table(&dictionary);
-    int count = rack_oriented_solver(&dictionary, &patterns, &rows, board, rack);
+    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
+    init_config_map(config_to_start_positions);
+    int count = rack_oriented_solver(&dictionary, &patterns, &rows, config_to_start_positions, board, rack);
 
     word_index_start_row_table_destroy(&rows);
     word_table_destroy(&dictionary);
