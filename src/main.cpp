@@ -1,6 +1,5 @@
 #include "board.h"
 #include "dictionary.h"
-#include "dictionary_oriented_solver.h"
 #include "rack_oriented_solver.h"
 
 #include <stdio.h>
@@ -13,14 +12,14 @@ int main(int argc, char **argv)
     const char *dictionary_path = argc > 2 ? argv[2] : "data/dictionaries/sample_dictionary.txt";
 
     // load word-oriented tables
-    WordTable dictionary = words_from_file(dictionary_path);
+    WordTable dictionary = WordTable::from_file(dictionary_path);
     
-    WordIndexStartRowTable indexed_starting_position_to_row = word_index_start_row_table_from_word_table(&dictionary);
+    WordIndexStartRowTable indexed_starting_position_to_row = WordIndexStartRowTable::from_words(dictionary);
     
-    WordPatternTable pattern_and_rack_anagram_to_words = word_pattern_table_load(&dictionary, "data/caches/pattern_and_rack_anagram_to_words.cache");
-    if (word_pattern_table_is_empty(&pattern_and_rack_anagram_to_words)) {
-        pattern_and_rack_anagram_to_words = word_pattern_table_from_word_table(&dictionary);
-        (void)word_pattern_table_save(&pattern_and_rack_anagram_to_words, &dictionary, "data/caches/pattern_and_rack_anagram_to_words.cache");
+    WordPatternTable pattern_and_rack_anagram_to_words = WordPatternTable::load(dictionary, "data/caches/pattern_and_rack_anagram_to_words.cache");
+    if (pattern_and_rack_anagram_to_words.is_empty()) {
+        pattern_and_rack_anagram_to_words = WordPatternTable::from_words(dictionary);
+        (void)pattern_and_rack_anagram_to_words.save(dictionary, "data/caches/pattern_and_rack_anagram_to_words.cache");
     }
     
     uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
@@ -68,8 +67,8 @@ int main(int argc, char **argv)
     printf("\n");
 
     // destroy hash-tables and hash-maps
-    word_index_start_row_table_destroy(&indexed_starting_position_to_row);
-    word_table_destroy(&dictionary);
+    indexed_starting_position_to_row.destroy();
+    dictionary.destroy();
 
     return 0;
 }

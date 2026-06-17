@@ -38,15 +38,15 @@ static void loads_one_word_per_line_into_hash_table(void)
 
     write_text_file("APPLE\nBERRY\nCHERRY\n");
 
-    table = words_from_file(temp_dictionary_path);
+    table = WordTable::from_file(temp_dictionary_path);
 
     assert(table.count == 3);
-    assert(word_table_contains(&table, "APPLE"));
-    assert(word_table_contains(&table, "BERRY"));
-    assert(word_table_contains(&table, "CHERRY"));
-    assert(!word_table_contains(&table, "DATE"));
+    assert(table.contains("APPLE"));
+    assert(table.contains("BERRY"));
+    assert(table.contains("CHERRY"));
+    assert(!table.contains("DATE"));
 
-    word_table_destroy(&table);
+    table.destroy();
 }
 
 static void ignores_empty_lines_and_duplicate_words(void)
@@ -55,13 +55,13 @@ static void ignores_empty_lines_and_duplicate_words(void)
 
     write_text_file("\nAPPLE\n\nAPPLE\nBERRY\n");
 
-    table = words_from_file(temp_dictionary_path);
+    table = WordTable::from_file(temp_dictionary_path);
 
     assert(table.count == 2);
-    assert(word_table_contains(&table, "APPLE"));
-    assert(word_table_contains(&table, "BERRY"));
+    assert(table.contains("APPLE"));
+    assert(table.contains("BERRY"));
 
-    word_table_destroy(&table);
+    table.destroy();
 }
 
 static void uppercases_alpha_characters_when_loading_words(void)
@@ -70,24 +70,24 @@ static void uppercases_alpha_characters_when_loading_words(void)
 
     write_text_file("apple\nbErry\nCHERRY\n");
 
-    table = words_from_file(temp_dictionary_path);
+    table = WordTable::from_file(temp_dictionary_path);
 
     assert(table.count == 3);
-    assert(word_table_contains(&table, "APPLE"));
-    assert(word_table_contains(&table, "BERRY"));
-    assert(word_table_contains(&table, "CHERRY"));
-    assert(!word_table_contains(&table, "apple"));
+    assert(table.contains("APPLE"));
+    assert(table.contains("BERRY"));
+    assert(table.contains("CHERRY"));
+    assert(!table.contains("apple"));
 
-    word_table_destroy(&table);
+    table.destroy();
 }
 
 static void returns_empty_table_when_file_cannot_be_opened(void)
 {
-    WordTable table = words_from_file("/tmp/scrabble_dictionary_missing.txt");
+    WordTable table = WordTable::from_file("/tmp/scrabble_dictionary_missing.txt");
 
     assert(table.words == NULL);
     assert(table.count == 0);
-    assert(!word_table_contains(&table, "APPLE"));
+    assert(!table.contains("APPLE"));
 }
 
 static void searches_multiple_tables_independently(void)
@@ -98,28 +98,28 @@ static void searches_multiple_tables_independently(void)
     write_text_file_at(temp_dictionary_path, "APPLE\nBERRY\n");
     write_text_file_at(second_temp_dictionary_path, "CHERRY\nDATE\n");
 
-    first_table = words_from_file(temp_dictionary_path);
-    second_table = words_from_file(second_temp_dictionary_path);
+    first_table = WordTable::from_file(temp_dictionary_path);
+    second_table = WordTable::from_file(second_temp_dictionary_path);
 
     assert(first_table.count == 2);
     assert(second_table.count == 2);
 
-    assert(word_table_contains(&first_table, "APPLE"));
-    assert(word_table_contains(&first_table, "BERRY"));
-    assert(!word_table_contains(&first_table, "CHERRY"));
-    assert(!word_table_contains(&first_table, "DATE"));
+    assert(first_table.contains("APPLE"));
+    assert(first_table.contains("BERRY"));
+    assert(!first_table.contains("CHERRY"));
+    assert(!first_table.contains("DATE"));
 
-    assert(!word_table_contains(&second_table, "APPLE"));
-    assert(!word_table_contains(&second_table, "BERRY"));
-    assert(word_table_contains(&second_table, "CHERRY"));
-    assert(word_table_contains(&second_table, "DATE"));
+    assert(!second_table.contains("APPLE"));
+    assert(!second_table.contains("BERRY"));
+    assert(second_table.contains("CHERRY"));
+    assert(second_table.contains("DATE"));
 
-    word_table_destroy(&first_table);
+    first_table.destroy();
 
-    assert(word_table_contains(&second_table, "CHERRY"));
-    assert(word_table_contains(&second_table, "DATE"));
+    assert(second_table.contains("CHERRY"));
+    assert(second_table.contains("DATE"));
 
-    word_table_destroy(&second_table);
+    second_table.destroy();
 }
 
 static void run_test(const char *name, void (*test)(void))

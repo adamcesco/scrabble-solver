@@ -4,6 +4,8 @@
 #include "board.h"
 #include "dictionary.h"
 
+// Caller must guarantee row matches every already-occupied board cell in the
+// proposed span; occupied intersections are treated as unchanged and skipped.
 int place_word_onto_perpendicular_rows_and_validate(
     const WordTable *dictionary,
     const uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1],

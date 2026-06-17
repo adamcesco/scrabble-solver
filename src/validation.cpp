@@ -44,7 +44,7 @@ static inline int validate_perpendicular_row(
     const uint16_t start_mask = get_start_pos_mask_of_housing_perpendicular_word(perpendicular_row->occupiedMask, new_tile_mask);
     const char * tile_c_string = ((const char *)&perpendicular_row->tiles) + config_to_start_positions[start_mask][1];
 
-    if (tile_c_string[1] != '\0' && !word_table_contains(dictionary, tile_c_string)) {
+    if (tile_c_string[1] != '\0' && !dictionary->contains(tile_c_string)) {
         return 0;
     }
 
@@ -65,6 +65,11 @@ static inline void place_perpendicular_tile(Board *board, const Row *row, uint8_
     perpendicular_row->occupiedMask |= perpendicular_row_occupied_mask;
 }
 
+static inline int perpendicular_cell_already_occupied(const Row *perpendicular_row, uint8_t row_index)
+{
+    return (perpendicular_row->occupiedMask & (uint16_t)(1u << row_index)) != 0;
+}
+
 int place_word_onto_perpendicular_rows_and_validate(
     const WordTable *dictionary,
     const uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1],
@@ -77,6 +82,10 @@ int place_word_onto_perpendicular_rows_and_validate(
 )
 {
     for (uint8_t col_index = word_start; col_index < word_start + word_length; ++col_index) {
+        if (perpendicular_cell_already_occupied(&old_board_perpendicular_rows[col_index], row_index)) {
+            continue;
+        }
+
         place_perpendicular_tile(board, row, row_index, col_index);
 
         if (!validate_perpendicular_row(

@@ -17,7 +17,7 @@ static void setup(void)
 
 static void cleanup_after_each(void)
 {
-    word_table_destroy(&dictionary);
+    dictionary.destroy();
     remove(temp_dictionary_path);
 }
 
@@ -32,7 +32,7 @@ static void write_text_file(const char *contents)
 static void load_dictionary(const char *contents)
 {
     write_text_file(contents);
-    dictionary = words_from_file(temp_dictionary_path);
+    dictionary = WordTable::from_file(temp_dictionary_path);
 }
 
 static int place_and_validate(Board *board, const Board *old_board, const char row_tiles[BOARD_SIZE + 1], uint8_t row_index, uint8_t word_start, uint8_t word_length)
