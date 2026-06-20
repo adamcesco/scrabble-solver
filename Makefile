@@ -10,9 +10,9 @@ ROW_TEST_SRC = tests/row_can_house_test.cpp src/board.cpp src/utils.cpp
 DICTIONARY_TEST_SRC = tests/dictionary_from_file_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 WORD_START_ROW_TABLE_TEST_SRC = tests/word_start_row_table_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 WORD_PATTERN_TABLE_TEST_SRC = tests/word_pattern_table_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
-VALIDATION_TEST_SRC = tests/validation_test.cpp src/validation.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
-RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp src/rack_oriented_solver.cpp src/validation.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
-SOLVER_BENCHMARK_SRC = bench/solver_benchmark.cpp src/rack_oriented_solver.cpp src/validation.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
+VALIDATION_HOT_TEST_SRC = tests/validation_hot_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
+RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp src/rack_oriented_solver.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
+SOLVER_BENCHMARK_SRC = bench/solver_benchmark.cpp src/rack_oriented_solver.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 TARGET = build/main
 BOARD_FROM_CSV_TEST_TARGET = build/board_from_csv_test
 CONFIG_MAPS_TEST_TARGET = build/config_maps_test
@@ -21,10 +21,10 @@ ROW_TEST_TARGET = build/row_can_house_test
 DICTIONARY_TEST_TARGET = build/dictionary_from_file_test
 WORD_START_ROW_TABLE_TEST_TARGET = build/word_start_row_table_test
 WORD_PATTERN_TABLE_TEST_TARGET = build/word_pattern_table_test
-VALIDATION_TEST_TARGET = build/validation_test
+VALIDATION_HOT_TEST_TARGET = build/validation_hot_test
 RACK_ORIENTED_SOLVER_TEST_TARGET = build/rack_oriented_solver_test
 SOLVER_BENCHMARK_TARGET = build/solver_benchmark
-TEST_TARGETS = $(BOARD_FROM_CSV_TEST_TARGET) $(CONFIG_MAPS_TEST_TARGET) $(MAKE_ROW_TEST_TARGET) $(ROW_TEST_TARGET) $(DICTIONARY_TEST_TARGET) $(WORD_START_ROW_TABLE_TEST_TARGET) $(WORD_PATTERN_TABLE_TEST_TARGET) $(VALIDATION_TEST_TARGET) $(RACK_ORIENTED_SOLVER_TEST_TARGET)
+TEST_TARGETS = $(BOARD_FROM_CSV_TEST_TARGET) $(CONFIG_MAPS_TEST_TARGET) $(MAKE_ROW_TEST_TARGET) $(ROW_TEST_TARGET) $(DICTIONARY_TEST_TARGET) $(WORD_START_ROW_TABLE_TEST_TARGET) $(WORD_PATTERN_TABLE_TEST_TARGET) $(VALIDATION_HOT_TEST_TARGET) $(RACK_ORIENTED_SOLVER_TEST_TARGET)
 
 all: $(TARGET)
 
@@ -63,7 +63,7 @@ $(WORD_PATTERN_TABLE_TEST_TARGET): $(WORD_PATTERN_TABLE_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-$(VALIDATION_TEST_TARGET): $(VALIDATION_TEST_SRC)
+$(VALIDATION_HOT_TEST_TARGET): $(VALIDATION_HOT_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
@@ -83,7 +83,7 @@ test: $(TEST_TARGETS)
 	./$(DICTIONARY_TEST_TARGET)
 	./$(WORD_START_ROW_TABLE_TEST_TARGET)
 	./$(WORD_PATTERN_TABLE_TEST_TARGET)
-	./$(VALIDATION_TEST_TARGET)
+	./$(VALIDATION_HOT_TEST_TARGET)
 	./$(RACK_ORIENTED_SOLVER_TEST_TARGET)
 
 benchmark: $(SOLVER_BENCHMARK_TARGET)

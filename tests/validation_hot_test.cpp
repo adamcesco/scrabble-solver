@@ -1,4 +1,4 @@
-#include "validation.h"
+#include "validation_hot.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -6,13 +6,11 @@
 
 static char temp_dictionary_path[128];
 static WordTable dictionary;
-static uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
 
 static void setup(void)
 {
     dictionary = WordTable{};
     snprintf(temp_dictionary_path, sizeof(temp_dictionary_path), "/tmp/scrabble_validation_%ld.txt", (long)getpid());
-    init_config_map(config_to_start_positions);
 }
 
 static void cleanup_after_each(void)
@@ -38,16 +36,17 @@ static void load_dictionary(const char *contents)
 static int place_and_validate(Board *board, const Board *old_board, const char row_tiles[BOARD_SIZE + 1], uint8_t row_index, uint8_t word_start, uint8_t word_length)
 {
     Row row = make_row(row_tiles);
+    uint16_t touched_columns = 0;
 
-    return place_word_onto_perpendicular_rows_and_validate(
+    return hot_place_word_onto_perpendicular_rows_and_validate_with_touched_mask(
         &dictionary,
-        config_to_start_positions,
         old_board->perpendicularRows,
         board,
         &row,
         row_index,
         word_start,
-        word_length
+        word_length,
+        &touched_columns
     );
 }
 

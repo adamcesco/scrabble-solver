@@ -1,6 +1,7 @@
 #include "rack_oriented_solver.h"
 
 #include <assert.h>
+#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -31,9 +32,18 @@ static int solve_with_dictionary(Board *board, const char *dictionary_contents, 
     WordTable dictionary = WordTable::from_file(temp_dictionary_path);
     WordPatternTable patterns = WordPatternTable::from_words(dictionary);
     WordIndexStartRowTable rows = WordIndexStartRowTable::from_words(dictionary);
-    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1];
-    init_config_map(config_to_start_positions);
-    int count = rack_oriented_solver(&dictionary, &patterns, &rows, config_to_start_positions, board, rack);
+    uint64_t packed_rack = 0;
+    uint8_t rack_length = (uint8_t)strlen(rack);
+    memcpy(&packed_rack, rack, rack_length);
+    RackSubsetKeys rack_subset_keys = rack_subset_keys_for_rack(packed_rack, rack_length);
+    int count = rack_oriented_solver(
+        &dictionary,
+        &patterns,
+        &rows,
+        &rack_subset_keys,
+        board,
+        rack_length
+    );
 
     rows.destroy();
     dictionary.destroy();

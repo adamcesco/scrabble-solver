@@ -15,6 +15,7 @@ struct WordTable {
 
     // Unsafe to call with a null word pointer.
     int contains(const char *word) const;
+    int contains(const char *word, size_t length) const;
     uint64_t fingerprint() const;
     void print() const;
     void destroy();
@@ -23,6 +24,11 @@ struct WordTable {
 inline int WordTable::contains(const char *word) const
 {
     return word_set.find(word) != word_set.end();
+}
+
+inline int WordTable::contains(const char *word, size_t length) const
+{
+    return word_set.find(std::string_view(word, length)) != word_set.end();
 }
 
 #endif
