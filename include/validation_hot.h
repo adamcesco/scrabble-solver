@@ -79,7 +79,7 @@ static HOT_ALWAYS_INLINE int hot_place_word_onto_perpendicular_rows_and_validate
     const WordTable *dictionary,
     const Row old_board_perpendicular_rows[BOARD_SIZE],
     Board *board,
-    const Row *row,
+    const Row *row, // this can be a row with just the proposed word, or it can be the board row with the proposed word emplaced on it.
     uint8_t row_index,
     uint8_t word_start,
     uint8_t word_length,

@@ -147,7 +147,7 @@ RackSubsetKeys rack_subset_keys_for_rack(uint64_t sorted_rack, uint8_t rack_leng
 typedef struct {
     uint8_t row_index;
     uint8_t left;
-    uint8_t right;
+    uint8_t right;          // `right` isn't needed for anything really, but it is nice to have.
     uint8_t word_length;
     const WordPattern *pattern_entry;
 } RackWindowMatch;
@@ -155,7 +155,7 @@ typedef struct {
 typedef struct {
     RackWindowMatch items[MAX_RACK_TILES + 1][MAX_RACK_WINDOW_MATCHES];
     size_t counts[MAX_RACK_TILES + 1];
-} RackWindowMatches; // todo: eventually organize this by row, so that when you solve subsequent boards, you only need recalculate the window matches for that row
+} RackWindowMatches;
 
 static inline void restore_perpendicular_window(
     Board *board,
@@ -168,118 +168,6 @@ static inline void restore_perpendicular_window(
         board->perpendicularRows[col_index] = copy_of_original_board->perpendicularRows[col_index];
         touched_columns &= (uint16_t)(touched_columns - 1u);
     }
-}
-
-static inline int validate_rack_window_words(
-    const WordTable *dictionary,
-    const uint32_t *word_indices,
-    const WordIndexStartRowTable *word_start_rows,
-    Board *board,
-    const RackWindowMatch *window,
-    const WordPatternAnagramGroup *entry,
-    Board *copy_of_original_board
-)
-{
-    int count = 0;
-    Row row_with_newly_added_word = {};
-
-    uint32_t start = entry->word_indices.start;
-    for (size_t offset = 0; offset < entry->word_indices.count; ++offset) {
-        uint32_t word_index = word_indices[(size_t)start + offset];
-
-        const Row *row_with_just_proposed_word = word_start_rows->get_unchecked(word_index, window->left);
-
-        uint16_t touched_columns = 0;
-        if (hot_place_word_onto_perpendicular_rows_and_validate_with_touched_mask(
-            dictionary,
-            copy_of_original_board->perpendicularRows,
-            board,
-            row_with_just_proposed_word,
-            window->row_index,
-            window->left,
-            window->word_length,
-            &touched_columns
-        )) {
-            ++count;
-
-            add_proposed_word_to_row(&row_with_newly_added_word, &board->rows[window->row_index], row_with_just_proposed_word);
-            board->rows[window->row_index] = row_with_newly_added_word;
-            board->rows[window->row_index] = copy_of_original_board->rows[window->row_index];
-        }
-
-        restore_perpendicular_window(board, copy_of_original_board, touched_columns);
-    }
-
-    return count;
-}
-
-static int validate_rack_window_placement(
-    const WordTable *dictionary,
-    const WordPatternTable *word_patterns,
-    const WordIndexStartRowTable *word_start_rows,
-    Board *board,
-    const RackWindowMatch *window,
-    uint64_t rack_subset,
-    Board *copy_of_original_board
-)
-{
-    const WordPatternAnagramGroup *entry = word_patterns->get_anagram(*window->pattern_entry, rack_subset);
-    if (entry == NULL) {
-        return 0;
-    }
-
-    return validate_rack_window_words(
-        dictionary,
-        word_patterns->word_indices.data(),
-        word_start_rows,
-        board,
-        window,
-        entry,
-        copy_of_original_board
-    );
-}
-
-static int validate_rack_window_placement_merge(
-    const WordTable *dictionary,
-    const WordPatternTable *word_patterns,
-    const WordIndexStartRowTable *word_start_rows,
-    Board *board,
-    const RackWindowMatch *window,
-    const uint64_t *rack_subsets,
-    uint8_t rack_subset_count,
-    Board *copy_of_original_board
-)
-{
-    int count = 0;
-    const WordPatternRange anagrams = window->pattern_entry->anagrams;
-    const WordPatternAnagramGroup *groups = word_patterns->anagram_groups.data() + anagrams.start;
-    uint32_t group_index = 0;
-    uint8_t rack_subset_index = 0;
-
-    while (group_index < anagrams.count && rack_subset_index < rack_subset_count) {
-        const PatternBytes group_key = groups[group_index].rack_letters;
-        const PatternBytes rack_key = rack_subsets[rack_subset_index];
-
-        if (group_key < rack_key) {
-            ++group_index;
-        } else if (rack_key < group_key) {
-            ++rack_subset_index;
-        } else {
-            count += validate_rack_window_words(
-                dictionary,
-                word_patterns->word_indices.data(),
-                word_start_rows,
-                board,
-                window,
-                &groups[group_index],
-                copy_of_original_board
-            );
-            ++group_index;
-            ++rack_subset_index;
-        }
-    }
-
-    return count;
 }
 
 static SOLVER_ALWAYS_INLINE void collect_window_matches_for_all_rack_lengths_u128(
@@ -344,6 +232,157 @@ static SOLVER_ALWAYS_INLINE void collect_window_matches_for_all_rack_lengths_u12
     }
 }
 
+static inline int validate_rack_window_words(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const WordIndexStartRowTable *word_start_rows,
+    Board *board,
+    const RackWindowMatch *window,
+    const WordPatternAnagramGroup *entry,
+    Board *copy_of_original_board,
+    // below are all the variable needed to persis the move for future board calculation
+    RackWindowMatches *window_matches,
+    uint8_t rack_length
+)
+{
+    int count = 0;
+    uint8_t row_index = window->row_index;
+
+    uint32_t start = entry->word_indices.start;
+    for (size_t offset = 0; offset < entry->word_indices.count; ++offset) {
+        uint32_t word_index = word_patterns->word_indices.data()[(size_t)start + offset];
+
+        const Row *row_with_just_proposed_word = word_start_rows->get_unchecked(word_index, window->left);
+
+        uint16_t touched_columns = 0;
+        if (hot_place_word_onto_perpendicular_rows_and_validate_with_touched_mask(
+            dictionary,
+            copy_of_original_board->perpendicularRows,
+            board,
+            row_with_just_proposed_word,
+            row_index,
+            window->left,
+            window->word_length,
+            &touched_columns
+        )) {
+            ++count;
+
+            // place the proposed word onto the board
+            add_proposed_word_to_row(&board->rows[row_index], &board->rows[row_index], row_with_just_proposed_word);
+
+            // todo: check the size of the tile bag and see what the rack_length should be, for now we will assume that the tile bag has enough tiles to fully refill the rack
+            int8_t new_rack_length = rack_length;
+
+            // recalculate window_matches[row_index]
+            RackWindowMatches original_window_match_for_row = window_matches[row_index];
+
+            memset(window_matches[row_index].counts, 0, sizeof(window_matches[row_index].counts));
+            const Row *row = &board->rows[row_index];
+            collect_window_matches_for_all_rack_lengths_u128(
+                row->tiles,
+                row->occupiedMask,
+                row_index > 0 ? board->rows[row_index - 1u].occupiedMask : 0,
+                row_index + 1u < BOARD_SIZE ? board->rows[row_index + 1u].occupiedMask : 0,
+                new_rack_length,
+                word_patterns,
+                row_index,
+                &window_matches[row_index]
+            );
+
+            // todo: Here you can save this move for later processing or recursively use `board` to validate future moves
+
+            // restore the changed row and the change window matches for that row back to it's original state
+            board->rows[row_index] = copy_of_original_board->rows[row_index];
+            window_matches[row_index] = std::move(original_window_match_for_row);
+        }
+
+        restore_perpendicular_window(board, copy_of_original_board, touched_columns);
+    }
+
+    return count;
+}
+
+static int validate_rack_window_placement(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const WordIndexStartRowTable *word_start_rows,
+    Board *board,
+    const RackWindowMatch *window,
+    uint64_t rack_subset,
+    Board *copy_of_original_board,
+    // below are all the variable needed to persis the move for future board calculation
+    RackWindowMatches *window_matches,
+    uint8_t rack_length
+)
+{
+    const WordPatternAnagramGroup *entry = word_patterns->get_anagram(*window->pattern_entry, rack_subset);
+    if (entry == NULL) {
+        return 0;
+    }
+
+    return validate_rack_window_words(
+        dictionary,
+        word_patterns,
+        word_start_rows,
+        board,
+        window,
+        entry,
+        copy_of_original_board,
+        // below are all the variable needed to persis the move for future board calculation
+        window_matches,
+        rack_length
+    );
+}
+
+static int validate_rack_window_placement_merge(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const WordIndexStartRowTable *word_start_rows,
+    Board *board,
+    const RackWindowMatch *window,
+    const uint64_t *rack_subsets,
+    uint8_t rack_subset_count,
+    Board *copy_of_original_board,
+    // below are all the variable needed to persis the move for future board calculation
+    RackWindowMatches *window_matches,
+    uint8_t rack_length
+)
+{
+    int count = 0;
+    const WordPatternRange anagrams = window->pattern_entry->anagrams;
+    const WordPatternAnagramGroup *groups = word_patterns->anagram_groups.data() + anagrams.start;
+    uint32_t group_index = 0;
+    uint8_t rack_subset_index = 0;
+
+    while (group_index < anagrams.count && rack_subset_index < rack_subset_count) {
+        const PatternBytes group_key = groups[group_index].rack_letters;
+        const PatternBytes rack_key = rack_subsets[rack_subset_index];
+
+        if (group_key < rack_key) {
+            ++group_index;
+        } else if (rack_key < group_key) {
+            ++rack_subset_index;
+        } else {
+            count += validate_rack_window_words(
+                dictionary,
+                word_patterns,
+                word_start_rows,
+                board,
+                window,
+                &groups[group_index],
+                copy_of_original_board,
+                // below are all the variable needed to persis the move for future board calculation
+                window_matches,
+                rack_length
+            );
+            ++group_index;
+            ++rack_subset_index;
+        }
+    }
+
+    return count;
+}
+
 size_t rack_oriented_solver(
     const WordTable *dictionary,
     const WordPatternTable *word_patterns,
@@ -355,10 +394,10 @@ size_t rack_oriented_solver(
 {
     size_t count = 0;
     Board copy_of_original_board = *board;
-    RackWindowMatches window_matches;
+    RackWindowMatches window_matches[BOARD_SIZE];
 
-    memset(window_matches.counts, 0, sizeof(window_matches.counts));
     for (uint8_t row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+        memset(window_matches[row_index].counts, 0, sizeof(window_matches[row_index].counts));
         const Row *row = &board->rows[row_index];
         collect_window_matches_for_all_rack_lengths_u128(
             row->tiles,
@@ -368,41 +407,49 @@ size_t rack_oriented_solver(
             rack_length,
             word_patterns,
             row_index,
-            &window_matches
+            &window_matches[row_index]
         );
     }
 
     for (uint8_t rack_pattern_length = 1; rack_pattern_length <= rack_length; ++rack_pattern_length) {
         uint8_t rack_subset_count = rack_subset_keys->counts[rack_pattern_length];
+        const uint64_t *rack_subsets = rack_subset_keys->keys[rack_pattern_length];
 
-        for (size_t match_index = 0; match_index < window_matches.counts[rack_pattern_length]; ++match_index) {
-            const RackWindowMatch *window = &window_matches.items[rack_pattern_length][match_index];
-            const uint64_t *rack_subsets = rack_subset_keys->keys[rack_pattern_length];
+        for (uint8_t row_index = 0; row_index < BOARD_SIZE; ++row_index) {
+            for (size_t match_index = 0; match_index < window_matches[row_index].counts[rack_pattern_length]; ++match_index) {
+                const RackWindowMatch *window = &window_matches[row_index].items[rack_pattern_length][match_index];
 
-            if (window->pattern_entry->anagrams.count <= (uint32_t)rack_subset_count * 4u) {
-                count += validate_rack_window_placement_merge(
-                    dictionary,
-                    word_patterns,
-                    word_start_rows,
-                    board,
-                    window,
-                    rack_subsets,
-                    rack_subset_count,
-                    &copy_of_original_board
-                );
-            } else {
-                for (uint8_t rack_subset_index = 0; rack_subset_index < rack_subset_count; ++rack_subset_index) {
-                    uint64_t rack_subset = rack_subsets[rack_subset_index];
-
-                    count += validate_rack_window_placement(
+                if (window->pattern_entry->anagrams.count <= (uint32_t)rack_subset_count * 4u) {
+                    count += validate_rack_window_placement_merge(
                         dictionary,
                         word_patterns,
                         word_start_rows,
                         board,
                         window,
-                        rack_subset,
-                        &copy_of_original_board
+                        rack_subsets,
+                        rack_subset_count,
+                        &copy_of_original_board,
+                        // below are all the variable needed to persis the move for future board calculation
+                        window_matches,
+                        rack_length
                     );
+                } else {
+                    for (uint8_t rack_subset_index = 0; rack_subset_index < rack_subset_count; ++rack_subset_index) {
+                        uint64_t rack_subset = rack_subsets[rack_subset_index];
+
+                        count += validate_rack_window_placement(
+                            dictionary,
+                            word_patterns,
+                            word_start_rows,
+                            board,
+                            window,
+                            rack_subset,
+                            &copy_of_original_board,
+                            // below are all the variable needed to persis the move for future board calculation
+                            window_matches,
+                            rack_length
+                        );
+                    }
                 }
             }
         }
