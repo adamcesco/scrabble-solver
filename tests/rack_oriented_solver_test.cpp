@@ -36,7 +36,7 @@ static int solve_with_dictionary(Board *board, const char *dictionary_contents, 
     uint8_t rack_length = (uint8_t)strlen(rack);
     memcpy(&packed_rack, rack, rack_length);
     RackSubsetKeys rack_subset_keys = rack_subset_keys_for_rack(packed_rack, rack_length);
-    int count = rack_oriented_solver(
+    int count = rack_oriented_full_board_solver(
         &dictionary,
         &patterns,
         &rows,

@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     // solving
     clock_t rack_oriented_start = clock();
     RackSubsetKeys rack_subset_keys = rack_subset_keys_for_rack(rack, rack_length);
-    size_t horizontal_rack_oriented_count = rack_oriented_solver(
+    size_t horizontal_rack_oriented_count = rack_oriented_full_board_solver(
         &dictionary,
         &pattern_and_rack_anagram_to_words,
         &indexed_starting_position_to_row,
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
         rack_length
     );
     std::swap(board.rows, board.perpendicularRows);
-    size_t vertical_rack_oriented_count = rack_oriented_solver(
+    size_t vertical_rack_oriented_count = rack_oriented_full_board_solver(
         &dictionary,
         &pattern_and_rack_anagram_to_words,
         &indexed_starting_position_to_row,

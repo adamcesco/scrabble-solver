@@ -219,6 +219,7 @@ static SOLVER_ALWAYS_INLINE void collect_window_matches_for_all_rack_lengths_u12
             };
             const WordPattern *pattern_entry = word_patterns->get(pattern_row);
             if (pattern_entry != NULL) {
+                // todo: no longer persist the RackWindowMatch, instead just pass it to a solver method
                 size_t match_index = matches->counts[zero_count]++;
                 matches->items[zero_count][match_index] = RackWindowMatch{
                     row_index,
@@ -239,10 +240,7 @@ static inline int validate_rack_window_words(
     Board *board,
     const RackWindowMatch *window,
     const WordPatternAnagramGroup *entry,
-    Board *copy_of_original_board,
-    // below are all the variable needed to persis the move for future board calculation
-    RackWindowMatches *window_matches,
-    uint8_t rack_length
+    Board *copy_of_original_board
 )
 {
     int count = 0;
@@ -267,33 +265,7 @@ static inline int validate_rack_window_words(
         )) {
             ++count;
 
-            // place the proposed word onto the board
-            add_proposed_word_to_row(&board->rows[row_index], &board->rows[row_index], row_with_just_proposed_word);
-
-            // todo: check the size of the tile bag and see what the rack_length should be, for now we will assume that the tile bag has enough tiles to fully refill the rack
-            int8_t new_rack_length = rack_length;
-
-            // recalculate window_matches[row_index]
-            RackWindowMatches original_window_match_for_row = window_matches[row_index];
-
-            memset(window_matches[row_index].counts, 0, sizeof(window_matches[row_index].counts));
-            const Row *row = &board->rows[row_index];
-            collect_window_matches_for_all_rack_lengths_u128(
-                row->tiles,
-                row->occupiedMask,
-                row_index > 0 ? board->rows[row_index - 1u].occupiedMask : 0,
-                row_index + 1u < BOARD_SIZE ? board->rows[row_index + 1u].occupiedMask : 0,
-                new_rack_length,
-                word_patterns,
-                row_index,
-                &window_matches[row_index]
-            );
-
-            // todo: Here you can save this move for later processing or recursively use `board` to validate future moves
-
-            // restore the changed row and the change window matches for that row back to it's original state
-            board->rows[row_index] = copy_of_original_board->rows[row_index];
-            window_matches[row_index] = std::move(original_window_match_for_row);
+            // todo: Here you can save this move for later processing. Save row_with_just_proposed_word, row_index, window->left, and window->right
         }
 
         restore_perpendicular_window(board, copy_of_original_board, touched_columns);
@@ -309,10 +281,7 @@ static int validate_rack_window_placement(
     Board *board,
     const RackWindowMatch *window,
     uint64_t rack_subset,
-    Board *copy_of_original_board,
-    // below are all the variable needed to persis the move for future board calculation
-    RackWindowMatches *window_matches,
-    uint8_t rack_length
+    Board *copy_of_original_board
 )
 {
     const WordPatternAnagramGroup *entry = word_patterns->get_anagram(*window->pattern_entry, rack_subset);
@@ -327,10 +296,7 @@ static int validate_rack_window_placement(
         board,
         window,
         entry,
-        copy_of_original_board,
-        // below are all the variable needed to persis the move for future board calculation
-        window_matches,
-        rack_length
+        copy_of_original_board
     );
 }
 
@@ -342,10 +308,7 @@ static int validate_rack_window_placement_merge(
     const RackWindowMatch *window,
     const uint64_t *rack_subsets,
     uint8_t rack_subset_count,
-    Board *copy_of_original_board,
-    // below are all the variable needed to persis the move for future board calculation
-    RackWindowMatches *window_matches,
-    uint8_t rack_length
+    Board *copy_of_original_board
 )
 {
     int count = 0;
@@ -370,10 +333,7 @@ static int validate_rack_window_placement_merge(
                 board,
                 window,
                 &groups[group_index],
-                copy_of_original_board,
-                // below are all the variable needed to persis the move for future board calculation
-                window_matches,
-                rack_length
+                copy_of_original_board
             );
             ++group_index;
             ++rack_subset_index;
@@ -383,7 +343,7 @@ static int validate_rack_window_placement_merge(
     return count;
 }
 
-size_t rack_oriented_solver(
+size_t rack_oriented_full_board_solver(
     const WordTable *dictionary,
     const WordPatternTable *word_patterns,
     const WordIndexStartRowTable *word_start_rows,
@@ -392,10 +352,9 @@ size_t rack_oriented_solver(
     uint8_t rack_length
 )
 {
-    size_t count = 0;
-    Board copy_of_original_board = *board;
+    // todo: window matches will not be passed on between boards, so they do not need to be persisted/stored
+    // instead, new boards will only calculation the moves surrounding and in the changed row, which need the window matches recalculated anyways
     RackWindowMatches window_matches[BOARD_SIZE];
-
     for (uint8_t row_index = 0; row_index < BOARD_SIZE; ++row_index) {
         memset(window_matches[row_index].counts, 0, sizeof(window_matches[row_index].counts));
         const Row *row = &board->rows[row_index];
@@ -411,6 +370,8 @@ size_t rack_oriented_solver(
         );
     }
 
+    size_t count = 0;
+    Board copy_of_original_board = *board;
     for (uint8_t rack_pattern_length = 1; rack_pattern_length <= rack_length; ++rack_pattern_length) {
         uint8_t rack_subset_count = rack_subset_keys->counts[rack_pattern_length];
         const uint64_t *rack_subsets = rack_subset_keys->keys[rack_pattern_length];
@@ -428,10 +389,7 @@ size_t rack_oriented_solver(
                         window,
                         rack_subsets,
                         rack_subset_count,
-                        &copy_of_original_board,
-                        // below are all the variable needed to persis the move for future board calculation
-                        window_matches,
-                        rack_length
+                        &copy_of_original_board
                     );
                 } else {
                     for (uint8_t rack_subset_index = 0; rack_subset_index < rack_subset_count; ++rack_subset_index) {
@@ -444,10 +402,7 @@ size_t rack_oriented_solver(
                             board,
                             window,
                             rack_subset,
-                            &copy_of_original_board,
-                            // below are all the variable needed to persis the move for future board calculation
-                            window_matches,
-                            rack_length
+                            &copy_of_original_board
                         );
                     }
                 }

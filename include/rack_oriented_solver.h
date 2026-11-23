@@ -17,7 +17,7 @@ typedef struct {
 
 RackSubsetKeys rack_subset_keys_for_rack(uint64_t sorted_rack, uint8_t rack_length);
 
-size_t rack_oriented_solver(
+size_t rack_oriented_full_board_solver(
     const WordTable *dictionary,
     const WordPatternTable *word_patterns,
     const WordIndexStartRowTable *word_start_rows,

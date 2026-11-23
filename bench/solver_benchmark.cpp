@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     for (int iteration = 0; iteration < iterations; ++iteration) {
         auto start = std::chrono::steady_clock::now();
         RackSubsetKeys rack_subset_keys = rack_subset_keys_for_rack(rack, rack_length);
-        total_moves += rack_oriented_solver(
+        total_moves += rack_oriented_full_board_solver(
             &dictionary,
             &pattern_and_rack_anagram_to_words,
             &indexed_starting_position_to_row,
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
             rack_length
         );
         std::swap(board.rows, board.perpendicularRows);
-        total_moves += rack_oriented_solver(
+        total_moves += rack_oriented_full_board_solver(
             &dictionary,
             &pattern_and_rack_anagram_to_words,
             &indexed_starting_position_to_row,
