@@ -1,9 +1,10 @@
 .agents/
 .codex/
 .vscode/
+.scratch/
+docs/
 build/
 data/
 *.o
 *.out
 *.a
-
