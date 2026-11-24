@@ -11,6 +11,7 @@ from collections import Counter
 from pathlib import Path
 
 PILOT = Path("bench/fixtures/pilot")
+TIMING_DICTIONARY = Path("data/dictionaries/sample_dictionary.txt")
 
 
 def sample(*args):
@@ -19,7 +20,12 @@ def sample(*args):
 
 
 class SampleTurnsTest(unittest.TestCase):
-    def test_reproduces_the_saved_pilot_and_replays_every_turn(self):
+    @unittest.skipUnless(TIMING_DICTIONARY.is_file(), "full timing dictionary is supplied separately")
+    def test_reproduces_the_committed_corpus_byte_for_byte(self):
+        output = subprocess.check_output([sys.executable, "bench/sample_turns.py", "--seed", "10"])
+        self.assertEqual(output, (PILOT / "corpus.json").read_bytes())
+
+    def test_replays_every_saved_case_with_the_fixture_dictionary(self):
         saved = json.loads((PILOT / "corpus.json").read_text())
         settings = ("--seed", str(saved["seed"]))
         first = sample(*settings)
@@ -27,16 +33,16 @@ class SampleTurnsTest(unittest.TestCase):
         corpus = json.loads(first)
         dictionary = PILOT / "words.txt"
         fingerprint = hashlib.sha256(dictionary.read_bytes()).hexdigest()
-        for case in corpus["cases"]:
+        self.assertEqual(corpus["stage_counts"], saved["stage_counts"])
+        for case, expected in zip(corpus["cases"], saved["cases"], strict=True):
             replay = json.loads(subprocess.check_output([
                 sys.executable, "bench/replay_game.py", "--game", PILOT / case["game"],
                 "--dictionary", dictionary, "--turn", str(case["turn"])]))
             self.assertEqual((case["board"], case["rack"]), (replay["board"], replay["rack"]))
             self.assertEqual(case["dictionary_sha256"], fingerprint)
-            # The committed sample uses the full timing dictionary. A clean checkout
-            # can replay the same legal games with the checked-in 252-word subset.
-            case["dictionary_sha256"] = "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd"
-        self.assertEqual(corpus, saved)
+            for key in ("game", "source", "turn", "stage", "eligible_rank", "eligible_count",
+                        "player", "square", "play", "board", "rack"):
+                self.assertEqual(case[key], expected[key], key)
 
     def test_balances_games_by_thirds_of_their_eligible_turns(self):
         # Last recorded turn in each game's early and middle thirds. Blank racks

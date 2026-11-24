@@ -33,6 +33,8 @@ The pilot contains **six recorded games, with two selected turns per stage**. Fi
 
 The sampler ranks eligible turns from one in playing order and splits them into consecutive thirds. It gives any remainder to the earliest thirds. For example, the 13-turn eligible list splits 5/4/4 and the 20-turn list splits 7/7/6. Seed 10 shuffles the games before stage assignment and selects a turn uniformly within the assigned third. Games with only one or two eligible turns get their available stages first. Each game goes to its least represented available stage, breaking ties in early, middle, late order.
 
+The byte comparison below requires the project's separately supplied `data/dictionaries/sample_dictionary.txt` with SHA-256 `559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd`. Each saved case records this fingerprint.
+
 ```sh
 python3 bench/sample_turns.py --seed 10 | cmp - bench/fixtures/pilot/corpus.json
 python3 bench/replay_game.py --game bench/fixtures/pilot/games/6zTBhes669.csv \
@@ -40,7 +42,11 @@ python3 bench/replay_game.py --game bench/fixtures/pilot/games/6zTBhes669.csv \
 python3 bench/sample_turns.py --benchmark-dir /tmp/scrabble-pilot > /tmp/scrabble-pilot.json
 ```
 
-The saved cases use the full sample dictionary and include its SHA-256. Each `game` path is relative to the input games manifest. To use a different collection or dictionary, pass `--games` or `--dictionary`. The checked-in 252-word dictionary covers every word played or formed in these six games and allows offline replay tests from a clean checkout. [Replay dictionary](fixtures/pilot/words.txt)
+From a clean checkout, the following command verifies every saved board, rack and stage using the bundled 252-word dictionary. It covers every word played or formed in these six games. Each `game` path is relative to the input games manifest. To use a different collection or dictionary, pass `--games` or `--dictionary`. [Replay dictionary](fixtures/pilot/words.txt)
+
+```sh
+python3 tests/sample_turns_test.py SampleTurnsTest.test_replays_every_saved_case_with_the_fixture_dictionary
+```
 
 The optional benchmark export writes solver CSV boards and `cases.csv` for the paired runner below. Within each stage it uses the next selected board and its actual rack for the new-board workload, wrapping at the end. For the new-rack workload it removes the last recorded tile from that board's rack. This keeps every remaining tile available on that board. This export needs two cases per stage and at least two tiles in each reused rack. Use the same dictionary for sampling and timing.
 
