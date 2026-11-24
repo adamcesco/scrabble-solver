@@ -11,12 +11,6 @@
 
 typedef unsigned __int128 PatternBytes;
 
-struct PatternRow {
-    PatternBytes tiles = 0;
-    uint16_t occupiedMask = 0;
-    uint8_t length = 0;
-};
-
 struct WordPatternRange {
     uint32_t start = 0;
     uint32_t count = 0;

@@ -41,6 +41,12 @@ typedef struct {
     Row perpendicularRows[BOARD_SIZE];
 } Board;
 
+struct PatternRow {
+    RowTiles tiles = 0;
+    uint16_t occupiedMask = 0;
+    uint8_t length = 0;
+};
+
 Row make_row(const char tiles[BOARD_SIZE + 1]);
 
 static inline uint16_t make_word_start_mask(uint16_t occupied)
