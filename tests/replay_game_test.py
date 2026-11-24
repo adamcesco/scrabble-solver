@@ -7,6 +7,26 @@ import unittest
 from pathlib import Path
 
 FIXTURE = Path("bench/fixtures/replay")
+ACROSS, DOWN = 0, 1
+# Complete words at their zero-based row and start in the solver's directional view.
+RECORDED_PLAYS = {
+    2: (DOWN, 7, 3, "LIGATURE"),
+    3: (ACROSS, 11, 7, "STIBINE"),
+    4: (DOWN, 14, 7, "KOANS"),
+    5: (DOWN, 13, 9, "ZEE"),
+    6: (DOWN, 8, 6, "WYN"),
+    8: (ACROSS, 4, 3, "ROMAINES"),
+    10: (ACROSS, 3, 0, "TAUON"),
+    11: (DOWN, 0, 3, "TEREBIC"),
+    12: (DOWN, 12, 2, "JUNIOR"),
+    13: (ACROSS, 5, 9, "HO"),
+    14: (ACROSS, 3, 11, "QUA"),
+    15: (DOWN, 14, 0, "LOAD"),
+    16: (ACROSS, 13, 5, "DECALOGS"),
+    18: (DOWN, 2, 9, "WAFFIE"),
+    19: (ACROSS, 14, 12, "IVY"),
+    20: (ACROSS, 10, 1, "PAIR"),
+}
 
 
 def replay(*args):
@@ -15,7 +35,7 @@ def replay(*args):
 
 class ReplayGameTest(unittest.TestCase):
     def test_lists_supported_post_opening_turns_in_record_order(self):
-        self.assertEqual(json.loads(replay()), [2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20])
+        self.assertEqual(json.loads(replay()), list(RECORDED_PLAYS))
 
     def test_blank_rack_is_ineligible_even_when_the_player_keeps_the_blank(self):
         result = subprocess.run([sys.executable, "bench/replay_game.py", "--turn", "7"],
@@ -23,7 +43,7 @@ class ReplayGameTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("turn 7 is ineligible", result.stderr)
 
-    def test_dictionary_must_include_words_formed_at_right_angles(self):
+    def test_dictionary_must_include_perpendicular_words(self):
         with tempfile.TemporaryDirectory() as directory:
             dictionary = Path(directory) / "words.txt"
             words = (FIXTURE / "words.txt").read_text().splitlines()
@@ -50,17 +70,12 @@ class ReplayGameTest(unittest.TestCase):
     def test_solver_accepts_the_recorded_plays_on_recovered_positions(self):
         requests = []
         with tempfile.TemporaryDirectory() as directory:
-            for number in json.loads(replay()):
+            for number, (down, row, start, word) in RECORDED_PLAYS.items():
                 board = Path(directory) / f"{number}.csv"
                 turn = json.loads(replay("--turn", str(number), "--board-csv", board))
-                square = turn["square"]
-                down = square[0].isalpha()
-                row = int(square[1:] if down else square[:-1]) - 1
-                col = ord(square[0] if down else square[-1]) - ord("A")
-                word = "".join(tile if tile != "." else turn["board"][row + i * down][col + i * (not down)]
-                               for i, tile in enumerate(turn["play"])).upper()
-                view_row, start = (col, row) if down else (row, col)
-                requests.append(f"{board}\t{turn['rack']}\t{int(down)} {view_row} {start} {word}\n")
+                # Change the order while preserving every tile in the recorded rack.
+                rack = turn["rack"][::-1]
+                requests.append(f"{board}\t{rack}\t{down} {row} {start} {word}\n")
             result = subprocess.run(["build/placement_equivalence_test", FIXTURE / "words.txt",
                                      Path(directory) / "cache"], input="".join(requests),
                                     text=True, capture_output=True)

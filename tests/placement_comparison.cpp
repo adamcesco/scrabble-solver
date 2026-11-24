@@ -108,11 +108,12 @@ Decisions PlacementComparison::compare_pass(Board &board, const SolverBoardSnaps
     return packed.decisions;
 }
 
-RackSubsetKeys rack_for(const char *letters)
+RackSubsetKeys rack_for(std::string letters)
 {
+    std::sort(letters.begin(), letters.end());
     uint64_t packed = 0;
-    memcpy(&packed, letters, strlen(letters));
-    return rack_subset_keys_for_rack(packed, strlen(letters));
+    memcpy(&packed, letters.data(), letters.size());
+    return rack_subset_keys_for_rack(packed, letters.size());
 }
 
 std::array<PassCounts, 2> PlacementComparison::compare_board(
@@ -122,15 +123,16 @@ std::array<PassCounts, 2> PlacementComparison::compare_board(
     Board board = original;
     board.prepare_perpendicular_checks(lookup);
     SolverBoardSnapshot snapshot{board};
-    auto rack = rack_for(letters.c_str());
+    auto rack = rack_for(letters);
     std::array<PassCounts, 2> counts;
     for (bool down : {false, true}) {
         check_view(name, down ? "down" : "across", words, original, board);
         auto decisions = compare_pass(board, snapshot, down, rack, letters.size());
-        if (required_play && std::get<0>(*required_play) == down &&
-            std::find(decisions.begin(), decisions.end(), *required_play) == decisions.end()) {
-            throw std::runtime_error(std::string(name) + ": solver did not accept recorded play " +
-                                     std::get<3>(*required_play));
+        if (required_play) {
+            const auto &[play_down, row, start, word, accepted] = *required_play;
+            if (play_down == down && std::find(decisions.begin(), decisions.end(), *required_play) == decisions.end()) {
+                throw std::runtime_error(std::string(name) + ": solver did not accept recorded play " + word);
+            }
         }
         counts[down] = {accepted_count(decisions), decisions.size()};
         board.swap_views();

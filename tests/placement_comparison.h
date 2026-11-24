@@ -36,6 +36,6 @@ struct PlacementComparison {
 };
 
 size_t accepted_count(const Decisions &decisions);
-RackSubsetKeys rack_for(const char *letters);
+RackSubsetKeys rack_for(std::string letters);
 
 #endif
