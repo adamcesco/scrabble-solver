@@ -48,7 +48,40 @@ From a clean checkout, the following command verifies every saved board, rack an
 python3 tests/sample_turns_test.py SampleTurnsTest.test_replays_every_saved_case_with_the_fixture_dictionary
 ```
 
-The optional benchmark export writes solver CSV boards and `cases.csv` for the paired runner below. Within each stage it uses the next selected board and its actual rack for the new-board workload, wrapping at the end. For the new-rack workload it removes the last recorded tile from that board's rack. This keeps every remaining tile available on that board. This export needs two cases per stage and at least two tiles in each reused rack. Use the same dictionary for sampling and timing.
+The optional benchmark export writes solver CSV boards and `cases.csv` for the paired runner below. For each case it takes the next different board in the same stage whose rack has at least two tiles, wrapping at the end. For the new-rack workload it removes the last recorded tile from that board's rack. A one-tile rack is still eligible for the first-board workload. Each case needs a suitable companion for export. Use the same dictionary for sampling and timing.
+
+## Replay or resize the mass-scale corpus
+
+The saved corpus contains **10,000 distinct board-and-rack pairs from 10,000 recorded Quackle self-play games**. Seed 11 selected 3,334 early, 3,333 middle and 3,333 late positions. Each case includes its pre-move board, actual rack, turn number, rank among eligible turns, stage, source URL and sample dictionary SHA-256 (`559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd`). [Ordered cases](fixtures/mass/corpus.json.gz) · [Game manifest and recordings](fixtures/mass/games.tar.gz)
+
+With the project dictionary in `data/dictionaries/sample_dictionary.txt`, these commands reproduce the selection and compare every case in order, including the dictionary fingerprint. The optional export gives both validators the same ordered manifest.
+
+```sh
+mkdir -p build/mass-games
+tar -xzf bench/fixtures/mass/games.tar.gz -C build/mass-games
+python3 bench/sample_turns.py --games build/mass-games/games.csv \
+    --verify bench/fixtures/mass/corpus.json.gz --benchmark-dir build/mass-paired
+```
+
+Set `--size` to the number of distinct games required. For example, the following selects 12,000 positions from the saved pool. The sampler gives leftover cases to the earlier stages. It compares boards as the solver reads them and racks by sorted letters, retaining every copy. If a pair repeats, it tries another eligible turn or game. If the pool cannot fill the quotas, the command exits with an error.
+
+```sh
+python3 bench/sample_turns.py --games build/mass-games/games.csv \
+    --seed 11 --size 12000 > build/corpus-12000.json
+```
+
+The bundled pool contains **12,592 games**. For larger samples, supply a larger `game,source` manifest with one recording per game. Paths are relative to the manifest. To inspect an individual selection, pass its game path and turn to `bench/replay_game.py` with the same dictionary.
+
+The recordings come from Kevin McElwee's tile-value experiment. Of the selected games, 3,645 used traditional scoring and 6,355 used alternate tile values. The importer keeps complete games containing only placements and replays every move against the sample dictionary. This excludes games with exchanges or passes. The benchmark consumes board letters and actual racks. The tile values influence which moves Quackle played. [Pinned original game records](https://github.com/kmcelwee/scrabble/tree/b4c0ccf7c6db50399a3f867cb359b45c861292f0/data)
+
+To rebuild the source pool from the original archive, run the following commands. The importer checks the archive SHA-256 before reading the recordings.
+
+```sh
+curl -fL https://codeload.github.com/kmcelwee/scrabble/tar.gz/b4c0ccf7c6db50399a3f867cb359b45c861292f0 \
+    -o build/quackle-games.tar.gz
+python3 bench/import_quackle_games.py build/quackle-games.tar.gz build/imported-games
+diff -qr build/mass-games build/imported-games
+```
 
 ## Run the paired benchmark
 

@@ -44,24 +44,32 @@ def place(board, event):
     board.update(placed)
 
 
-def replay(words, game=GAME):
+def eligible_turn(number, event):
+    return number > 1 and "?" not in event["rack"]
+
+
+def replay_events(words, events):
     board = {}
     rows = ["." * SIZE] * SIZE
     eligible = {}
-    with game.open(newline="") as stream:
-        for turn, event in enumerate(csv.DictReader(stream), 1):
-            if turn > 1 and "?" not in event["rack"]:
-                eligible[turn] = dict(turn=turn, **event, board=rows)
-            try:
-                place(board, event)
-                rows = ["".join(board.get((r, c), ".") for c in range(SIZE)) for r in range(SIZE)]
-                for line in (*rows, *zip(*rows)):
-                    for word in re.findall(r"[A-Z]{2,}", "".join(line).upper()):
-                        if word not in words:
-                            raise ValueError(f"word {word} is absent from the dictionary")
-            except ValueError as error:
-                raise ValueError(f"turn {turn}: {error}") from error
+    for turn, event in enumerate(events, 1):
+        if eligible_turn(turn, event):
+            eligible[turn] = dict(turn=turn, **event, board=rows)
+        try:
+            place(board, event)
+            rows = ["".join(board.get((r, c), ".") for c in range(SIZE)) for r in range(SIZE)]
+            for line in (*rows, *zip(*rows)):
+                for word in re.findall(r"[A-Z]{2,}", "".join(line).upper()):
+                    if word not in words:
+                        raise ValueError(f"word {word} is absent from the dictionary")
+        except ValueError as error:
+            raise ValueError(f"turn {turn}: {error}") from error
     return eligible
+
+
+def replay(words, game=GAME):
+    with game.open(newline="") as stream:
+        return replay_events(words, csv.DictReader(stream))
 
 
 def load_dictionary(path):

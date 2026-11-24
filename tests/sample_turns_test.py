@@ -1,5 +1,6 @@
-"""Check the saved timing pilot through the sampler and recorded-game commands."""
+"""Check the saved corpora through the sampler and recorded-game commands."""
 import csv
+import gzip
 import hashlib
 import io
 import json
@@ -11,6 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 PILOT = Path("bench/fixtures/pilot")
+MASS = Path("bench/fixtures/mass")
 TIMING_DICTIONARY = Path("data/dictionaries/sample_dictionary.txt")
 
 
@@ -20,6 +22,85 @@ def sample(*args):
 
 
 class SampleTurnsTest(unittest.TestCase):
+    def test_saved_mass_corpus_has_one_distinct_pair_per_game(self):
+        with gzip.open(MASS / "corpus.json.gz", "rt") as stream:
+            corpus = json.load(stream)
+        cases = corpus["cases"]
+        self.assertEqual(corpus["case_count"], len(cases))
+        self.assertEqual(len(cases), 10_000)
+        self.assertEqual(len({case["game"] for case in cases}), len(cases))
+        self.assertEqual(len({case["source"] for case in cases}), len(cases))
+        pairs = {("".join(c["board"]).upper(), tuple(sorted(c["rack"]))) for c in cases}
+        self.assertEqual(len(pairs), len(cases))
+        self.assertEqual(Counter(c["stage"] for c in cases), corpus["stage_counts"])
+        self.assertEqual(corpus["stage_counts"], {"early": 3334, "middle": 3333, "late": 3333})
+
+    @unittest.skipUnless(TIMING_DICTIONARY.is_file(), "full timing dictionary is supplied separately")
+    def test_replays_and_exports_the_full_saved_corpus(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["tar", "-xzf", MASS / "games.tar.gz", "-C", root], check=True)
+            export = root / "paired"
+            summary = subprocess.check_output([sys.executable, "bench/sample_turns.py",
+                                               "--games", root / "games.csv", "--verify", MASS / "corpus.json.gz",
+                                               "--benchmark-dir", export], text=True)
+            self.assertIn("Verified 10000 cases in order", summary)
+            with (export / "cases.csv").open() as stream:
+                rows = list(csv.DictReader(stream))
+            with gzip.open(MASS / "corpus.json.gz", "rt") as stream:
+                cases = json.load(stream)["cases"]
+            companions = {row["board"]: case for row, case in zip(rows, cases, strict=True)}
+            for row, case in zip(rows, cases, strict=True):
+                self.assertEqual((row["case"], row["rack"], row["stage"]),
+                                 (f"{case['game']}#{case['turn']}", case["rack"], case["stage"]))
+                other = companions[row["new_board"]]
+                self.assertNotEqual("".join(case["board"]).upper(), "".join(other["board"]).upper())
+                self.assertEqual((other["stage"], other["rack"]), (row["stage"], row["new_board_rack"]))
+                self.assertTrue(row["additional_rack"])
+                self.assertEqual(row["additional_rack"], other["rack"][:-1])
+
+    def test_selects_the_requested_number_of_games(self):
+        corpus = json.loads(sample("--size", "4"))
+        self.assertEqual(corpus["case_count"], 4)
+        self.assertEqual(len({case["game"] for case in corpus["cases"]}), 4)
+        self.assertEqual(corpus["stage_counts"], {"early": 2, "middle": 1, "late": 1})
+
+    def test_verification_replays_the_saved_seed_size_and_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "corpus.json.gz"
+            corpus = json.loads(sample("--size", "5", "--seed", "12345"))
+            path.write_bytes(gzip.compress(json.dumps(corpus).encode()))
+            self.assertIn("Verified 5 cases", sample("--verify", path))
+            corpus["cases"].reverse()
+            path.write_bytes(gzip.compress(json.dumps(corpus).encode()))
+            with self.assertRaises(subprocess.CalledProcessError) as caught:
+                subprocess.check_output([sys.executable, "bench/sample_turns.py", "--verify", path,
+                                         "--dictionary", PILOT / "words.txt"], stderr=subprocess.STDOUT)
+            self.assertIn(b"case 1", caught.exception.output)
+
+    def test_distinct_pairs_ignore_rack_order_and_keep_letter_multiplicities(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dictionary = root / "words.txt"
+            dictionary.write_text("EA\nEAT\nEATS\n")
+            manifest = root / "games.csv"
+            manifest.write_text("game,source\nfirst.csv,one\nsecond.csv,two\n")
+            header = "player,rack,square,play\n"
+            (root / "first.csv").write_text(header + "A,EAT,8H,EAT\nB,SST,8H,...S\n")
+            for rack in ("TSS", "STT"):
+                (root / "second.csv").write_text(
+                    header + f"A,EA,8H,EA\nB,T,8H,..T\nA,{rack},8H,...S\n")
+                run = subprocess.run([sys.executable, "bench/sample_turns.py", "--games", manifest,
+                                      "--dictionary", dictionary], text=True, capture_output=True)
+                if rack == "TSS":
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn("distinct", run.stderr)
+                else:
+                    self.assertEqual(run.returncode, 0, run.stderr)
+                    cases = json.loads(run.stdout)["cases"]
+                    self.assertEqual(cases[0]["board"], cases[1]["board"])
+                    self.assertEqual([c["rack"] for c in cases], ["SST", "STT"])
+
     @unittest.skipUnless(TIMING_DICTIONARY.is_file(), "full timing dictionary is supplied separately")
     def test_reproduces_the_committed_corpus_byte_for_byte(self):
         output = subprocess.check_output([sys.executable, "bench/sample_turns.py", "--seed", "10"])
