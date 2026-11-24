@@ -6,7 +6,7 @@ import json
 import random
 from itertools import islice
 from pathlib import Path
-from typing import TypedDict
+from typing import NamedTuple, TypedDict
 
 from replay_game import eligible_turn, load_dictionary, replay, write_board_csv
 
@@ -22,26 +22,34 @@ class Corpus(TypedDict):
     cases: list[dict]
 
 
+class GameRecord(NamedTuple):
+    metadata: dict[str, str]
+    path: Path
+    available_stage_count: int
+
+
+def stage_sizes(total):
+    third, remainder = divmod(total, len(STAGES))
+    return tuple(third + (index < remainder) for index in range(len(STAGES)))
+
+
 def solver_board(case):
     return "".join(case["board"]).upper()
 
 
-def select_turn(turns, stages, seen, rng):
-    third, remainder = divmod(len(turns), len(STAGES))
+def turn_choices(turns, stages, rng):
+    sizes = stage_sizes(len(turns))
     for stage in stages:
         index = STAGES.index(stage)
-        start = index * third + min(index, remainder)
-        length = third + (index < remainder)
+        start = sum(sizes[:index])
+        length = sizes[index]
         first = rng.randrange(length)
         for offset in range(length):
             rank = start + (first + offset) % length
             turn = turns[rank]
             # Both validators see the assigned letter of a played blank.
             key = (solver_board(turn), "".join(sorted(turn["rack"])))
-            if key not in seen:
-                seen.add(key)
-                return stage, rank
-    return None
+            yield stage, rank, key
 
 
 def game_records(games):
@@ -64,10 +72,87 @@ def game_records(games):
                 available = len(list(islice(eligible, len(STAGES))))
             if not available:
                 raise ValueError(f"{path}: no eligible post-opening turns")
-            records.append((record, path, available))
+            records.append(GameRecord(record, path, available))
     if not records:
         raise ValueError("empty games manifest")
     return records
+
+
+def game_turns(words, path):
+    try:
+        return list(replay(words, path).values())
+    except ValueError as error:
+        raise ValueError(f"{path}: {error}") from error
+
+
+def saved_case(game, turns, stage, rank, fingerprint):
+    return dict(**game.metadata, stage=stage, eligible_rank=rank + 1, eligible_count=len(turns),
+                dictionary_sha256=fingerprint, **turns[rank])
+
+
+def balanced_assignment(choices, quotas, excluded):
+    """Match games to stage slots, moving an earlier game when a stage is full."""
+    groups = {stage: {} for stage in STAGES}
+
+    def assign(game, visited):
+        for stage, rank, key in choices[game]:
+            if stage in visited or (game, rank) in excluded:
+                continue
+            visited.add(stage)
+            group = groups[stage]
+            if len(group) == quotas[stage]:
+                displaced = next((other for other in group if assign(other, visited)), None)
+                if displaced is None:
+                    continue
+                del group[displaced]
+            group[game] = (stage, rank, key)
+            return True
+        return False
+
+    needed = sum(quotas.values())
+    for game in range(len(choices)):
+        if assign(game, set()):
+            needed -= 1
+            if not needed:
+                return sorted((game, choice) for group in groups.values() for game, choice in group.items())
+    return None
+
+
+def resolve_collisions(records, words, quotas, rng, fingerprint):
+    # The usual one-pass sample stores just its selected boards. Only index the
+    # other turns if earlier choices actually prevented filling the stage quotas.
+    choices = []
+    for game in records:
+        turns = game_turns(words, game.path)
+        choices.append(list(turn_choices(turns, STAGES[:game.available_stage_count], rng)))
+    stage_keys = {stage: set() for stage in STAGES}
+    for game_choices in choices:
+        for stage, _, key in game_choices:
+            stage_keys[stage].add(key)
+    if (len(set.union(*stage_keys.values())) < sum(quotas.values())
+            or any(len(stage_keys[stage]) < quota for stage, quota in quotas.items())):
+        return None
+    pending = [frozenset()]
+    tried = set()
+    while pending:
+        excluded = pending.pop()
+        if excluded in tried:
+            continue
+        tried.add(excluded)
+        assignment = balanced_assignment(choices, quotas, excluded)
+        if assignment is None:
+            continue
+        owners = {}
+        for game, (_, rank, key) in assignment:
+            if key in owners:
+                # Every distinct solution must give up at least one of these two turns.
+                pending.extend(excluded | {turn} for turn in (owners[key], (game, rank)))
+                break
+            owners[key] = (game, rank)
+        else:
+            return [saved_case(records[i], game_turns(words, records[i].path), stage, rank, fingerprint)
+                    for i, (stage, rank, _) in assignment]
+    return None
 
 
 def sample(games, dictionary, seed, size=None) -> Corpus:
@@ -81,32 +166,32 @@ def sample(games, dictionary, seed, size=None) -> Corpus:
     rng = random.Random(seed)
     rng.shuffle(records)
     # Give games with fewer than three eligible turns their available stages first.
-    records.sort(key=lambda item: item[2])
+    records.sort(key=lambda game: game.available_stage_count)
     counts: dict[str, int] = dict.fromkeys(STAGES, 0)
-    third, remainder = divmod(size, len(STAGES))
-    quotas = {stage: third + (index < remainder) for index, stage in enumerate(STAGES)}
+    quotas: dict[str, int] = dict(zip(STAGES, stage_sizes(size), strict=True))
     cases = []
     seen = set()
-    for record, path, available in records:
-        stages = [stage for stage in STAGES[:available] if counts[stage] < quotas[stage]]
+    for game in records:
+        stages = [stage for stage in STAGES[:game.available_stage_count] if counts[stage] < quotas[stage]]
         if not stages:
             continue
-        try:
-            turns = list(replay(words, path).values())
-        except ValueError as error:
-            raise ValueError(f"{path}: {error}") from error
-        selection = select_turn(turns, sorted(stages, key=counts.__getitem__), seen, rng)
+        turns = game_turns(words, game.path)
+        choices = turn_choices(turns, sorted(stages, key=counts.__getitem__), rng)
+        selection = next((choice for choice in choices if choice[2] not in seen), None)
         if selection is None:
             continue
-        stage, rank = selection
-        cases.append(dict(**record, stage=stage, eligible_rank=rank + 1, eligible_count=len(turns),
-                          dictionary_sha256=fingerprint, **turns[rank]))
+        stage, rank, key = selection
+        seen.add(key)
+        cases.append(saved_case(game, turns, stage, rank, fingerprint))
         counts[stage] += 1
         if len(cases) == size:
             break
-    if len(cases) < size:
+    if len(cases) == size:
+        return Corpus(seed=seed, case_count=size, stage_counts=counts, cases=cases)
+    repaired = resolve_collisions(records, words, quotas, rng, fingerprint)
+    if repaired is None:
         raise ValueError(f"found {len(cases)} of {size} distinct pairs for the stage quotas: {counts}")
-    return Corpus(seed=seed, case_count=len(cases), stage_counts=counts, cases=cases)
+    return Corpus(seed=seed, case_count=size, stage_counts=quotas, cases=repaired)
 
 
 def write_benchmark(directory, cases):

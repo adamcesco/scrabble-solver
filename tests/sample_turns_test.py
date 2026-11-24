@@ -101,6 +101,21 @@ class SampleTurnsTest(unittest.TestCase):
                     self.assertEqual(cases[0]["board"], cases[1]["board"])
                     self.assertEqual([c["rack"] for c in cases], ["SST", "STT"])
 
+    def test_reassigns_a_game_when_its_first_choice_blocks_another_stage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dictionary = root / "words.txt"
+            dictionary.write_text("EA\nEAT\nEATS\nMEATS\n")
+            manifest = root / "games.csv"
+            manifest.write_text("game,source\na.csv,A\nb.csv,B\n")
+            header = "player,rack,square,play\n"
+            (root / "a.csv").write_text(header + "A,EATLMNO,8H,EAT\nB,SSTXILU,8H,...S\nA,LMNORSZ,8G,M....\n")
+            (root / "b.csv").write_text(header + "A,EASSTXI,8H,EA\nB,TUVWXYZ,8H,..T\nA,SSTXILU,8H,...S\n")
+            corpus = json.loads(sample("--games", manifest, "--dictionary", dictionary,
+                                       "--size", "2", "--seed", "0"))
+            self.assertEqual([(c["game"], c["stage"]) for c in corpus["cases"]],
+                             [("a.csv", "middle"), ("b.csv", "early")])
+
     @unittest.skipUnless(TIMING_DICTIONARY.is_file(), "full timing dictionary is supplied separately")
     def test_reproduces_the_committed_corpus_byte_for_byte(self):
         output = subprocess.check_output([sys.executable, "bench/sample_turns.py", "--seed", "10"])
