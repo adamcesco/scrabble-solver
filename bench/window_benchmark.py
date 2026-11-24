@@ -10,10 +10,12 @@ import tempfile
 from collections import Counter
 from pathlib import Path
 
-from paired_benchmark import BUILD, FIXTURE, matching_full_cache, qualify_positions, read_cases, sha256
+from paired_benchmark import ROOT, FIXTURE, matching_full_cache, qualify_positions, read_cases, sha256
 
 
-WORKER = BUILD / "window_worker"
+def window_build():
+    directory = subprocess.check_output(["make", "-s", "--no-print-directory", "window-tools"], cwd=ROOT, text=True)
+    return ROOT / directory.strip()
 
 
 def paired_order(cases, repetitions):
@@ -25,24 +27,24 @@ def paired_order(cases, repetitions):
             yield repetition + 1, case, first
 
 
-def build_info(dictionary):
-    compiler, flags = subprocess.check_output([WORKER, "--build-info"], text=True).splitlines()
+def build_info(worker, dictionary):
+    compiler, flags = subprocess.check_output([worker, "--build-info"], text=True).splitlines()
     cpu = platform.processor() or platform.machine()
     cpuinfo = Path("/proc/cpuinfo")
     if cpuinfo.is_file():
         cpu = next((line.partition(":")[2].strip() for line in cpuinfo.read_text().splitlines()
                     if line.startswith("model name")), cpu)
     affinity = ",".join(map(str, sorted(os.sched_getaffinity(0)))) if hasattr(os, "sched_getaffinity") else "inherited"
-    return dict(compiler=compiler, flags=flags, worker_sha256=sha256(WORKER), cpu=cpu, affinity=affinity,
+    return dict(compiler=compiler, flags=flags, worker_sha256=sha256(worker), cpu=cpu, affinity=affinity,
                 dictionary=os.path.relpath(dictionary), dictionary_sha256=sha256(dictionary))
 
 
-def paired_rows(dictionary, cache, cases, variants, repetitions, counts):
-    info = build_info(dictionary)
+def paired_rows(worker, dictionary, cache, cases, variants, repetitions, counts):
+    info = build_info(worker, dictionary)
     board_hashes = {p.board: sha256(p.board) for p in counts}
     schedule = list(paired_order(cases, repetitions))
     requests = "".join(f"{case.first.board}\t{case.first.rack}\t{first}\n" for _, case, first in schedule)
-    output = subprocess.check_output([WORKER, *variants, dictionary, cache], input=requests, text=True)
+    output = subprocess.check_output([worker, *variants, dictionary, cache], input=requests, text=True)
     observations = csv.reader(io.StringIO(output))
     for repetition, case, first in schedule:
         position = case.first
@@ -70,17 +72,20 @@ def main():
     parser.add_argument("--cases", type=Path, default=FIXTURE / "cases.csv")
     parser.add_argument("--cache", type=Path, help="existing matching pattern cache")
     parser.add_argument("--repetitions", type=int, default=4)
+    parser.add_argument("--build-dir", type=Path, default=os.environ.get("WINDOW_BUILD"), help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.repetitions < 1 or len(set(args.variants)) != 2:
         parser.error("expected positive repetitions and two distinct variant names")
     if args.cache is not None and not args.cache.is_file():
         parser.error(f"pattern cache missing: {args.cache}")
     cases = read_cases(args.cases)
+    build = args.build_dir or window_build()
+    worker = build / "window_worker"
     with tempfile.TemporaryDirectory() as directory:
-        cache = args.cache or matching_full_cache(WORKER, args.dictionary) or Path(directory) / "patterns"
+        cache = args.cache or matching_full_cache(worker, args.dictionary) or Path(directory) / "patterns"
         positions = (case.first for case in cases)
-        counts = qualify_positions(args.dictionary, cache, positions, args.variants)
-        rows = list(paired_rows(args.dictionary, cache, cases, args.variants, args.repetitions, counts))
+        counts = qualify_positions(args.dictionary, cache, positions, args.variants, build)
+        rows = list(paired_rows(worker, args.dictionary, cache, cases, args.variants, args.repetitions, counts))
         writer = csv.DictWriter(sys.stdout, fieldnames=rows[0], lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)

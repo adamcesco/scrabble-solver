@@ -76,12 +76,12 @@ def qualify(dictionary, shared_cache, cases):
     return qualify_positions(dictionary, shared_cache, positions)
 
 
-def qualify_positions(dictionary, shared_cache, positions, variants=()):
-    subprocess.run([BUILD / "perpendicular_checks_test"], check=True)
+def qualify_positions(dictionary, shared_cache, positions, variants=(), build=BUILD):
+    subprocess.run([build / "perpendicular_checks_test"], check=True)
     positions = dict.fromkeys(positions)
     requests = "".join(f"{pos.board}\t{pos.rack}\n" for pos in positions)
     output = subprocess.check_output(
-        [BUILD / "placement_equivalence_test", dictionary, shared_cache, *variants], input=requests, text=True)
+        [build / "placement_equivalence_test", dictionary, shared_cache, *variants], input=requests, text=True)
     rows = csv.DictReader(io.StringIO(output))
     return {pos: {key: int(value) for key, value in row.items()}
             for pos, row in zip(positions, rows, strict=True)}

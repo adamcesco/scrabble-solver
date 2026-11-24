@@ -47,11 +47,22 @@ static void compare_rt_orders(bool tar_first, const WindowVariants &variants)
             const uint32_t r = 1u << ('R' - 'A'), t = 1u << ('T' - 'A');
             assert((board.perpendicular_check_set(1, 0) & (r | t)) == (r | t));
             assert((board.perpendicular_check_set(1, 2) & (r | t)) == t);
+            if (transposed) {
+                board.swap_views();
+            }
             WindowDecisions expected{{"TAR", false}, {"RAT", true}};
             if (!tar_first) {
                 std::reverse(expected.begin(), expected.end());
             }
-            assert(middle_window(decisions[transposed]) == expected);
+            for (const auto *variant : variants) {
+                // The second solve starts on the same board after the first restored its view.
+                for (int repeat = 0; repeat < 2; ++repeat) {
+                    PlacementTrace trace{words, board, snapshot};
+                    auto actual = trace.solve(*variant, fixture.patterns, rack);
+                    assert(actual.across == counts.across && actual.down == counts.down);
+                    assert(middle_window(trace.decisions[transposed]) == expected);
+                }
+            }
             auto [across, down] = fixture.compare_board("unmatched rack", board, "ZZ", variants);
             assert(across.empty() && down.empty());
         }

@@ -19,6 +19,10 @@ RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp $(SOLVER_SRC
 COMPARISON_SRC = tests/placement_comparison.cpp $(SOLVER_SRC)
 WINDOW_HEADERS = bench/window_variants.h bench/benchmark_solver.h
 WINDOW_FLAGS = -DSCRABBLE_WINDOW_VARIANTS -Ibench
+# Keep a run's qualifier, worker and embedded build details together across concurrent configurations.
+WINDOW_CONFIG := $(shell printf '%s\n' '$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS)' | git hash-object --stdin)
+WINDOW_BUILD = build/window/$(WINDOW_CONFIG)
+WINDOW_TOOLS = $(addprefix $(WINDOW_BUILD)/,window_worker placement_equivalence_test perpendicular_checks_test)
 COMPARISON_HEADERS = $(WINDOW_HEADERS) tests/placement_comparison.h tests/placement_trace.h tests/perpendicular_fixtures.h tests/square_equivalence.h $(SOLVER_HEADERS)
 PERPENDICULAR_CHECKS_TEST_SRC = tests/perpendicular_checks_test.cpp $(COMPARISON_SRC)
 PLACEMENT_EQUIVALENCE_TEST_SRC = tests/placement_equivalence_test.cpp $(COMPARISON_SRC)
@@ -90,17 +94,17 @@ $(VALIDATION_HOT_TEST_TARGET): $(VALIDATION_HOT_TEST_SRC)
 
 build/perpendicular_checks.o: include/perpendicular_checks.h include/validation_hot.h include/board.h include/word_table.h
 
-$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) $(COMPARISON_HEADERS) build/window-config
-	mkdir -p build
-	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
+$(PERPENDICULAR_CHECKS_TEST_TARGET) $(WINDOW_BUILD)/perpendicular_checks_test: $(PERPENDICULAR_CHECKS_TEST_SRC) $(COMPARISON_HEADERS)
+	mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@.$$$$ $(PERPENDICULAR_CHECKS_TEST_SRC) && mv $@.$$$$ $@
 
 $(RACK_ORIENTED_SOLVER_TEST_TARGET): $(RACK_ORIENTED_SOLVER_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(RACK_ORIENTED_SOLVER_TEST_SRC)
 
-$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) $(COMPARISON_HEADERS) build/window-config
-	mkdir -p build
-	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PLACEMENT_EQUIVALENCE_TEST_SRC)
+$(PLACEMENT_EQUIVALENCE_TEST_TARGET) $(WINDOW_BUILD)/placement_equivalence_test: $(PLACEMENT_EQUIVALENCE_TEST_SRC) $(COMPARISON_HEADERS)
+	mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@.$$$$ $(PLACEMENT_EQUIVALENCE_TEST_SRC) && mv $@.$$$$ $@
 
 $(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC)
 	mkdir -p build
@@ -110,17 +114,15 @@ build/paired_worker: bench/paired_worker.cpp bench/benchmark_solver.h $(SOLVER_S
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ bench/paired_worker.cpp $(SOLVER_SRC)
 
-# Invalidate both experiment binaries when the requested compiler or flags change.
-build/window-config: FORCE
-	@mkdir -p build
-	@printf '%s\n' '$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS)' > $@.tmp
-	@cmp -s $@.tmp $@ || cp $@.tmp $@
+$(WINDOW_BUILD)/window_worker: bench/window_worker.cpp $(WINDOW_HEADERS) $(SOLVER_SRC) $(SOLVER_HEADERS)
+	mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -DWINDOW_BUILD_FLAGS='"$(CXXFLAGS) $(WINDOW_FLAGS)"' -o $@.$$$$ bench/window_worker.cpp $(SOLVER_SRC) && mv $@.$$$$ $@
 
-build/window_worker: bench/window_worker.cpp $(WINDOW_HEADERS) $(SOLVER_SRC) $(SOLVER_HEADERS) build/window-config
-	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -DWINDOW_BUILD_FLAGS='"$(CXXFLAGS) $(WINDOW_FLAGS)"' -o $@ bench/window_worker.cpp $(SOLVER_SRC)
+window-tools: $(WINDOW_TOOLS)
+	@echo $(WINDOW_BUILD)
 
-window-benchmark: build/window_worker $(PERPENDICULAR_CHECKS_TEST_TARGET) $(PLACEMENT_EQUIVALENCE_TEST_TARGET)
-	python3 bench/window_benchmark.py $(BENCH_ARGS)
+window-benchmark: $(WINDOW_TOOLS)
+	python3 bench/window_benchmark.py --build-dir $(WINDOW_BUILD) $(BENCH_ARGS)
 
 # Allocation entry points used by the solver on x86-64 Linux with libstdc++.
 MEMORY_WRAP = $(foreach name,malloc calloc free _Znwm _ZdlPv _ZdlPvm,-Wl,--wrap=$(name))
@@ -147,7 +149,7 @@ endif
 endif
 endif
 
-test: $(TEST_TARGETS) build/paired_worker build/window_worker
+test: $(TEST_TARGETS) build/paired_worker $(WINDOW_TOOLS)
 	./$(BOARD_FROM_CSV_TEST_TARGET)
 	./$(CONFIG_MAPS_TEST_TARGET)
 	./$(MAKE_ROW_TEST_TARGET)
@@ -160,7 +162,7 @@ test: $(TEST_TARGETS) build/paired_worker build/window_worker
 	./$(PERPENDICULAR_CHECKS_TEST_TARGET)
 	./$(RACK_ORIENTED_SOLVER_TEST_TARGET)
 	./$(PLACEMENT_EQUIVALENCE_TEST_TARGET)
-	python3 tests/paired_benchmark_test.py
+	WINDOW_BUILD=$(abspath $(WINDOW_BUILD)) python3 tests/paired_benchmark_test.py
 	python3 tests/mass_comparison_test.py
 	python3 tests/replay_game_test.py
 	python3 tests/sample_turns_test.py
@@ -171,4 +173,4 @@ benchmark: $(SOLVER_BENCHMARK_TARGET)
 clean:
 	rm -rf build/
 
-.PHONY: all test test-memory benchmark paired-benchmark memory-benchmark window-benchmark FORCE clean
+.PHONY: all test test-memory benchmark paired-benchmark memory-benchmark window-benchmark window-tools clean

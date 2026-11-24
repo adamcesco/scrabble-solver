@@ -7,8 +7,6 @@
 #include <set>
 #include <stdexcept>
 
-using LookupCounts = std::array<std::array<unsigned, BOARD_SIZE>, BOARD_SIZE>;
-
 static void check_rows(const Row (&expected)[BOARD_SIZE], const Row (&actual)[BOARD_SIZE])
 {
     for (int i = 0; i < BOARD_SIZE; ++i) {
@@ -32,17 +30,17 @@ bool SolverBoardSnapshot::is_down(const Board &board) const
     return board.normal_runs == original.perpendicular_runs;
 }
 
-struct Trace {
-    const WordTable &dictionary;
-    const Board &board;
-    const SolverBoardSnapshot &snapshot;
-    ViewDecisions decisions{};
-    std::array<LookupCounts, 2> lookups{};
+static PlacementTrace *active_trace;
 
-    bool down() const { return snapshot.is_down(board); }
-};
-
-static Trace *active_trace;
+DirectionalCounts PlacementTrace::solve(const benchmark::WindowVariant &variant, const WordPatternTable &patterns,
+                                        const benchmark::Rack &rack)
+{
+    active_trace = this;
+    auto counts = variant.solve(dictionary, patterns, board, rack).counts;
+    active_trace = nullptr;
+    snapshot.check(board, false);
+    return counts;
+}
 
 void trace_square_lookup(uint8_t row, uint8_t col)
 {
@@ -99,7 +97,7 @@ ViewDecisions PlacementComparison::compare_board(
     std::sort(letters.begin(), letters.end());
     const benchmark::Rack rack(letters);
     auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
-    Trace reference{words, board, snapshot};
+    PlacementTrace reference{words, board, snapshot};
     std::array<size_t, 2> expected_counts;
     std::array<LookupCounts, 2> packed_lookups;
     ViewDecisions sorted_reference;
@@ -125,11 +123,8 @@ ViewDecisions PlacementComparison::compare_board(
     }
 
     for (const auto *variant : variants) {
-        Trace actual{words, board, snapshot};
-        active_trace = &actual;
-        auto counts = variant->solve(words, patterns, board, rack).counts;
-        active_trace = nullptr;
-        snapshot.check(board, false);
+        PlacementTrace actual{words, board, snapshot};
+        auto counts = actual.solve(*variant, patterns, rack);
         for (bool down : {false, true}) {
             auto &sorted = actual.decisions[down];
             std::sort(sorted.begin(), sorted.end());

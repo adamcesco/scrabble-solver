@@ -21,6 +21,20 @@ struct SolverBoardSnapshot {
 using ViewDecisions = std::array<Decisions, 2>;
 using WindowVariants = std::vector<const benchmark::WindowVariant *>;
 
+using LookupCounts = std::array<std::array<unsigned, BOARD_SIZE>, BOARD_SIZE>;
+
+struct PlacementTrace {
+    const WordTable &dictionary;
+    Board &board;
+    const SolverBoardSnapshot &snapshot;
+    ViewDecisions decisions{};
+    std::array<LookupCounts, 2> lookups{};
+
+    bool down() const { return snapshot.is_down(board); }
+    DirectionalCounts solve(const benchmark::WindowVariant &variant, const WordPatternTable &patterns,
+                            const benchmark::Rack &rack);
+};
+
 struct PlacementComparison {
     const WordTable &words;
     WordPatternTable patterns = WordPatternTable::from_words(words);

@@ -1,6 +1,7 @@
 """Exercise the paired report through the same runner used for larger manifests."""
 import csv
 import io
+import os
 import subprocess
 import tempfile
 import unittest
@@ -32,8 +33,10 @@ class PairedBenchmarkTest(unittest.TestCase):
             self.assertEqual(list(csv.reader(io.StringIO(counts)))[1:], [["2", "4", "1", "5"]])
 
     def test_unknown_window_counter_prevents_timing(self):
+        directory = os.environ.get("WINDOW_BUILD") or subprocess.check_output(
+            ["make", "-s", "--no-print-directory", "window-tools"], text=True).strip()
         for command in (["python3", "bench/window_benchmark.py", "--variants", "packed", "absent"],
-                        ["build/window_worker", "packed", "absent", "unused-dictionary", "unused-cache"]):
+                        [Path(directory) / "window_worker", "packed", "absent", "unused-dictionary", "unused-cache"]):
             result = subprocess.run(command, text=True, capture_output=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("unknown window counter: absent", result.stderr)
