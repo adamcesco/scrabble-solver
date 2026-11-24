@@ -102,6 +102,8 @@ static void visits_repeated_patterns_at_each_start_in_either_view()
     board.perpendicularRows[2] = board.perpendicularRows[14] = make_row(".....T.........");
     const Visits expected{{0, ".AT", 1}, {1, "AT.", 1}, {12, ".AT", 1}};
     assert(windows_in_row(board.rows, 5, 1) == expected);
+    const Visits beside_a{{4, "..", 2}, {5, "..", 2}};
+    assert(windows_in_row(board.perpendicularRows, 0, 2) == beside_a);
 
     std::swap(board.rows, board.perpendicularRows);
     assert(windows_in_row(board.perpendicularRows, 5, 1) == expected);
