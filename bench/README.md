@@ -132,3 +132,43 @@ Each entry is an arithmetic mean over the 20 pairs. The last column gives the sa
 Both validators agreed on all square masks and all 76 directional candidate decisions across the three measured board/rack combinations. ART on the first board accepted 6 of 28 across and 6 of 26 down. RT on the new board accepted 2 of 4 across and 1 of 5 down. RST on that board accepted 3 of 6 across and 1 of 7 down.
 
 The shared pattern-table phases took 90–93% of mean first-board time across the four validator/cache combinations. First-board paired differences had both signs under each cache condition. These observations describe the seven-word fixture. [Per-case measurements and phase times](results/paired-fixture.csv)
+
+## Measure peak and retained memory
+
+```sh
+make -s memory-benchmark BENCH_ARGS='--repetitions 2' > memory.csv
+```
+
+The memory benchmark runs on x86-64 Linux with GNU linker wrapping and libstdc++. Each worker constructs one validator and solves one board in both directions. The default inputs are the full project dictionary, sample board and rack `ABFHIKU`. The runner checks the header of `data/caches/pattern_and_rack_anagram_to_words.cache` against the loaded dictionary’s word count and fingerprint. Both workers use that cache when it matches, including for equivalent dictionary files with different line endings or case. To measure another input, supply `--dictionary`, `--board`, `--rack` and optionally `--cache`. A supplied cache must pass the solver's load checks. On a cache miss each worker builds and saves into its own empty temporary directory.
+
+Before each worker the runner reads the dictionary, board and any shared cache into the filesystem cache. Workers run sequentially, alternating first validator across pairs. The CSV records input paths and SHA-256 hashes for the dictionary and board, the rack, the cache path and verified condition, both directional counts and packed minus original bytes. The runner checks the counts and shared dictionary size before emitting each pair.
+
+| Metric | Boundary and accounting |
+| --- | --- |
+| Dictionary peak RSS | Linux `/proc/self/status` process high-water mark (`VmHWM` in KiB × 1,024), sampled immediately after constructing the active validator. |
+| First-solve peak RSS | The same cumulative high-water mark after rack subsets, both directional solves and view restoration, before output of the counts and teardown. |
+| Validator construction peak | Maximum simultaneously live requested bytes during lookup construction plus the active table's inline size. The original builder's 16-byte tile buffer and 48-byte temporary row are live alongside its output table. A packed hash-table rehash charges both bucket arrays until the old one is released. |
+| Retained dictionary | Shared word and pattern tables plus the active validator. The CSV also breaks out each portion. Counts include inline objects and full allocation requests for word storage, vectors, hash nodes and bucket arrays. Borrowed word views add no second copy of the letters. |
+| Incremental retained board | One board's inline size plus its live allocations after preparation. For packed this includes both run-start objects, their four ID arrays and both shared-pointer control blocks. The lookup belongs to the dictionary. |
+
+The worker forwards the solver's `malloc`, `calloc`, scalar `new` and corresponding releases to the normal allocator. A separate reader tallies the addresses and requested sizes as they arrive. This keeps the allocation ledger outside the measured process and captures spare capacity and overlapping old and new allocations. RSS includes resident stack pages, allocator overhead and the worker's own I/O. Owned-byte totals count data structures and explicit construction buffers at requested capacity. Allocator rounding, call frames and library I/O fall outside those totals.
+
+### Full dictionary, sample board
+
+In two matched pairs, all four workers loaded the same 13,639,098,672-byte pattern cache for the 191,852-word dictionary and counted 254 across and 102 down with rack `ABFHIKU`. The workers used the same executable, built with Ubuntu Clang 18.1.3 at `-O2` on x86-64 Linux on WSL2 with glibc 2.39. [Paired byte measurements and input fingerprints](results/memory-sample.csv)
+
+| Bytes | Original | Packed | Packed − original |
+| --- | ---: | ---: | ---: |
+| Peak resident through dictionary construction, pair 1 | 18,016,313,344 | 17,892,327,424 | −123,985,920 |
+| Peak resident through dictionary construction, pair 2 | 18,016,256,000 | 17,892,179,968 | −124,076,032 |
+| Peak resident through first solve, pair 1 | 18,016,370,688 | 17,892,327,424 | −124,043,264 |
+| Peak resident through first solve, pair 2 | 18,016,366,592 | 17,892,257,792 | −124,108,800 |
+| Validator construction peak | 144,272,784 | 16,253,440 | −128,019,344 |
+| Retained shared dictionary structures | 17,814,660,866 | 17,814,660,866 | 0 |
+| Retained validator | 144,272,720 | 15,360,024 | −128,912,696 |
+| Retained dictionary including validator | 17,958,933,586 | 17,830,020,890 | −128,912,696 |
+| Incremental retained board | 1,472 | 5,120 | +3,648 |
+
+The cache holds 233,254,549 patterns, 287,119,173 anagram groups and 287,375,581 word indices. Their three payloads alone occupy 17,801,461,428 bytes once loaded. The packed validator saves 128,912,696 retained bytes per dictionary. Each prepared board adds 3,600 bytes for its four 15×15 ID arrays and 48 bytes for the two lookup references and shared allocation control blocks.
+
+Both pairs produced identical owned-byte totals. The first-solve RSS savings differed by 65,536 bytes between the two pairs.

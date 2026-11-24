@@ -38,6 +38,9 @@ struct WordPatternTable {
 
     static WordPatternTable from_words(const WordTable &words);
 
+    // Check the header against the normalized dictionary without loading the payload.
+    static bool cache_matches_dictionary(const WordTable &words, const char *cache_path);
+
     // Unsafe to call with a null cache_path.
     static WordPatternTable load(const WordTable &words, const char *cache_path);
 

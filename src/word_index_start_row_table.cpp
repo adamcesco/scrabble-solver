@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef SCRABBLE_MEMORY_TRACE
+#include "memory_trace.h"
+#endif
+
 static Row make_word_start_row_at(const char *word, size_t start)
 {
     char tiles[BOARD_SIZE + 1];
@@ -12,7 +16,11 @@ static Row make_word_start_row_at(const char *word, size_t start)
     memcpy(&tiles[start], word, word_length);
     tiles[BOARD_SIZE] = '\0';
 
-    return make_row(tiles);
+    Row row = make_row(tiles);
+#ifdef SCRABBLE_MEMORY_TRACE
+    memory_trace::scratch(sizeof tiles + sizeof row);
+#endif
+    return row;
 }
 
 WordIndexStartRowTable WordIndexStartRowTable::from_words(const WordTable &words)

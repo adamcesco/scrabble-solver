@@ -104,12 +104,34 @@ $(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(SOLVER_BENCHMARK_SRC)
 
-build/paired_worker: bench/paired_worker.cpp $(SOLVER_SRC) $(SOLVER_HEADERS)
+build/paired_worker: bench/paired_worker.cpp bench/benchmark_solver.h $(SOLVER_SRC) $(SOLVER_HEADERS)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ bench/paired_worker.cpp $(SOLVER_SRC)
 
+# Allocation entry points used by the solver on x86-64 Linux with libstdc++.
+MEMORY_WRAP = $(foreach name,malloc calloc free _Znwm _ZdlPv _ZdlPvm,-Wl,--wrap=$(name))
+build/memory_worker: bench/memory_worker.cpp bench/memory_trace.cpp bench/memory_trace.h bench/benchmark_solver.h $(SOLVER_SRC) $(SOLVER_HEADERS)
+	mkdir -p build
+	$(CXX) $(CXXFLAGS) -DSCRABBLE_MEMORY_TRACE -Ibench -o $@ bench/memory_worker.cpp bench/memory_trace.cpp $(SOLVER_SRC) $(MEMORY_WRAP)
+
+memory-benchmark: build/memory_worker
+	python3 bench/memory_benchmark.py $(BENCH_ARGS)
+
 paired-benchmark: build/paired_worker $(PERPENDICULAR_CHECKS_TEST_TARGET) $(PLACEMENT_EQUIVALENCE_TEST_TARGET)
 	python3 bench/paired_benchmark.py $(BENCH_ARGS)
+
+test-memory: build/memory_worker
+	python3 tests/memory_benchmark_test.py
+
+# Keep the regular solver suite usable with other standard libraries/linkers.
+ifeq ($(shell uname -sm),Linux x86_64)
+ifneq ($(filter test,$(MAKECMDGOALS)),)
+memory_toolchain := $(shell echo 'int main() { return __GLIBCXX__ == 0; }' | $(CXX) $(CXXFLAGS) -include cstddef -x c++ - -Wl,--wrap=calloc -o /dev/null 2>/dev/null && echo supported)
+ifeq ($(memory_toolchain),supported)
+test: test-memory
+endif
+endif
+endif
 
 test: $(TEST_TARGETS) build/paired_worker
 	./$(BOARD_FROM_CSV_TEST_TARGET)
@@ -134,4 +156,4 @@ benchmark: $(SOLVER_BENCHMARK_TARGET)
 clean:
 	rm -rf build/
 
-.PHONY: all test benchmark paired-benchmark clean
+.PHONY: all test test-memory benchmark paired-benchmark memory-benchmark clean

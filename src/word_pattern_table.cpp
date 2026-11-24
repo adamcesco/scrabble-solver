@@ -489,51 +489,67 @@ int WordPatternTable::save(const WordTable &words, const char *cache_path) const
     return ok;
 }
 
-WordPatternTable WordPatternTable::load(const WordTable &words, const char *cache_path)
+struct PatternCacheHeader {
+    uint64_t fingerprint;
+    uint64_t bucket_count;
+    uint64_t anagram_count;
+    uint64_t word_index_count;
+};
+
+static bool read_matching_cache_header(FILE *file, const WordTable &words, PatternCacheHeader &header)
 {
     static const char expected_magic[8] = {'W', 'P', 'T', 'I', 'D', 'X', '1', '\0'};
-    WordPatternTable table = {};
     char magic[8];
     uint32_t version;
     uint32_t board_size;
     uint32_t endian_marker;
     uint64_t word_count;
-    uint64_t fingerprint;
-    uint64_t bucket_count;
-    uint64_t anagram_count;
-    uint64_t word_index_count;
-
-    FILE *file = fopen(cache_path, "rb");
-    if (file == NULL) {
-        return table;
-    }
-
-    int ok =
+    return
         read_exact(file, magic, sizeof(magic)) &&
         read_u32(file, &version) &&
         read_u32(file, &board_size) &&
         read_u32(file, &endian_marker) &&
         read_u64(file, &word_count) &&
-        read_u64(file, &fingerprint) &&
-        read_u64(file, &bucket_count) &&
-        read_u64(file, &anagram_count) &&
-        read_u64(file, &word_index_count);
-
-    ok = ok &&
+        read_u64(file, &header.fingerprint) &&
+        read_u64(file, &header.bucket_count) &&
+        read_u64(file, &header.anagram_count) &&
+        read_u64(file, &header.word_index_count) &&
         memcmp(magic, expected_magic, sizeof(magic)) == 0 &&
         version == 3 &&
         board_size == BOARD_SIZE &&
         endian_marker == UINT32_C(0x01020304) &&
         word_count == (uint64_t)words.count &&
-        fingerprint == words.fingerprint() &&
-        bucket_count <= (uint64_t)std::numeric_limits<uint32_t>::max() &&
-        anagram_count <= (uint64_t)std::numeric_limits<uint32_t>::max() &&
-        word_index_count <= (uint64_t)std::numeric_limits<uint32_t>::max();
+        header.fingerprint == words.fingerprint() &&
+        header.bucket_count <= (uint64_t)std::numeric_limits<uint32_t>::max() &&
+        header.anagram_count <= (uint64_t)std::numeric_limits<uint32_t>::max() &&
+        header.word_index_count <= (uint64_t)std::numeric_limits<uint32_t>::max();
+}
 
+bool WordPatternTable::cache_matches_dictionary(const WordTable &words, const char *cache_path)
+{
+    FILE *file = fopen(cache_path, "rb");
+    if (file == NULL) {
+        return false;
+    }
+    PatternCacheHeader header;
+    bool matches = read_matching_cache_header(file, words, header);
+    fclose(file);
+    return matches;
+}
+
+WordPatternTable WordPatternTable::load(const WordTable &words, const char *cache_path)
+{
+    WordPatternTable table = {};
+    FILE *file = fopen(cache_path, "rb");
+    if (file == NULL) {
+        return table;
+    }
+    PatternCacheHeader header;
+    int ok = read_matching_cache_header(file, words, header);
     if (ok) {
         try {
-            table.anagram_groups.resize((size_t)anagram_count);
-            table.word_indices.resize((size_t)word_index_count);
+            table.anagram_groups.resize((size_t)header.anagram_count);
+            table.word_indices.resize((size_t)header.word_index_count);
         } catch (...) {
             ok = 0;
         }
@@ -543,7 +559,7 @@ WordPatternTable WordPatternTable::load(const WordTable &words, const char *cach
         ok = init_word_pattern_buckets(&table);
     }
 
-    for (size_t bucket_index = 0; ok && bucket_index < (size_t)bucket_count; ++bucket_index) {
+    for (size_t bucket_index = 0; ok && bucket_index < (size_t)header.bucket_count; ++bucket_index) {
         ok = read_pattern_bucket(file, &table);
     }
 
@@ -566,8 +582,8 @@ WordPatternTable WordPatternTable::load(const WordTable &words, const char *cach
         return WordPatternTable{};
     }
 
-    table.dictionary_fingerprint = fingerprint;
-    table.dictionary_word_count = (size_t)word_count;
+    table.dictionary_fingerprint = header.fingerprint;
+    table.dictionary_word_count = words.count;
     return table;
 }
 

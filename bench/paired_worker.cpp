@@ -1,15 +1,14 @@
 // One uninstrumented process measures one validator on one case.
-#include "rack_oriented_solver.h"
+#include "benchmark_solver.h"
 
-#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
-#include <optional>
 #include <stdexcept>
-#include <string_view>
 
 namespace {
+using benchmark::Rack;
+using benchmark::Validator;
 using Clock = std::chrono::steady_clock;
 using Time = Clock::time_point;
 
@@ -17,54 +16,6 @@ double ms(Time start, Time end)
 {
     return std::chrono::duration<double, std::milli>(end - start).count();
 }
-
-struct Rack {
-    uint64_t tiles = 0;
-    uint8_t length;
-
-    explicit Rack(std::string_view letters)
-    {
-        if (letters.empty() || letters.size() > MAX_RACK_TILES ||
-            !std::is_sorted(letters.begin(), letters.end()) ||
-            letters.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") != letters.npos) {
-            throw std::invalid_argument("expected 1-7 sorted A-Z rack tiles");
-        }
-        length = letters.size();
-        std::memcpy(&tiles, letters.data(), length);
-    }
-};
-
-struct Validator {
-    const WordTable &words;
-    const WordPatternTable &patterns;
-    std::optional<PerpendicularCheckTable> packed;
-    WordIndexStartRowTable original{};
-
-    Validator(const WordTable &words, const WordPatternTable &patterns, bool use_packed)
-        : words(words), patterns(patterns)
-    {
-        if (use_packed) {
-            packed.emplace(words);
-        } else {
-            original = WordIndexStartRowTable::from_words(words);
-            if (original.count != words.count) {
-                throw std::runtime_error("original validator construction failed");
-            }
-        }
-    }
-
-    ~Validator() { original.destroy(); }
-
-    DirectionalCounts solve(Board &board, RackSubsetKeys &keys, uint8_t length) const
-    {
-        if (packed) {
-            return rack_oriented_both_directions(&words, &patterns, &keys, &board, length);
-        }
-        return count_both_views(board, [&] {
-            return rack_oriented_full_board_solver(&words, &patterns, &original, &keys, &board, length);
-        });
-    }
-};
 
 struct Solve {
     Time start;
@@ -75,8 +26,7 @@ struct Solve {
 Solve measure_rack(const Validator &validator, Board &board, const Rack &rack)
 {
     auto start = Clock::now();
-    auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
-    auto counts = validator.solve(board, keys, rack.length);
+    auto counts = validator.solve(board, rack);
     return {start, Clock::now(), counts};
 }
 
@@ -90,11 +40,8 @@ BoardSolve measure_board(const Validator &validator, Board &board, const char *p
 {
     auto start = Clock::now();
     board = board_from_csv(path);
-    Time runs_start;
-    if (validator.packed) {
-        runs_start = Clock::now();
-        board.prepare_perpendicular_checks(*validator.packed);
-    }
+    Time runs_start = validator.packed ? Clock::now() : Time{};
+    validator.prepare(board);
     Solve solve = measure_rack(validator, board, rack);
     return {start, validator.packed ? runs_start : solve.start, solve};
 }
