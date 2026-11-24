@@ -5,7 +5,6 @@
 #include <chrono>
 #include <stdio.h>
 #include <stdlib.h>
-#include <utility>
 #include <cstring>
 
 int main(int argc, char **argv)
@@ -44,7 +43,7 @@ int main(int argc, char **argv)
             &board,
             rack_length
         );
-        std::swap(board.rows, board.perpendicularRows);
+        board.swap_views();
         total_moves += rack_oriented_full_board_solver(
             &dictionary,
             &pattern_and_rack_anagram_to_words,
@@ -53,7 +52,7 @@ int main(int argc, char **argv)
             &board,
             rack_length
         );
-        std::swap(board.rows, board.perpendicularRows);
+        board.swap_views();
         auto end = std::chrono::steady_clock::now();
 
         seconds += std::chrono::duration<double>(end - start).count();

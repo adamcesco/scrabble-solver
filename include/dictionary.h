@@ -5,5 +5,6 @@
 #include "word_start_row_table.h"
 #include "word_index_start_row_table.h"
 #include "word_pattern_table.h"
+#include "perpendicular_checks.h"
 
 #endif

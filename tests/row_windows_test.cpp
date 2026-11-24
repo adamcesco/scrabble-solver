@@ -4,7 +4,6 @@
 #include <set>
 #include <string>
 #include <tuple>
-#include <utility>
 
 // A multiset preserves duplicate visits while allowing any traversal order.
 using Visits = std::multiset<std::tuple<int, std::string, int>>;
@@ -105,7 +104,7 @@ static void visits_repeated_patterns_at_each_start_in_either_view()
     const Visits beside_a{{4, "..", 2}, {5, "..", 2}};
     assert(windows_in_row(board.perpendicularRows, 0, 2) == beside_a);
 
-    std::swap(board.rows, board.perpendicularRows);
+    board.swap_views();
     assert(windows_in_row(board.perpendicularRows, 5, 1) == expected);
 }
 

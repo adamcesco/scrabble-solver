@@ -12,6 +12,7 @@ DICTIONARY_TEST_SRC = tests/dictionary_from_file_test.cpp $(DICTIONARY_SRC) src/
 WORD_START_ROW_TABLE_TEST_SRC = tests/word_start_row_table_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 WORD_PATTERN_TABLE_TEST_SRC = tests/word_pattern_table_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 VALIDATION_HOT_TEST_SRC = tests/validation_hot_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
+PERPENDICULAR_CHECKS_TEST_SRC = tests/perpendicular_checks_test.cpp src/perpendicular_checks.cpp src/word_table.cpp src/board.cpp src/utils.cpp
 RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp src/rack_oriented_solver.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 SOLVER_BENCHMARK_SRC = bench/solver_benchmark.cpp src/rack_oriented_solver.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 TARGET = build/main
@@ -24,9 +25,11 @@ DICTIONARY_TEST_TARGET = build/dictionary_from_file_test
 WORD_START_ROW_TABLE_TEST_TARGET = build/word_start_row_table_test
 WORD_PATTERN_TABLE_TEST_TARGET = build/word_pattern_table_test
 VALIDATION_HOT_TEST_TARGET = build/validation_hot_test
+PERPENDICULAR_CHECKS_TEST_TARGET = build/perpendicular_checks_test
 RACK_ORIENTED_SOLVER_TEST_TARGET = build/rack_oriented_solver_test
 SOLVER_BENCHMARK_TARGET = build/solver_benchmark
 TEST_TARGETS = $(BOARD_FROM_CSV_TEST_TARGET) $(CONFIG_MAPS_TEST_TARGET) $(MAKE_ROW_TEST_TARGET) $(ROW_TEST_TARGET) $(ROW_WINDOWS_TEST_TARGET) $(DICTIONARY_TEST_TARGET) $(WORD_START_ROW_TABLE_TEST_TARGET) $(WORD_PATTERN_TABLE_TEST_TARGET) $(VALIDATION_HOT_TEST_TARGET) $(RACK_ORIENTED_SOLVER_TEST_TARGET)
+TEST_TARGETS += $(PERPENDICULAR_CHECKS_TEST_TARGET)
 
 all: $(TARGET)
 
@@ -38,6 +41,8 @@ build/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/rack_oriented_solver.o: include/row_windows.h
+
+build/main.o build/board.o build/rack_oriented_solver.o: include/board.h
 
 $(BOARD_FROM_CSV_TEST_TARGET): $(BOARD_FROM_CSV_TEST_SRC)
 	mkdir -p build
@@ -75,6 +80,12 @@ $(VALIDATION_HOT_TEST_TARGET): $(VALIDATION_HOT_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
+build/perpendicular_checks.o $(PERPENDICULAR_CHECKS_TEST_TARGET): include/perpendicular_checks.h include/validation_hot.h include/board.h include/word_table.h
+
+$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC)
+	mkdir -p build
+	$(CXX) $(CXXFLAGS) -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
+
 $(RACK_ORIENTED_SOLVER_TEST_TARGET): $(RACK_ORIENTED_SOLVER_TEST_SRC) include/row_windows.h
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(RACK_ORIENTED_SOLVER_TEST_SRC)
@@ -93,6 +104,7 @@ test: $(TEST_TARGETS)
 	./$(WORD_START_ROW_TABLE_TEST_TARGET)
 	./$(WORD_PATTERN_TABLE_TEST_TARGET)
 	./$(VALIDATION_HOT_TEST_TARGET)
+	./$(PERPENDICULAR_CHECKS_TEST_TARGET)
 	./$(RACK_ORIENTED_SOLVER_TEST_TARGET)
 
 benchmark: $(SOLVER_BENCHMARK_TARGET)

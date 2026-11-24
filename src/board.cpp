@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <utility>
 
 /* Constants */
 
@@ -222,6 +223,12 @@ Board board_from_csv(const char *board_file_path)
     }
 
     return board;
+}
+
+void Board::swap_views()
+{
+    std::swap(rows, perpendicularRows);
+    normal_runs.swap(perpendicular_runs);
 }
 
 /* Diagnostics */

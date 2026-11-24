@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include <time.h>
-#include <utility>
 #include <cstring>
 
 int main(int argc, char **argv)
@@ -46,7 +45,7 @@ int main(int argc, char **argv)
         &board,
         rack_length
     );
-    std::swap(board.rows, board.perpendicularRows);
+    board.swap_views();
     size_t vertical_rack_oriented_count = rack_oriented_full_board_solver(
         &dictionary,
         &pattern_and_rack_anagram_to_words,
@@ -55,7 +54,7 @@ int main(int argc, char **argv)
         &board,
         rack_length
     );
-    std::swap(board.rows, board.perpendicularRows);
+    board.swap_views();
     clock_t rack_oriented_end = clock();
     double rack_oriented_seconds = (double)(rack_oriented_end - rack_oriented_start) / CLOCKS_PER_SEC;
     

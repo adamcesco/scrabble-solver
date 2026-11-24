@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #include <limits.h>
+#include <memory>
 #include <stdint.h>
 
 #define BOARD_SIZE 15
@@ -36,10 +37,25 @@ typedef struct {
     uint16_t occupiedMask;
 } Row;
 
-typedef struct {
+class PerpendicularCheckTable;
+
+struct Board {
     Row rows[BOARD_SIZE];
     Row perpendicularRows[BOARD_SIZE];
-} Board;
+
+    void swap_views();
+
+    // Prepare once for this legal position. The lookup must outlive its prepared boards.
+    void prepare_perpendicular_checks(const PerpendicularCheckTable &lookup);
+    void prepare_perpendicular_checks(PerpendicularCheckTable &&) = delete;
+
+    // Query an empty square in the prepared board's active view. A is bit 0 and Z is bit 25.
+    uint32_t perpendicular_check_set(uint8_t row, uint8_t col) const;
+
+private:
+    struct RunStarts;
+    std::shared_ptr<const RunStarts> normal_runs, perpendicular_runs;
+};
 
 struct PatternRow {
     RowTiles tiles = 0;
