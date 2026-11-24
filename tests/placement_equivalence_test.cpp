@@ -110,18 +110,24 @@ static void one_tile_counts_in_both_directions_and_restores_the_prepared_board()
 }
 
 // A replay can append the expected play: down (0/1), view row, start, complete word.
-static void qualify_inputs(const char *dictionary_path, const char *cache_path)
+static void qualify_inputs(const char *dictionary_path, std::filesystem::path cache_path,
+                           const std::filesystem::path &project_cache)
 {
     WordTable words = WordTable::from_file(dictionary_path);
     assert(words.count > 0);
     {
+        if (!std::filesystem::exists(cache_path) &&
+            WordPatternTable::cache_matches_dictionary(words, project_cache.c_str())) {
+            cache_path = project_cache;
+        }
         const bool existing = std::filesystem::exists(cache_path);
-        PlacementComparison fixture{words, existing ? WordPatternTable::load(words, cache_path)
+        std::cerr << "Qualification " << (existing ? "loading " : "building ") << cache_path << '\n';
+        PlacementComparison fixture{words, existing ? WordPatternTable::load(words, cache_path.c_str())
                                                     : WordPatternTable::from_words(words)};
         if (fixture.patterns.is_empty() || fixture.rows.count != words.count) {
             throw std::runtime_error("could not prepare qualification dictionary and pattern table");
         }
-        if (!existing && !fixture.patterns.save(words, cache_path)) {
+        if (!existing && !fixture.patterns.save(words, cache_path.c_str())) {
             throw std::runtime_error("could not save the qualification pattern cache");
         }
 
@@ -163,7 +169,8 @@ int main(int argc, char **argv)
     compare_rack_groups_and_ruled_out_windows();
     one_tile_counts_in_both_directions_and_restores_the_prepared_board();
     if (argc == 3) {
-        qualify_inputs(argv[1], argv[2]);
+        const auto root = std::filesystem::absolute(argv[0]).parent_path().parent_path();
+        qualify_inputs(argv[1], argv[2], root / "data/caches/pattern_and_rack_anagram_to_words.cache");
     } else if (argc != 1) {
         return 1;
     }

@@ -5,7 +5,7 @@ import gzip
 import json
 import math
 import random
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import chain
 from pathlib import Path
 from statistics import fmean, quantiles, variance
@@ -32,10 +32,14 @@ def stage_mean(groups, field):
     return fmean(fmean(getattr(pair, field) for pair in group) for group in groups)
 
 
+def precision_target(original_ms):
+    return 0.01 * original_ms
+
+
 def games_per_stage(groups):
     # For m games per stage, Var(equal-stage mean) = sum(stage variances) / (9m).
     variances = [variance(pair.saving for pair in group) for group in groups]
-    target = 0.01 * stage_mean(groups, "original")
+    target = precision_target(stage_mean(groups, "original"))
     return max(2, math.ceil(1.96 ** 2 * sum(variances) / (len(groups) * target) ** 2))
 
 
@@ -55,7 +59,7 @@ def summarize(groups):
     draws = [fmean(fmean(rng.choices(stage, k=len(stage))) for stage in savings)
              for _ in range(DRAWS)]
     percentiles = quantiles(draws, n=1000, method="inclusive")
-    return Estimate(*(stage_mean(groups, field) for field in Pair._fields),
+    return Estimate(stage_mean(groups, "original"), stage_mean(groups, "packed"),
                     stage_mean(groups, "saving"), percentiles[24], percentiles[974])
 
 
@@ -73,7 +77,7 @@ def recovery(first_saving, reuse_saving, interval):
 def read_timings(path, condition, cases):
     expected = [(f"{case['game']}#{case['turn']}", case["stage"], workload)
                 for case in cases for workload in WORKLOADS]
-    groups = {workload: {stage: [] for stage in STAGES} for workload in WORKLOADS}
+    games = {workload: {stage: defaultdict(list) for stage in STAGES} for workload in WORKLOADS}
     with path.open(newline="") as stream:
         for (name, stage, workload), row in zip(expected, csv.DictReader(stream), strict=True):
             if (row["case"], row["stage"], row["workload"], row["cache"], row["repetition"]) != (
@@ -82,8 +86,16 @@ def read_timings(path, condition, cases):
             pair = Pair(float(row["original_total_ms"]), float(row["packed_total_ms"]))
             if not all(math.isfinite(ms) and ms > 0 for ms in pair):
                 raise ValueError(f"{name}: invalid elapsed times")
-            groups[workload][stage].append(pair)
-    return {workload: list(by_stage.values()) for workload, by_stage in groups.items()}
+            # The sampler exports one board file per game. A companion with a
+            # reusable rack can be selected twice when the next rack is a singleton.
+            games[workload][stage][row["board"]].append(pair)
+    groups = {}
+    for workload, stages in games.items():
+        groups[workload] = [
+            [Pair(fmean(p.original for p in repeats), fmean(p.packed for p in repeats))
+             for repeats in by_game.values()]
+            for by_game in stages.values()]
+    return groups
 
 
 def select_cases(corpus, per_stage):
@@ -100,7 +112,7 @@ def select_cases(corpus, per_stage):
 
 
 def report(groups):
-    print("| Workload | Stage | Games | Original ms | Packed ms | Saving ms | Paired range ms | 95% CI on saving, ms |")
+    print("| Workload | Stage | Games | Original ms | Packed ms | Saving ms | Game saving range ms | 95% CI on saving, ms |")
     print("| --- | --- | ---: | ---: | ---: | ---: | --- | --- |")
     estimates = {}
     for workload, stages in groups.items():
@@ -116,7 +128,7 @@ def report(groups):
               f"| {result.packed:.6f} | {result.saving:+.6f} | {min(savings):+.6f} to {max(savings):+.6f} "
               f"| [{result.low:+.6f}, {result.high:+.6f}] |")
     first = estimates["first_board"]
-    target = first.original * 0.01
+    target = precision_target(first.original)
     half_width = (first.high - first.low) / 2
     print(f"\nFirst-board half-width {half_width:.6f} ms, target {target:.6f} ms "
           f"({'met' if half_width <= target else 'missed'}). "
@@ -146,7 +158,7 @@ def main():
         parser.error("pilot and mass corpus dictionary fingerprints differ")
     if {c["source"] for c in cases} & {c["source"] for c in pilot}:
         parser.error("pilot and mass comparison must use distinct games")
-    print(f"Pilot {args.condition} target {0.01 * stage_mean(groups, 'original'):.6f} ms. "
+    print(f"Pilot {args.condition} target {precision_target(stage_mean(groups, 'original')):.6f} ms. "
           f"Stage SDs of first-board savings (ms): "
           + ", ".join(f"{math.sqrt(variance(p.saving for p in g)):.6f}" for g in groups)
           + f". Planned {size} games per stage, {3 * size} total.\n")

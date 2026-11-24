@@ -9,6 +9,24 @@ from pathlib import Path
 
 
 class PairedBenchmarkTest(unittest.TestCase):
+    def test_standalone_qualification_finds_matching_project_cache(self):
+        dictionary = Path("bench/fixtures/paired/dictionary.txt")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            qualifier = root / "build/placement_equivalence_test"
+            qualifier.parent.mkdir()
+            qualifier.symlink_to(Path("build/placement_equivalence_test").resolve())
+            cache = root / "data/caches/pattern_and_rack_anagram_to_words.cache"
+            cache.parent.mkdir(parents=True)
+            subprocess.run([qualifier, dictionary, cache], check=True, capture_output=True, input=b"")
+            modified = cache.stat().st_mtime_ns
+            unused = root / "private-patterns"
+            result = subprocess.run([qualifier, dictionary, unused], check=True, capture_output=True,
+                                    input="bench/fixtures/paired/crossings.csv\tRT\n", text=True)
+            self.assertIn("2,4,1,5", result.stdout)
+            self.assertFalse(unused.exists())
+            self.assertEqual(cache.stat().st_mtime_ns, modified)
+
     def test_existing_pattern_cache_survives_qualification_and_timing(self):
         fixture = Path("bench/fixtures/paired")
         with tempfile.TemporaryDirectory() as directory:

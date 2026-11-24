@@ -1,10 +1,12 @@
 """Worked examples for the game-level precision and break-even decisions."""
+import csv
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bench"))
-from mass_comparison import Pair, games_per_stage, summarize, recovery
+from mass_comparison import Pair, WORKLOADS, games_per_stage, read_timings, summarize, recovery
 
 
 class MassComparisonTest(unittest.TestCase):
@@ -31,6 +33,24 @@ class MassComparisonTest(unittest.TestCase):
         self.assertEqual(recovery(-10, 4, (0, 6)), "unresolved")
         self.assertEqual(recovery(-10, -4, (-6, -1)), "no recovery")
         self.assertEqual(recovery(1, 4, (1, 6)), "0")
+
+    def test_repeated_companion_receives_one_vote_in_reuse_estimates(self):
+        cases = [dict(game=f"game-{i}", turn=2, stage="early") for i in range(3)]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "pairs.csv"
+            with path.open("w") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(["case", "stage", "workload", "cache", "repetition", "board",
+                                 "original_total_ms", "packed_total_ms"])
+                for i, case in enumerate(cases):
+                    for workload in WORKLOADS:
+                        board = i if workload == "first_board" else (1, 0, 1)[i]
+                        writer.writerow([case["game"] + "#2", "early", workload, "hit", "1",
+                                         f"board-{board}", (8, 5, 12)[i], 2])
+            timings = read_timings(path, "hit", cases)
+            self.assertEqual(len(timings["first_board"][0]), 3)
+            for workload in ("new_board", "new_rack"):
+                self.assertEqual(timings[workload][0], [Pair(10, 2), Pair(5, 2)])
 
 
 if __name__ == "__main__":
