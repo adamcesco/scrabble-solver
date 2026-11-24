@@ -332,12 +332,7 @@ DirectionalCounts rack_oriented_both_directions(
     uint8_t rack_length
 )
 {
-    auto count_direction = [&] {
+    return count_both_views(*board, [&] {
         return rack_oriented_full_board_solver(dictionary, word_patterns, rack_subset_keys, board, rack_length);
-    };
-    size_t across = count_direction();
-    board->swap_views();
-    size_t down = count_direction();
-    board->swap_views();
-    return {across, down};
+    });
 }

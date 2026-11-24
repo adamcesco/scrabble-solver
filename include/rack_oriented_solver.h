@@ -31,6 +31,17 @@ struct DirectionalCounts {
     size_t down;
 };
 
+// Count the active view, then the perpendicular view, and restore the caller's orientation.
+template <typename CountDirection>
+DirectionalCounts count_both_views(Board &board, CountDirection count)
+{
+    size_t across = count();
+    board.swap_views();
+    size_t down = count();
+    board.swap_views();
+    return {across, down};
+}
+
 // Solve both directions on the same prepared position and restore the initial view.
 DirectionalCounts rack_oriented_both_directions(
     const WordTable *dictionary,

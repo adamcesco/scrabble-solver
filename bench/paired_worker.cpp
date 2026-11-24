@@ -60,14 +60,9 @@ struct Validator {
         if (packed) {
             return rack_oriented_both_directions(&words, &patterns, &keys, &board, length);
         }
-        auto count = [&] {
+        return count_both_views(board, [&] {
             return rack_oriented_full_board_solver(&words, &patterns, &original, &keys, &board, length);
-        };
-        size_t across = count();
-        board.swap_views();
-        size_t down = count();
-        board.swap_views();
-        return {across, down};
+        });
     }
 };
 

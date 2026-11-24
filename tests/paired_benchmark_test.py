@@ -2,11 +2,25 @@
 import csv
 import io
 import subprocess
+import tempfile
 import unittest
 from collections import defaultdict
+from pathlib import Path
 
 
 class PairedBenchmarkTest(unittest.TestCase):
+    def test_illegal_second_board_prevents_any_timings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            dictionary = Path(directory) / "words"
+            # AS and SAT remain legal. The second board also contains TO.
+            dictionary.write_text("AS\nSAT\nAR\nAT\nRAT\nTAR\n")
+            result = subprocess.run(
+                ["python3", "bench/paired_benchmark.py", "--dictionary", dictionary],
+                capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("illegal run TO", result.stderr)
+            self.assertEqual(result.stdout, "")
+
     def test_fixture_report(self):
         output = subprocess.check_output(
             ["python3", "bench/paired_benchmark.py", "--repetitions", "2"], text=True)

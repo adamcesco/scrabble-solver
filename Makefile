@@ -12,12 +12,14 @@ DICTIONARY_TEST_SRC = tests/dictionary_from_file_test.cpp $(DICTIONARY_SRC) src/
 WORD_START_ROW_TABLE_TEST_SRC = tests/word_start_row_table_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 WORD_PATTERN_TABLE_TEST_SRC = tests/word_pattern_table_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 VALIDATION_HOT_TEST_SRC = tests/validation_hot_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
-PERPENDICULAR_CHECKS_TEST_SRC = tests/perpendicular_checks_test.cpp src/perpendicular_checks.cpp src/word_table.cpp src/board.cpp src/utils.cpp
 SOLVER_SRC = src/rack_oriented_solver.cpp src/perpendicular_checks.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 SOLVER_HEADERS = include/rack_oriented_solver.h include/row_windows.h include/validation_hot.h include/perpendicular_checks.h \
                 include/board.h include/utils.h include/dictionary.h $(DICTIONARY_SRC:src/%.cpp=include/%.h)
 RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp $(SOLVER_SRC)
-PLACEMENT_EQUIVALENCE_TEST_SRC = tests/placement_equivalence_test.cpp $(SOLVER_SRC)
+COMPARISON_SRC = tests/placement_comparison.cpp $(SOLVER_SRC)
+COMPARISON_HEADERS = tests/placement_comparison.h tests/placement_trace.h tests/perpendicular_fixtures.h tests/square_equivalence.h $(SOLVER_HEADERS)
+PERPENDICULAR_CHECKS_TEST_SRC = tests/perpendicular_checks_test.cpp $(COMPARISON_SRC)
+PLACEMENT_EQUIVALENCE_TEST_SRC = tests/placement_equivalence_test.cpp $(COMPARISON_SRC)
 SOLVER_BENCHMARK_SRC = bench/solver_benchmark.cpp $(SOLVER_SRC)
 TARGET = build/main
 BOARD_FROM_CSV_TEST_TARGET = build/board_from_csv_test
@@ -84,17 +86,17 @@ $(VALIDATION_HOT_TEST_TARGET): $(VALIDATION_HOT_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-build/perpendicular_checks.o $(PERPENDICULAR_CHECKS_TEST_TARGET): include/perpendicular_checks.h include/validation_hot.h include/board.h include/word_table.h
+build/perpendicular_checks.o: include/perpendicular_checks.h include/validation_hot.h include/board.h include/word_table.h
 
-$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) tests/perpendicular_fixtures.h tests/square_equivalence.h
+$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) $(COMPARISON_HEADERS)
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) -UNDEBUG -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
+	$(CXX) $(CXXFLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
 
 $(RACK_ORIENTED_SOLVER_TEST_TARGET): $(RACK_ORIENTED_SOLVER_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(RACK_ORIENTED_SOLVER_TEST_SRC)
 
-$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) tests/placement_trace.h tests/perpendicular_fixtures.h tests/square_equivalence.h
+$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) $(COMPARISON_HEADERS)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PLACEMENT_EQUIVALENCE_TEST_SRC)
 

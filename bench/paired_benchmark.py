@@ -63,12 +63,9 @@ def qualify(dictionary, shared_cache, cases):
     requests = "".join(f"{pos.board}\t{pos.rack}\n" for pos in positions)
     output = subprocess.check_output(
         [BUILD / "placement_equivalence_test", dictionary, shared_cache], input=requests, text=True)
-    counts = {}
-    for pos, line in zip(positions, output.splitlines(), strict=True):
-        across, across_candidates, down, down_candidates = map(int, line.split())
-        counts[pos] = dict(across=across, down=down, across_candidates=across_candidates,
-                           down_candidates=down_candidates)
-    return counts
+    rows = csv.DictReader(io.StringIO(output))
+    return {pos: {key: int(value) for key, value in row.items()}
+            for pos, row in zip(positions, rows, strict=True)}
 
 
 def warm_files(paths):
