@@ -1,13 +1,16 @@
 #include "placement_trace.h"
 #include "perpendicular_fixtures.h"
 #include "rack_oriented_solver.h"
+#include "square_equivalence.h"
 
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstring>
 #include <initializer_list>
+#include <iostream>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -231,10 +234,56 @@ static void one_tile_counts_in_both_directions_and_restores_the_prepared_board()
     words.destroy();
 }
 
-int main()
+// The benchmark sends one tab-separated board path and sorted rack per line.
+static void qualify_inputs(const char *dictionary_path, const char *cache_path)
+{
+    WordTable words = WordTable::from_file(dictionary_path);
+    assert(words.count > 0);
+    {
+        Fixture fixture{words};
+        assert(!fixture.patterns.is_empty() && fixture.rows.count == words.count);
+        if (!fixture.patterns.save(words, cache_path)) {
+            throw std::runtime_error("could not save the shared pattern cache");
+        }
+
+        std::string line;
+        while (std::getline(std::cin, line)) {
+            size_t tab = line.find('\t');
+            assert(tab != std::string::npos);
+            std::string path = line.substr(0, tab), letters = line.substr(tab + 1);
+            assert(!letters.empty() && letters.size() <= MAX_RACK_TILES);
+            Board original = board_from_csv(path.c_str());
+            if (std::none_of(std::begin(original.rows), std::end(original.rows),
+                             [](const Row &row) { return row.occupiedMask != 0; })) {
+                throw std::runtime_error("unreadable or empty post-opening board: " + path);
+            }
+            check_legal_runs(path.c_str(), words, original);
+            Board board = original;
+            board.prepare_perpendicular_checks(fixture.lookup);
+            SolverBoardSnapshot snapshot{board};
+            auto rack = rack_for(letters.c_str());
+            for (bool down : {false, true}) {
+                check_view(path.c_str(), down ? "down" : "across", words, original, board);
+                Decisions decisions = fixture.compare_pass(board, snapshot, down, rack, letters.size());
+                std::cout << accepted_count(decisions) << ' ' << decisions.size() << (down ? '\n' : ' ');
+                board.swap_views();
+                std::swap(original.rows, original.perpendicularRows);
+            }
+            snapshot.check(board, false);
+        }
+    }
+    words.destroy();
+}
+
+int main(int argc, char **argv)
 {
     compare_rt_orders(true);
     compare_rt_orders(false);
     compare_rack_groups_and_ruled_out_windows();
     one_tile_counts_in_both_directions_and_restores_the_prepared_board();
+    if (argc == 3) {
+        qualify_inputs(argv[1], argv[2]);
+    } else if (argc != 1) {
+        return 1;
+    }
 }

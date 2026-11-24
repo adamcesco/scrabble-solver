@@ -1,0 +1,2 @@
+case,stage,board,rack,new_board,new_board_rack,additional_rack
+as-to-sat,fixture,opening.csv,ART,crossings.csv,RT,RST

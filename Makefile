@@ -86,23 +86,30 @@ $(VALIDATION_HOT_TEST_TARGET): $(VALIDATION_HOT_TEST_SRC)
 
 build/perpendicular_checks.o $(PERPENDICULAR_CHECKS_TEST_TARGET): include/perpendicular_checks.h include/validation_hot.h include/board.h include/word_table.h
 
-$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) tests/perpendicular_fixtures.h
+$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) tests/perpendicular_fixtures.h tests/square_equivalence.h
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
+	$(CXX) $(CXXFLAGS) -UNDEBUG -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
 
 $(RACK_ORIENTED_SOLVER_TEST_TARGET): $(RACK_ORIENTED_SOLVER_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(RACK_ORIENTED_SOLVER_TEST_SRC)
 
-$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) tests/placement_trace.h tests/perpendicular_fixtures.h
+$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) tests/placement_trace.h tests/perpendicular_fixtures.h tests/square_equivalence.h
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PLACEMENT_EQUIVALENCE_TEST_SRC)
+	$(CXX) $(CXXFLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PLACEMENT_EQUIVALENCE_TEST_SRC)
 
 $(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(SOLVER_BENCHMARK_SRC)
 
-test: $(TEST_TARGETS)
+build/paired_worker: bench/paired_worker.cpp $(SOLVER_SRC) $(SOLVER_HEADERS)
+	mkdir -p build
+	$(CXX) $(CXXFLAGS) -o $@ bench/paired_worker.cpp $(SOLVER_SRC)
+
+paired-benchmark: build/paired_worker $(PERPENDICULAR_CHECKS_TEST_TARGET) $(PLACEMENT_EQUIVALENCE_TEST_TARGET)
+	python3 bench/paired_benchmark.py $(BENCH_ARGS)
+
+test: $(TEST_TARGETS) build/paired_worker
 	./$(BOARD_FROM_CSV_TEST_TARGET)
 	./$(CONFIG_MAPS_TEST_TARGET)
 	./$(MAKE_ROW_TEST_TARGET)
@@ -115,6 +122,7 @@ test: $(TEST_TARGETS)
 	./$(PERPENDICULAR_CHECKS_TEST_TARGET)
 	./$(RACK_ORIENTED_SOLVER_TEST_TARGET)
 	./$(PLACEMENT_EQUIVALENCE_TEST_TARGET)
+	python3 tests/paired_benchmark_test.py
 
 benchmark: $(SOLVER_BENCHMARK_TARGET)
 	./$(SOLVER_BENCHMARK_TARGET) data/boards/sample_board.csv data/dictionaries/sample_dictionary.txt 5000
@@ -122,4 +130,4 @@ benchmark: $(SOLVER_BENCHMARK_TARGET)
 clean:
 	rm -rf build/
 
-.PHONY: all test benchmark clean
+.PHONY: all test benchmark paired-benchmark clean

@@ -1,0 +1,43 @@
+"""Exercise the paired report through the same runner used for larger manifests."""
+import csv
+import io
+import subprocess
+import unittest
+from collections import defaultdict
+
+
+class PairedBenchmarkTest(unittest.TestCase):
+    def test_fixture_report(self):
+        output = subprocess.check_output(
+            ["python3", "bench/paired_benchmark.py", "--repetitions", "2"], text=True)
+        groups = defaultdict(list)
+        for row in csv.DictReader(io.StringIO(output)):
+            groups[row["cache"], row["workload"]].append(row)
+
+        for cache in ("hit", "miss"):
+            for workload in ("first_board", "new_board", "new_rack"):
+                rows = groups.pop((cache, workload))
+                self.assertEqual([r["first_validator"] for r in rows], ["original", "packed"])
+                for r in rows:
+                    expected = {"first_board": (6, 6, 28, 26), "new_board": (2, 1, 4, 5),
+                                "new_rack": (3, 1, 6, 7)}
+                    self.assertEqual(tuple(int(r[key]) for key in (
+                        "across", "down", "across_candidates", "down_candidates")), expected[workload])
+                    for variant in ("original", "packed"):
+                        def ms(phase):
+                            return float(r[f"{variant}_{phase}_ms"])
+                        self.assertGreater(ms("solve"), 0)
+                        self.assertGreaterEqual(ms("total"), ms("solve"))
+                        self.assertEqual(ms("dictionary") > 0, workload == "first_board")
+                        self.assertEqual(ms("pattern_load") > 0, workload == "first_board")
+                        self.assertEqual(ms("pattern_build") > 0, workload == "first_board" and cache == "miss")
+                        self.assertEqual(ms("pattern_save") > 0, workload == "first_board" and cache == "miss")
+                        self.assertEqual(ms("board") > 0, workload != "new_rack")
+                        self.assertEqual(ms("run_starts") > 0, workload != "new_rack" and variant == "packed")
+                    self.assertAlmostEqual(float(r["saving_ms"]),
+                                           float(r["original_total_ms"]) - float(r["packed_total_ms"]))
+        self.assertFalse(groups)
+
+
+if __name__ == "__main__":
+    unittest.main()
