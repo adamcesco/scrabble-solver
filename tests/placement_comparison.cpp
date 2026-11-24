@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstring>
 #include <set>
+#include <stdexcept>
 
 using LookupCounts = std::array<std::array<unsigned, BOARD_SIZE>, BOARD_SIZE>;
 
@@ -115,7 +116,7 @@ RackSubsetKeys rack_for(const char *letters)
 }
 
 std::array<PassCounts, 2> PlacementComparison::compare_board(
-    const char *name, Board original, const std::string &letters) const
+    const char *name, Board original, const std::string &letters, const std::optional<Decision> &required_play) const
 {
     check_legal_runs(name, words, original);
     Board board = original;
@@ -126,6 +127,11 @@ std::array<PassCounts, 2> PlacementComparison::compare_board(
     for (bool down : {false, true}) {
         check_view(name, down ? "down" : "across", words, original, board);
         auto decisions = compare_pass(board, snapshot, down, rack, letters.size());
+        if (required_play && std::get<0>(*required_play) == down &&
+            std::find(decisions.begin(), decisions.end(), *required_play) == decisions.end()) {
+            throw std::runtime_error(std::string(name) + ": solver did not accept recorded play " +
+                                     std::get<3>(*required_play));
+        }
         counts[down] = {accepted_count(decisions), decisions.size()};
         board.swap_views();
         std::swap(original.rows, original.perpendicularRows);

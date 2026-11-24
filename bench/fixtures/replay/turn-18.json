@@ -1,0 +1,26 @@
+{
+  "game": "sjoholm-del-solar.csv",
+  "dictionary_sha256": "6d4f89879b4ef0f566a34b153a18e43502f770cd69a56e1e4e74571d4a5623a4",
+  "turn": 18,
+  "player": "Cesar",
+  "rack": "AFFIIPW",
+  "square": "C10",
+  "play": "WAFFI.",
+  "board": [
+    "..............L",
+    "..............O",
+    "............J.A",
+    "TAUON..L...QUAD",
+    "E..ROMAINES.N..",
+    "R......G.HO.I..",
+    "E.VEX..AW..PO..",
+    "B..MIGHTY..ER.K",
+    "I......UN..D..O",
+    "C......R...D.ZA",
+    ".......E...L.EN",
+    ".......STIBINES",
+    "...........n...",
+    ".....DECALOGS..",
+    "AbETTER........"
+  ]
+}

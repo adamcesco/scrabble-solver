@@ -2,6 +2,24 @@
 
 Run from the repository root with Python 3.10+ and the C++17 toolchain.
 
+## Replay a recorded game
+
+The saved game contains all 20 placements and pre-move racks from Alec Sjoholm vs. Cesar Del Solar. Turns are numbered from one in playing order. The solver can use turns **2–6, 8, 10–16 and 18–20**. Turn 1 opens the board. On turns 7, 9 and 17 the rack contains a blank. Replay still applies those moves so later boards contain the assigned letters. [Recorded racks and moves](fixtures/replay/sjoholm-del-solar.csv) · [Original Macondo game record](https://github.com/domino14/macondo/blob/9fe4fe8cdf3b4e6cbcf42be5f205d463510c2e72/puzzles/testdata/well_played_game.gcg)
+
+```sh
+python3 bench/replay_game.py
+python3 bench/replay_game.py --turn 18 --board-csv /tmp/turn-18.csv
+python3 bench/replay_game.py --turn 18 | cmp - bench/fixtures/replay/turn-18.json
+```
+
+The first command lists eligible turns. Selecting a turn prints the player's rack and all 15 board rows immediately before the play. Lowercase letters mark assigned blanks in the JSON. The solver CSV uses uppercase for every occupied square. At turn 18 Cesar held `AFFIIPW`. He placed `WAFFI` down C10–C14 through the E at C15 to form `WAFFIE`. Those five squares are empty in the saved position and occupied before turn 19. [Saved turn 18](fixtures/replay/turn-18.json)
+
+Replay checks rack multiplicities, board connectivity and all complete words after every move. The default fixture dictionary contains the 38 words that occurred in this game. The selected JSON includes the SHA-256 of the dictionary used. With the fixture dictionary, `make test` verifies that both solver validators accept each eligible recorded play at its square with its actual rack. [Fixture dictionary](fixtures/replay/words.txt)
+
+The complete game also passed replay with `--dictionary data/dictionaries/sample_dictionary.txt` (file SHA-256 `559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd`). With that dictionary the packed solver counted 93 across and 110 down placements for turn 18.
+
+## Run the paired benchmark
+
 ```sh
 make -s paired-benchmark > pairs.csv
 ```

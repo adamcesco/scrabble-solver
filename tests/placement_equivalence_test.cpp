@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 using WindowDecisions = std::vector<std::pair<std::string, bool>>;
@@ -107,7 +108,7 @@ static void one_tile_counts_in_both_directions_and_restores_the_prepared_board()
     words.destroy();
 }
 
-// The benchmark sends one tab-separated board path and sorted rack per line.
+// A replay can append the expected play: down (0/1), view row, start, complete word.
 static void qualify_inputs(const char *dictionary_path, const char *cache_path)
 {
     WordTable words = WordTable::from_file(dictionary_path);
@@ -122,16 +123,27 @@ static void qualify_inputs(const char *dictionary_path, const char *cache_path)
         std::cout << "across,across_candidates,down,down_candidates\n";
         std::string line;
         while (std::getline(std::cin, line)) {
-            size_t tab = line.find('\t');
-            assert(tab != std::string::npos);
-            std::string path = line.substr(0, tab), letters = line.substr(tab + 1);
+            std::istringstream fields(line);
+            std::string path, letters;
+            std::getline(fields, path, '\t');
+            std::getline(fields, letters, '\t');
             assert(!letters.empty() && letters.size() <= MAX_RACK_TILES);
+            std::optional<Decision> required_play;
+            if (!fields.eof()) {
+                bool down;
+                int row, start;
+                std::string word;
+                if (!(fields >> down >> row >> start >> word)) {
+                    throw std::runtime_error("invalid expected play for " + path);
+                }
+                required_play.emplace(down, row, start, word, true);
+            }
             Board original = board_from_csv(path.c_str());
             if (std::none_of(std::begin(original.rows), std::end(original.rows),
                              [](const Row &row) { return row.occupiedMask != 0; })) {
                 throw std::runtime_error("unreadable or empty post-opening board: " + path);
             }
-            auto [across, down] = fixture.compare_board(path.c_str(), original, letters);
+            auto [across, down] = fixture.compare_board(path.c_str(), original, letters, required_play);
             std::cout << across.accepted << ',' << across.candidates << ','
                       << down.accepted << ',' << down.candidates << '\n';
         }

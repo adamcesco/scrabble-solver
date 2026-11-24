@@ -4,6 +4,7 @@
 #include "rack_oriented_solver.h"
 
 #include <array>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -30,7 +31,8 @@ struct PlacementComparison {
 
     Decisions compare_pass(Board &board, const SolverBoardSnapshot &snapshot, bool down,
                            RackSubsetKeys &rack, uint8_t length) const;
-    std::array<PassCounts, 2> compare_board(const char *name, Board original, const std::string &letters) const;
+    std::array<PassCounts, 2> compare_board(const char *name, Board original, const std::string &letters,
+                                            const std::optional<Decision> &required_play = {}) const;
 };
 
 size_t accepted_count(const Decisions &decisions);
