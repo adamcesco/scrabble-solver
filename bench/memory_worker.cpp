@@ -74,15 +74,7 @@ void measure(bool packed, bool expect_hit, const char *dictionary, const char *c
 int main(int argc, char **argv)
 {
     if (argc == 4 && std::strcmp(argv[1], "--check-cache") == 0) {
-        WordTable words = WordTable::from_file(argv[2]);
-        if (!words.count) {
-            std::fprintf(stderr, "dictionary read failed\n");
-            return 1;
-        }
-        bool match = WordPatternTable::cache_matches_dictionary(words, argv[3]);
-        words.destroy();
-        std::puts(match ? "match" : "different");
-        return 0;
+        return benchmark::check_cache(argv[2], argv[3]);
     }
     if (argc != 7 || (std::strcmp(argv[1], "original") && std::strcmp(argv[1], "packed")) ||
         (std::strcmp(argv[2], "hit") && std::strcmp(argv[2], "miss"))) {

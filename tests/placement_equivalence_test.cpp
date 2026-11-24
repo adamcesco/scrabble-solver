@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -114,10 +115,14 @@ static void qualify_inputs(const char *dictionary_path, const char *cache_path)
     WordTable words = WordTable::from_file(dictionary_path);
     assert(words.count > 0);
     {
-        PlacementComparison fixture{words};
-        assert(!fixture.patterns.is_empty() && fixture.rows.count == words.count);
-        if (!fixture.patterns.save(words, cache_path)) {
-            throw std::runtime_error("could not save the shared pattern cache");
+        const bool existing = std::filesystem::exists(cache_path);
+        PlacementComparison fixture{words, existing ? WordPatternTable::load(words, cache_path)
+                                                    : WordPatternTable::from_words(words)};
+        if (fixture.patterns.is_empty() || fixture.rows.count != words.count) {
+            throw std::runtime_error("could not prepare qualification dictionary and pattern table");
+        }
+        if (!existing && !fixture.patterns.save(words, cache_path)) {
+            throw std::runtime_error("could not save the qualification pattern cache");
         }
 
         std::cout << "across,across_candidates,down,down_candidates\n";

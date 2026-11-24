@@ -102,13 +102,38 @@ as-to-sat,fixture,opening.csv,ART,crossings.csv,RT,RST
 make -s paired-benchmark BENCH_ARGS='--cases corpus/cases.csv --dictionary corpus/words.txt --repetitions 1' > pairs.csv
 ```
 
-Before timing, the runner executes the crossing and placement fixtures. It qualifies every distinct measured board and rack against the supplied dictionary. In each view it checks every empty square against 26 independent tile trials and compares sorted candidate decisions including coordinates, word, outcome and duplicates. The qualification process also builds the shared pattern cache.
+Before timing, the runner executes the crossing and placement fixtures. It qualifies every distinct measured board and rack against the supplied dictionary. In each view it checks every empty square against 26 independent tile trials and compares sorted candidate decisions including coordinates, word, outcome and duplicates. Qualification loads the supplied `--cache`, or automatically uses the project pattern cache when its header matches the normalized dictionary. It checks the payload with the solver's loader. With no matching cache it builds one temporary shared cache. Qualification never overwrites an existing cache.
 
 Each fresh worker runs one validator through all three workloads. The first-board clock starts before dictionary reading. The new-board clock starts before loading the second CSV with the dictionary tables retained. The new-rack clock starts before building its subsets on the prepared second board. All clocks stop after the across count, down count and view restoration. The worker prints after the third solve. The runner checks both timed counts against the qualification results before emitting a pair.
 
-Both validators run sequentially from the same binary. The runner keeps manifest order and alternates the first validator within each stage and cache condition. It reads the dictionary and both board files immediately before each worker. For a cache hit it also reads the same shared cache file. For a miss it supplies a fresh empty temporary directory per worker. It checks the actual load/build branch and the saved file size. Temporary caches use the system temporary directory (overridable with `TMPDIR`).
+Both validators run sequentially from the same binary. The runner keeps manifest order and alternates the first validator within each stage and cache condition. It reads the dictionary and both board files immediately before each worker. For a cache hit it also reads the same shared cache file. For a miss it supplies a fresh empty temporary directory per worker. It checks the actual load/build branch and the saved file size. Temporary caches use the system temporary directory (overridable with `TMPDIR`). An existing shared cache defaults to hit-only timing. With a temporary shared cache the default exercises both conditions. Use `--condition hit`, `miss` or `both` to choose explicitly. A deliberate timed miss still qualifies against the shared cache.
 
 The CSV contains one row per case, repetition, cache condition and workload. Counts are per direction. Each validator's columns give direct elapsed milliseconds and the component times. The load column includes the failed open on a miss. Build and save are separate. Solve includes rack subsets and both passes through restoration. A zero component means the workload skipped that phase. The cache label on the reuse rows identifies how the worker obtained its dictionary tables. Paired saving is original elapsed time minus packed elapsed time.
+
+## Size and run the verified corpus comparison
+
+Use the full project dictionary for both the six-game pilot and the verified Quackle corpus. Run the following from the repo root. Change the logical CPU to one available on your machine. Each pilot and each full comparison finishes qualification before starting any timed worker.
+
+```sh
+make build/placement_equivalence_test build/perpendicular_checks_test build/paired_worker
+python3 bench/sample_turns.py --verify bench/fixtures/pilot/corpus.json --benchmark-dir build/timing-pilot
+dictionary=data/dictionaries/sample_dictionary.txt
+for condition in hit miss; do
+    pilot=bench/results/pilot-$condition.csv
+    pairs=bench/results/mass-$condition.csv
+    cases=build/timing-$condition
+    taskset -c 2 python3 bench/paired_benchmark.py --dictionary "$dictionary" \
+        --condition "$condition" --repetitions 1 --cases build/timing-pilot/cases.csv > "$pilot" || break
+    python3 bench/mass_comparison.py --condition "$condition" --pilot "$pilot" --benchmark-dir "$cases" || break
+    taskset -c 2 python3 bench/paired_benchmark.py --dictionary "$dictionary" \
+        --condition "$condition" --repetitions 1 --cases "$cases/cases.csv" > "$pairs" || break
+    python3 bench/mass_comparison.py --condition "$condition" --pilot "$pilot" --report "$pairs" || break
+done
+```
+
+For each cache condition, the pilot estimates the variance of **original minus packed** first-board milliseconds within each stage. Let $T$ be 1% of the equally weighted original mean, and $s_h^2$ the sample variance for stage $h$. For $m$ independent games per stage, the estimated variance of the equally weighted saving is $\sum_h s_h^2/(9m)$. Set $m$ to the ceiling of $1.96^2 \sum_h s_h^2/(9T^2)$ with a minimum of two games for the order crossover. This sizes the verified 10,000-game starting corpus independently for hits and misses. Take the first $m$ saved cases of each stage in corpus order and use the same-stage companion and additional rack from the benchmark export. The six pilot games are separate from the full estimates.
+
+The report uses 20,000 bootstrap draws with seed 15. Each draw samples whole paired game differences with replacement within each stage at its observed size, then averages the three stage means equally. The 2.5th and 97.5th percentiles give the interval. The reported spread is the observed range of individual paired differences. The final half-width is checked against the full-run original mean. Pilot sizing estimates precision from just two games per stage, so the final interval can miss its target. Break-even uses the ceiling of the observed first-board premium divided by the mean saving per additional board or rack. The report distinguishes intervals spanning zero from reliably positive and reliably negative reuse savings.
 
 ## Fixture run
 

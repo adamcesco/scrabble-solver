@@ -14,6 +14,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build"
 FIXTURE = ROOT / "bench/fixtures/paired"
+FULL_CACHE = ROOT / "data/caches/pattern_and_rack_anagram_to_words.cache"
+
+
+def matching_full_cache(worker, dictionary):
+    if FULL_CACHE.is_file():
+        probe = subprocess.check_output([worker, "--check-cache", dictionary, FULL_CACHE], text=True)
+        if probe.strip() == "match":
+            return FULL_CACHE
+    return None
 
 
 @dataclass(frozen=True)
@@ -77,12 +86,12 @@ def warm_files(paths):
 
 def observe(variant, condition, dictionary, shared_cache, case, counts):
     # A miss gets a fresh directory even if a previous worker failed after saving.
-    with tempfile.TemporaryDirectory(dir=shared_cache.parent) as private:
+    with tempfile.TemporaryDirectory() as private:
         cache = shared_cache if condition == "hit" else Path(private) / "patterns"
         inputs = [dictionary, case.first.board, case.new_board.board]
         warm_files([*inputs, cache] if condition == "hit" else inputs)
         output = subprocess.check_output(
-            [BUILD / "paired_worker", variant, dictionary, cache, case.first.board, case.first.rack,
+            [BUILD / "paired_worker", variant, condition, dictionary, cache, case.first.board, case.first.rack,
              case.new_board.board, case.new_board.rack, case.new_rack.rack], text=True)
         if cache.stat().st_size != shared_cache.stat().st_size:
             raise ValueError(f"{variant}: incomplete pattern cache after {condition}")
@@ -103,8 +112,8 @@ def observe(variant, condition, dictionary, shared_cache, case, counts):
     return timings
 
 
-def paired_rows(dictionary, cache, cases, repetitions, counts):
-    for condition in ("hit", "miss"):
+def paired_rows(dictionary, cache, cases, repetitions, counts, conditions):
+    for condition in conditions:
         group_indices = Counter()
         for repetition, case in itertools.product(range(1, repetitions + 1), cases):
             variants = ("original", "packed")
@@ -126,19 +135,28 @@ def main():
     parser.add_argument("--dictionary", type=Path, default=FIXTURE / "dictionary.txt")
     parser.add_argument("--cases", type=Path, default=FIXTURE / "cases.csv")
     parser.add_argument("--repetitions", type=int, default=4)
+    parser.add_argument("--cache", type=Path, help="existing pattern cache for qualification and hits")
+    parser.add_argument("--condition", choices=("hit", "miss", "both"),
+                        help="defaults to hit with an existing cache, both with a temporary cache")
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("--repetitions must be positive")
     cases = read_cases(args.cases)
     with tempfile.TemporaryDirectory() as directory:
-        cache = Path(directory) / "shared-patterns"
+        if args.cache is not None and not args.cache.is_file():
+            parser.error(f"pattern cache missing: {args.cache}")
+        existing = args.cache or matching_full_cache(BUILD / "paired_worker", args.dictionary)
+        cache = existing or Path(directory) / "shared-patterns"
         counts = qualify(args.dictionary, cache, cases)
         writer = None
-        for row in paired_rows(args.dictionary, cache, cases, args.repetitions, counts):
+        condition = args.condition or ("hit" if existing else "both")
+        conditions = ("hit", "miss") if condition == "both" else (condition,)
+        for row in paired_rows(args.dictionary, cache, cases, args.repetitions, counts, conditions):
             if writer is None:
                 writer = csv.DictWriter(sys.stdout, fieldnames=row, lineterminator="\n")
                 writer.writeheader()
             writer.writerow(row)
+            sys.stdout.flush()
 
 
 if __name__ == "__main__":

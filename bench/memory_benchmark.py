@@ -8,10 +8,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-from paired_benchmark import BUILD, ROOT, warm_files
+from paired_benchmark import BUILD, ROOT, matching_full_cache, warm_files
 
 FULL_DICTIONARY = ROOT / "data/dictionaries/sample_dictionary.txt"
-FULL_CACHE = ROOT / "data/caches/pattern_and_rack_anagram_to_words.cache"
 SAMPLE_BOARD = ROOT / "data/boards/sample_board.csv"
 
 
@@ -90,11 +89,8 @@ def main():
         parser.error("--repetitions must be positive")
     cache = args.cache
     dictionary_sha = sha256(args.dictionary)
-    if cache is None and FULL_CACHE.is_file():
-        probe = subprocess.check_output([BUILD / "memory_worker", "--check-cache",
-                                         args.dictionary, FULL_CACHE], text=True)
-        if probe.strip() == "match":
-            cache = FULL_CACHE
+    if cache is None:
+        cache = matching_full_cache(BUILD / "memory_worker", args.dictionary)
     if cache is not None and not cache.is_file():
         parser.error(f"pattern cache missing: {cache}")
     rack = "".join(sorted(args.rack))

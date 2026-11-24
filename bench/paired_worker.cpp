@@ -61,7 +61,7 @@ void print_observation(const char *workload, bool hit, Time start, const BoardSo
                 ms(board.runs_start, solve.start), ms(solve.start, solve.end));
 }
 
-void measure(bool use_packed, const char *dictionary_path, const char *cache_path,
+void measure(bool use_packed, bool expect_hit, const char *dictionary_path, const char *cache_path,
              const char *first_path, const Rack &first_rack, const char *next_path,
              const Rack &next_rack, const Rack &additional)
 {
@@ -77,6 +77,9 @@ void measure(bool use_packed, const char *dictionary_path, const char *cache_pat
     auto load_end = Clock::now();
     auto build_end = load_end;
     auto construct_start = load_end;
+    if (hit != expect_hit) {
+        throw std::runtime_error("pattern cache does not match expected starting condition");
+    }
     if (!hit) {
         patterns = WordPatternTable::from_words(words);
         build_end = Clock::now();
@@ -107,13 +110,17 @@ void measure(bool use_packed, const char *dictionary_path, const char *cache_pat
 
 int main(int argc, char **argv)
 {
-    if (argc != 9 || (std::strcmp(argv[1], "original") && std::strcmp(argv[1], "packed"))) {
-        std::fprintf(stderr, "usage: %s original|packed dictionary cache board rack new-board rack additional-rack\n", argv[0]);
+    if (argc == 4 && std::strcmp(argv[1], "--check-cache") == 0) {
+        return benchmark::check_cache(argv[2], argv[3]);
+    }
+    if (argc != 10 || (std::strcmp(argv[1], "original") && std::strcmp(argv[1], "packed")) ||
+        (std::strcmp(argv[2], "hit") && std::strcmp(argv[2], "miss"))) {
+        std::fprintf(stderr, "usage: %s original|packed hit|miss dictionary cache board rack new-board rack additional-rack\n", argv[0]);
         return 1;
     }
     try {
-        measure(std::strcmp(argv[1], "packed") == 0, argv[2], argv[3],
-                argv[4], Rack(argv[5]), argv[6], Rack(argv[7]), Rack(argv[8]));
+        measure(std::strcmp(argv[1], "packed") == 0, std::strcmp(argv[2], "hit") == 0, argv[3], argv[4],
+                argv[5], Rack(argv[6]), argv[7], Rack(argv[8]), Rack(argv[9]));
     } catch (const std::exception &error) {
         std::fprintf(stderr, "%s\n", error.what());
         return 1;

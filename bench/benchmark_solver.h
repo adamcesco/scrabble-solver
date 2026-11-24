@@ -4,12 +4,26 @@
 #include "rack_oriented_solver.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <optional>
 #include <stdexcept>
 #include <string_view>
 
 namespace benchmark {
+inline int check_cache(const char *dictionary, const char *cache)
+{
+    WordTable words = WordTable::from_file(dictionary);
+    if (!words.count) {
+        std::fprintf(stderr, "dictionary read failed\n");
+        return 1;
+    }
+    bool match = WordPatternTable::cache_matches_dictionary(words, cache);
+    words.destroy();
+    std::puts(match ? "match" : "different");
+    return 0;
+}
+
 struct Rack {
     uint64_t tiles = 0;
     uint8_t length;

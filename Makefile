@@ -147,6 +147,7 @@ test: $(TEST_TARGETS) build/paired_worker
 	./$(RACK_ORIENTED_SOLVER_TEST_TARGET)
 	./$(PLACEMENT_EQUIVALENCE_TEST_TARGET)
 	python3 tests/paired_benchmark_test.py
+	python3 tests/mass_comparison_test.py
 	python3 tests/replay_game_test.py
 	python3 tests/sample_turns_test.py
 
