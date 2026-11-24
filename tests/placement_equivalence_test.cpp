@@ -14,6 +14,7 @@
 
 using Decision = std::tuple<bool, int, int, std::string, bool>; // down, row, start, word, accepted
 using Decisions = std::vector<Decision>;
+using WindowDecisions = std::vector<std::pair<std::string, bool>>;
 using LookupCounts = std::array<std::array<unsigned, BOARD_SIZE>, BOARD_SIZE>;
 
 static void check_rows(const Row (&expected)[BOARD_SIZE], const Row (&actual)[BOARD_SIZE])
@@ -84,6 +85,14 @@ static LookupCounts expected_lookups(const Board &board, const Decisions &decisi
     return counts;
 }
 
+static size_t accepted_count(const Decisions &decisions)
+{
+    return std::count_if(decisions.begin(), decisions.end(), [](const Decision &decision) {
+        const auto &[down, row, start, word, accepted] = decision;
+        return accepted;
+    });
+}
+
 struct Fixture {
     const WordTable &words;
     WordPatternTable patterns = WordPatternTable::from_words(words);
@@ -114,26 +123,20 @@ struct Fixture {
         assert(sorted == reference.decisions);
         assert(packed.lookups == expected_lookups(board, reference.decisions));
         assert(count == expected_count);
-        assert(count == (size_t)std::count_if(sorted.begin(), sorted.end(),
-               [](const Decision &d) { return std::get<4>(d); }));
+        assert(count == accepted_count(sorted));
         return packed.decisions;
     }
 };
 
-static void check_window_order(const Decisions &decisions, bool down,
-                               std::initializer_list<std::pair<std::string, bool>> expected)
+static WindowDecisions middle_window(const Decisions &decisions)
 {
-    Decisions actual;
-    for (const auto &d : decisions) {
-        if (std::get<1>(d) == 1 && std::get<2>(d) == 0 && std::get<3>(d).size() == 3) {
-            actual.push_back(d);
+    WindowDecisions result;
+    for (const auto &[down, row, start, word, accepted] : decisions) {
+        if (row == 1 && start == 0 && word.size() == 3) {
+            result.emplace_back(word, accepted);
         }
     }
-    Decisions ordered;
-    for (const auto &[word, accepted] : expected) {
-        ordered.emplace_back(down, 1, 0, word, accepted);
-    }
-    assert(actual == ordered);
+    return result;
 }
 
 static RackSubsetKeys rack_for(const char *letters)
@@ -158,21 +161,25 @@ static void compare_rt_orders(bool tar_first)
             SolverBoardSnapshot snapshot{board};
             RackSubsetKeys rt = rack_for("RT");
 
+            DirectionalCounts counts = rack_oriented_both_directions(
+                &words, &fixture.patterns, &rt, &board, 2);
+            snapshot.check(board, false);
             for (int pass = 0; pass < 3; ++pass) {
                 if (pass > 0) {
                     board.swap_views();
                 }
                 bool down = pass == 1;
                 Decisions decisions = fixture.compare_pass(board, snapshot, down, rt, 2);
+                assert((down ? counts.down : counts.across) == accepted_count(decisions));
                 if (down == transposed) {
                     const uint32_t r = 1u << ('R' - 'A'), t = 1u << ('T' - 'A');
                     assert((board.perpendicular_check_set(1, 0) & (r | t)) == (r | t));
                     assert((board.perpendicular_check_set(1, 2) & (r | t)) == t);
-                    if (tar_first) {
-                        check_window_order(decisions, down, {{"TAR", false}, {"RAT", true}});
-                    } else {
-                        check_window_order(decisions, down, {{"RAT", true}, {"TAR", false}});
+                    WindowDecisions expected{{"TAR", false}, {"RAT", true}};
+                    if (!tar_first) {
+                        std::reverse(expected.begin(), expected.end());
                     }
+                    assert(middle_window(decisions) == expected);
                 }
             }
             snapshot.check(board, false);
@@ -195,7 +202,10 @@ static void compare_rack_groups_and_ruled_out_windows()
             SolverBoardSnapshot snapshot{board};
             Decisions across = fixture.compare_pass(board, snapshot, false, rst, 3);
             // SAT uses ST; TAR and RAT use RT. The X.O crossing disallows all three.
-            check_window_order(across, false, {{"TAR", false}, {"RAT", !blocked}, {"SAT", !blocked}});
+            WindowDecisions actual = middle_window(across);
+            std::sort(actual.begin(), actual.end());
+            const WindowDecisions expected{{"RAT", !blocked}, {"SAT", !blocked}, {"TAR", false}};
+            assert(actual == expected);
             board.swap_views();
             fixture.compare_pass(board, snapshot, true, rst, 3);
             board.swap_views();

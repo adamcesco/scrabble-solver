@@ -14,6 +14,8 @@ WORD_PATTERN_TABLE_TEST_SRC = tests/word_pattern_table_test.cpp $(DICTIONARY_SRC
 VALIDATION_HOT_TEST_SRC = tests/validation_hot_test.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
 PERPENDICULAR_CHECKS_TEST_SRC = tests/perpendicular_checks_test.cpp src/perpendicular_checks.cpp src/word_table.cpp src/board.cpp src/utils.cpp
 SOLVER_SRC = src/rack_oriented_solver.cpp src/perpendicular_checks.cpp $(DICTIONARY_SRC) src/board.cpp src/utils.cpp
+SOLVER_HEADERS = include/rack_oriented_solver.h include/row_windows.h include/validation_hot.h include/perpendicular_checks.h \
+                include/board.h include/utils.h include/dictionary.h $(DICTIONARY_SRC:src/%.cpp=include/%.h)
 RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp $(SOLVER_SRC)
 PLACEMENT_EQUIVALENCE_TEST_SRC = tests/placement_equivalence_test.cpp $(SOLVER_SRC)
 SOLVER_BENCHMARK_SRC = bench/solver_benchmark.cpp $(SOLVER_SRC)
@@ -30,8 +32,8 @@ VALIDATION_HOT_TEST_TARGET = build/validation_hot_test
 PERPENDICULAR_CHECKS_TEST_TARGET = build/perpendicular_checks_test
 RACK_ORIENTED_SOLVER_TEST_TARGET = build/rack_oriented_solver_test
 SOLVER_BENCHMARK_TARGET = build/solver_benchmark
-TEST_TARGETS = $(BOARD_FROM_CSV_TEST_TARGET) $(CONFIG_MAPS_TEST_TARGET) $(MAKE_ROW_TEST_TARGET) $(ROW_TEST_TARGET) $(ROW_WINDOWS_TEST_TARGET) $(DICTIONARY_TEST_TARGET) $(WORD_START_ROW_TABLE_TEST_TARGET) $(WORD_PATTERN_TABLE_TEST_TARGET) $(VALIDATION_HOT_TEST_TARGET) $(RACK_ORIENTED_SOLVER_TEST_TARGET)
 PLACEMENT_EQUIVALENCE_TEST_TARGET = build/placement_equivalence_test
+TEST_TARGETS = $(BOARD_FROM_CSV_TEST_TARGET) $(CONFIG_MAPS_TEST_TARGET) $(MAKE_ROW_TEST_TARGET) $(ROW_TEST_TARGET) $(ROW_WINDOWS_TEST_TARGET) $(DICTIONARY_TEST_TARGET) $(WORD_START_ROW_TABLE_TEST_TARGET) $(WORD_PATTERN_TABLE_TEST_TARGET) $(VALIDATION_HOT_TEST_TARGET) $(RACK_ORIENTED_SOLVER_TEST_TARGET)
 TEST_TARGETS += $(PERPENDICULAR_CHECKS_TEST_TARGET) $(PLACEMENT_EQUIVALENCE_TEST_TARGET)
 
 all: $(TARGET)
@@ -43,10 +45,8 @@ build/%.o: src/%.cpp
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-build/main.o build/rack_oriented_solver.o $(RACK_ORIENTED_SOLVER_TEST_TARGET) $(SOLVER_BENCHMARK_TARGET): include/rack_oriented_solver.h include/perpendicular_checks.h
-build/rack_oriented_solver.o: include/row_windows.h
-
-build/main.o build/board.o build/rack_oriented_solver.o: include/board.h
+build/main.o build/rack_oriented_solver.o $(RACK_ORIENTED_SOLVER_TEST_TARGET) $(PLACEMENT_EQUIVALENCE_TEST_TARGET) $(SOLVER_BENCHMARK_TARGET): $(SOLVER_HEADERS)
+build/board.o: include/board.h
 
 $(BOARD_FROM_CSV_TEST_TARGET): $(BOARD_FROM_CSV_TEST_SRC)
 	mkdir -p build
@@ -90,15 +90,15 @@ $(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) tests/perp
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
 
-$(RACK_ORIENTED_SOLVER_TEST_TARGET): $(RACK_ORIENTED_SOLVER_TEST_SRC) include/row_windows.h
+$(RACK_ORIENTED_SOLVER_TEST_TARGET): $(RACK_ORIENTED_SOLVER_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(RACK_ORIENTED_SOLVER_TEST_SRC)
 
-$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) tests/placement_trace.h tests/perpendicular_fixtures.h include/board.h include/row_windows.h include/rack_oriented_solver.h include/perpendicular_checks.h include/validation_hot.h
+$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) tests/placement_trace.h tests/perpendicular_fixtures.h
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PLACEMENT_EQUIVALENCE_TEST_SRC)
 
-$(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC) include/row_windows.h
+$(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(SOLVER_BENCHMARK_SRC)
 
