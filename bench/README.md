@@ -18,6 +18,32 @@ Replay checks rack multiplicities, board connectivity and all complete words aft
 
 The complete game also passed replay with `--dictionary data/dictionaries/sample_dictionary.txt` (file SHA-256 `559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd`). With that dictionary the packed solver counted 93 across and 110 down placements for turn 18.
 
+## Reproduce the balanced timing pilot
+
+The pilot contains **six recorded games, with two selected turns per stage**. Five games come from Woogles and one is the Sjoholm–Del Solar record above. The local CSVs preserve every placement and both players' pre-move racks. The manifest links each game to its original record. [Game sources](fixtures/pilot/games.csv) · [Saved boards and racks](fixtures/pilot/corpus.json)
+
+| Game | Eligible turns | Selected rank | Recorded turn | Stage | Rack |
+| --- | ---: | ---: | ---: | --- | --- |
+| 7bbdiRsCRY | 18 | 2 | 4 | Early | EIJKORX |
+| RHaUnC67uz | 21 | 11 | 15 | Middle | DEFIIOS |
+| 6zTBhes669 | 13 | 13 | 25 | Late | EJLO |
+| CpZHNqsaAe | 20 | 7 | 8 | Early | EFGNQUX |
+| Sjoholm–Del Solar | 16 | 9 | 12 | Middle | IJNOORU |
+| NSFqNG8yP5 | 22 | 21 | 23 | Late | BHILNSU |
+
+The sampler ranks eligible turns from one in playing order and splits them into consecutive thirds. It gives any remainder to the earliest thirds. For example, the 13-turn eligible list splits 5/4/4 and the 20-turn list splits 7/7/6. Seed 10 shuffles the games before stage assignment and selects a turn uniformly within the assigned third. Games with only one or two eligible turns get their available stages first. Each game goes to its least represented available stage, breaking ties in early, middle, late order.
+
+```sh
+python3 bench/sample_turns.py --seed 10 | cmp - bench/fixtures/pilot/corpus.json
+python3 bench/replay_game.py --game bench/fixtures/pilot/games/6zTBhes669.csv \
+    --dictionary data/dictionaries/sample_dictionary.txt --turn 25
+python3 bench/sample_turns.py --benchmark-dir /tmp/scrabble-pilot > /tmp/scrabble-pilot.json
+```
+
+The saved cases use the full sample dictionary and include its SHA-256. Each `game` path is relative to the input games manifest. To use a different collection or dictionary, pass `--games` or `--dictionary`. The checked-in 252-word dictionary covers every word played or formed in these six games and allows offline replay tests from a clean checkout. [Replay dictionary](fixtures/pilot/words.txt)
+
+The optional benchmark export writes solver CSV boards and `cases.csv` for the paired runner below. Within each stage it uses the next selected board and its actual rack for the new-board workload, wrapping at the end. For the new-rack workload it removes the last recorded tile from that board's rack. This keeps every remaining tile available on that board. This export needs two cases per stage and at least two tiles in each reused rack. Use the same dictionary for sampling and timing.
+
 ## Run the paired benchmark
 
 ```sh

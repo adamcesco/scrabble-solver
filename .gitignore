@@ -4,6 +4,7 @@
 .scratch/
 docs/
 build/
+__pycache__/
 data/
 *.o
 *.out

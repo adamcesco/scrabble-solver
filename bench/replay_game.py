@@ -44,11 +44,11 @@ def place(board, event):
     board.update(placed)
 
 
-def replay(words):
+def replay(words, game=GAME):
     board = {}
     rows = ["." * SIZE] * SIZE
     eligible = {}
-    with GAME.open(newline="") as stream:
+    with game.open(newline="") as stream:
         for turn, event in enumerate(csv.DictReader(stream), 1):
             if turn > 1 and "?" not in event["rack"]:
                 eligible[turn] = dict(turn=turn, **event, board=rows)
@@ -64,17 +64,28 @@ def replay(words):
     return eligible
 
 
+def load_dictionary(path):
+    data = path.read_bytes()
+    return set(data.decode("ascii").upper().splitlines()), hashlib.sha256(data).hexdigest()
+
+
+def write_board_csv(path, rows):
+    with path.open("w", newline="") as stream:
+        csv.writer(stream, lineterminator="\n").writerows(row.upper() for row in rows)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--game", type=Path, default=GAME, help="CSV of recorded racks and plays")
     parser.add_argument("--turn", type=int, help="one-based turn number (default: list eligible turns)")
     parser.add_argument("--dictionary", type=Path, default=FIXTURE / "words.txt")
     parser.add_argument("--board-csv", type=Path, help="write the selected board in solver CSV format")
     args = parser.parse_args()
     if args.board_csv and args.turn is None:
         parser.error("--board-csv requires --turn")
-    dictionary = args.dictionary.read_bytes()
     try:
-        eligible = replay(set(dictionary.decode("ascii").upper().splitlines()))
+        words, fingerprint = load_dictionary(args.dictionary)
+        eligible = replay(words, args.game)
     except ValueError as error:
         parser.error(str(error))
     if args.turn is None:
@@ -82,11 +93,10 @@ def main():
     elif args.turn not in eligible:
         parser.error(f"turn {args.turn} is ineligible (eligible turns: {list(eligible)})")
     else:
-        position = dict(game=GAME.name, dictionary_sha256=hashlib.sha256(dictionary).hexdigest(),
+        position = dict(game=args.game.name, dictionary_sha256=fingerprint,
                         **eligible[args.turn])
         if args.board_csv:
-            with args.board_csv.open("w", newline="") as stream:
-                csv.writer(stream, lineterminator="\n").writerows(row.upper() for row in position["board"])
+            write_board_csv(args.board_csv, position["board"])
         print(json.dumps(position, indent=2))
 
 

@@ -34,6 +34,14 @@ def replay(*args):
 
 
 class ReplayGameTest(unittest.TestCase):
+    def test_can_replay_a_different_recorded_game(self):
+        pilot = FIXTURE.parent / "pilot"
+        position = json.loads(replay("--game", pilot / "games/6zTBhes669.csv",
+                                     "--dictionary", pilot / "words.txt", "--turn", "2"))
+        self.assertEqual(position["game"], "6zTBhes669.csv")
+        self.assertEqual(position["rack"], "AAEKNST")
+        self.assertEqual(position["board"][7], "...CHILI.......")
+
     def test_lists_supported_post_opening_turns_in_record_order(self):
         self.assertEqual(json.loads(replay()), list(RECORDED_PLAYS))
 

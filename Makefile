@@ -126,6 +126,7 @@ test: $(TEST_TARGETS) build/paired_worker
 	./$(PLACEMENT_EQUIVALENCE_TEST_TARGET)
 	python3 tests/paired_benchmark_test.py
 	python3 tests/replay_game_test.py
+	python3 tests/sample_turns_test.py
 
 benchmark: $(SOLVER_BENCHMARK_TARGET)
 	./$(SOLVER_BENCHMARK_TARGET) data/boards/sample_board.csv data/dictionaries/sample_dictionary.txt 5000
