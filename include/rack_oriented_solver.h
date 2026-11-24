@@ -17,6 +17,30 @@ typedef struct {
 
 RackSubsetKeys rack_subset_keys_for_rack(uint64_t sorted_rack, uint8_t rack_length);
 
+// Count placements in the active view of a board prepared with this dictionary.
+size_t rack_oriented_full_board_solver(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const RackSubsetKeys *rack_subset_keys,
+    const Board *board,
+    uint8_t rack_length
+);
+
+struct DirectionalCounts {
+    size_t across;
+    size_t down;
+};
+
+// Solve both directions on the same prepared position and restore the initial view.
+DirectionalCounts rack_oriented_both_directions(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const RackSubsetKeys *rack_subset_keys,
+    Board *board,
+    uint8_t rack_length
+);
+
+// Original place-and-restore validator, retained for comparison on unprepared boards.
 size_t rack_oriented_full_board_solver(
     const WordTable *dictionary,
     const WordPatternTable *word_patterns,

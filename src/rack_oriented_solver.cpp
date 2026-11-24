@@ -5,7 +5,14 @@
 #include "validation_hot.h"
 
 #include <algorithm>
+#include <optional>
 #include <stdint.h>
+
+#ifdef SCRABBLE_TRACE_PLACEMENTS
+#include "placement_trace.h"
+#else
+static inline void trace_placements(uint8_t, uint8_t, const uint32_t *, size_t, bool) {}
+#endif
 
 static inline int canonical_rack_subset_mask(uint8_t duplicate_follow_mask, uint8_t mask)
 {
@@ -116,12 +123,12 @@ static inline int validate_rack_window_words(
 
     uint32_t start = entry.word_indices.start;
     for (size_t offset = 0; offset < entry.word_indices.count; ++offset) {
-        uint32_t word_index = word_patterns->word_indices.data()[(size_t)start + offset];
+        const uint32_t &word_index = word_patterns->word_indices[(size_t)start + offset];
 
         const Row *row_with_just_proposed_word = word_start_rows->get_unchecked(word_index, start_col);
 
         uint16_t touched_columns = 0;
-        if (hot_place_word_onto_perpendicular_rows_and_validate_with_touched_mask(
+        bool accepted = hot_place_word_onto_perpendicular_rows_and_validate_with_touched_mask(
             dictionary,
             copy_of_original_board->perpendicularRows,
             board,
@@ -130,11 +137,11 @@ static inline int validate_rack_window_words(
             start_col,
             word_length,
             &touched_columns
-        )) {
-            ++count;
-        }
+        );
+        count += accepted;
 
         restore_perpendicular_window(board, copy_of_original_board, touched_columns);
+        trace_placements(row_index, start_col, &word_index, 1, accepted);
     }
 
     return count;
@@ -180,23 +187,59 @@ static void visit_matching_anagrams(
     }
 }
 
-size_t rack_oriented_full_board_solver(
-    const WordTable *dictionary,
+namespace {
+struct MatchedWindow {
+    uint8_t start;
+    uint8_t length;
+    const WordPattern *match;
+};
+
+struct WindowMasks {
+    struct Gap {
+        uint8_t offset;
+        uint32_t letters;
+    };
+    Gap gaps[MAX_RACK_TILES];
+    uint8_t gap_count = 0;
+    bool ruled_out = false;
+
+    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window)
+    {
+        for (uint8_t offset = 0; offset < window.length; ++offset) {
+            uint8_t col = window.start + offset;
+            if (board.rows[row].occupiedMask & bit_at_u16(col)) {
+                continue;
+            }
+            uint32_t letters = board.perpendicular_check_set(row, col);
+            gaps[gap_count++] = {offset, letters};
+            ruled_out |= letters == 0;
+        }
+    }
+
+    bool accepts(const char *word) const
+    {
+        for (uint8_t i = 0; i < gap_count; ++i) {
+            const Gap &gap = gaps[i];
+            if (gap.letters != PerpendicularCheckTable::all_letters &&
+                !(gap.letters & (1u << (word[gap.offset] - 'A')))) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+template <typename CountWindow>
+size_t count_rack_windows(
     const WordPatternTable *word_patterns,
-    const WordIndexStartRowTable *word_start_rows,
-    RackSubsetKeys *rack_subset_keys,
-    Board *board,
-    uint8_t rack_length
+    const RackSubsetKeys *rack_subset_keys,
+    const Board *board,
+    uint8_t rack_length,
+    CountWindow count_window
 )
 {
     size_t count = 0;
-    const Board original_board = *board;
     for (uint8_t row_index = 0; row_index < BOARD_SIZE; ++row_index) {
-        struct MatchedWindow {
-            uint8_t start;
-            uint8_t length;
-            const WordPattern *match;
-        };
         // Each empty count has at most one complete window per start column:
         // its end must be just before the next empty square or at the board edge.
         MatchedWindow by_empty_count[MAX_RACK_TILES + 1][BOARD_SIZE];
@@ -213,18 +256,88 @@ size_t rack_oriented_full_board_solver(
         for (uint8_t empty_count = 1; empty_count <= rack_length; ++empty_count) {
             for (uint8_t index = 0; index < counts[empty_count]; ++index) {
                 const MatchedWindow &window = by_empty_count[empty_count][index];
-                visit_matching_anagrams(
-                    *word_patterns, *window.match,
-                    rack_subset_keys->keys[empty_count], rack_subset_keys->counts[empty_count],
-                    [&](const WordPatternAnagramGroup &group) {
-                        count += validate_rack_window_words(
-                            dictionary, word_patterns, word_start_rows, board,
-                            row_index, window.start, window.length, group, &original_board
-                        );
-                    }
-                );
+                auto visit_groups = [&](auto visit) {
+                    visit_matching_anagrams(
+                        *word_patterns, *window.match,
+                        rack_subset_keys->keys[empty_count], rack_subset_keys->counts[empty_count], visit
+                    );
+                };
+                count += count_window(row_index, window, visit_groups);
             }
         }
     }
     return count;
+}
+}
+
+size_t rack_oriented_full_board_solver(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const RackSubsetKeys *rack_subset_keys,
+    const Board *board,
+    uint8_t rack_length
+)
+{
+    return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
+        [&](uint8_t row, const MatchedWindow &window, auto visit_groups) {
+            size_t count = 0;
+            std::optional<WindowMasks> masks;
+            visit_groups([&](const WordPatternAnagramGroup &group) {
+                if (!masks) {
+                    masks.emplace(*board, row, window);
+                }
+                const uint32_t *words = word_patterns->word_indices.data() + group.word_indices.start;
+                if (masks->ruled_out) {
+                    trace_placements(row, window.start, words, group.word_indices.count, false);
+                    return;
+                }
+                for (size_t i = 0; i < group.word_indices.count; ++i) {
+                    bool accepted = masks->accepts(dictionary->words[words[i]]);
+                    count += accepted;
+                    trace_placements(row, window.start, words + i, 1, accepted);
+                }
+            });
+            return count;
+        });
+}
+
+size_t rack_oriented_full_board_solver(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const WordIndexStartRowTable *word_start_rows,
+    RackSubsetKeys *rack_subset_keys,
+    Board *board,
+    uint8_t rack_length
+)
+{
+    const Board original_board = *board;
+    return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
+        [&](uint8_t row, const MatchedWindow &window, auto visit_groups) {
+            size_t count = 0;
+            visit_groups([&](const WordPatternAnagramGroup &group) {
+                count += validate_rack_window_words(
+                    dictionary, word_patterns, word_start_rows, board,
+                    row, window.start, window.length, group, &original_board
+                );
+            });
+            return count;
+        });
+}
+
+DirectionalCounts rack_oriented_both_directions(
+    const WordTable *dictionary,
+    const WordPatternTable *word_patterns,
+    const RackSubsetKeys *rack_subset_keys,
+    Board *board,
+    uint8_t rack_length
+)
+{
+    auto count_direction = [&] {
+        return rack_oriented_full_board_solver(dictionary, word_patterns, rack_subset_keys, board, rack_length);
+    };
+    size_t across = count_direction();
+    board->swap_views();
+    size_t down = count_direction();
+    board->swap_views();
+    return {across, down};
 }

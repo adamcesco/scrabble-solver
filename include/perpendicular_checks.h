@@ -9,6 +9,8 @@
 
 class PerpendicularCheckTable {
 public:
+    static constexpr uint32_t all_letters = (1u << 26) - 1;
+
     // The loaded dictionary owns the word storage and must outlive this table.
     explicit PerpendicularCheckTable(const WordTable &dictionary);
     PerpendicularCheckTable(WordTable &&) = delete;

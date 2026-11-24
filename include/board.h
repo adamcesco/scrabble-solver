@@ -53,6 +53,7 @@ struct Board {
     uint32_t perpendicular_check_set(uint8_t row, uint8_t col) const;
 
 private:
+    friend struct SolverBoardSnapshot;
     struct RunStarts;
     std::shared_ptr<const RunStarts> normal_runs, perpendicular_runs;
 };

@@ -5,11 +5,14 @@
 #include <stdexcept>
 #include <utility>
 
+#ifdef SCRABBLE_TRACE_PLACEMENTS
+#include "placement_trace.h"
+#endif
+
 namespace {
 constexpr uint32_t absent_prefix = 0x1FFFF;
 constexpr uint32_t absent_suffix = 0x7FFF;
 constexpr uint32_t ineligible = UINT32_MAX;
-constexpr uint32_t all_letters = (1u << 26) - 1;
 constexpr std::string_view alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 constexpr uint32_t packed_pair(uint32_t prefix, uint32_t suffix)
@@ -112,6 +115,9 @@ void Board::prepare_perpendicular_checks(const PerpendicularCheckTable &lookup)
 
 uint32_t Board::perpendicular_check_set(uint8_t row, uint8_t col) const
 {
+#ifdef SCRABBLE_TRACE_PLACEMENTS
+    trace_square_lookup(row, col);
+#endif
     if (!perpendicular_runs) {
         throw std::logic_error("Prepare perpendicular checks before querying the board");
     }

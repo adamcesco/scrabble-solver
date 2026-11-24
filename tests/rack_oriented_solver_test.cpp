@@ -25,7 +25,7 @@ static void write_text_file(const char *contents)
     fclose(file);
 }
 
-static int solve_with_dictionary(Board *board, const char *dictionary_contents, const char *rack)
+static size_t solve_with_dictionary(Board *board, const char *dictionary_contents, const char *rack)
 {
     write_text_file(dictionary_contents);
 
@@ -36,7 +36,7 @@ static int solve_with_dictionary(Board *board, const char *dictionary_contents, 
     uint8_t rack_length = (uint8_t)strlen(rack);
     memcpy(&packed_rack, rack, rack_length);
     RackSubsetKeys rack_subset_keys = rack_subset_keys_for_rack(packed_rack, rack_length);
-    int count = rack_oriented_full_board_solver(
+    size_t reference_count = rack_oriented_full_board_solver(
         &dictionary,
         &patterns,
         &rows,
@@ -45,6 +45,16 @@ static int solve_with_dictionary(Board *board, const char *dictionary_contents, 
         rack_length
     );
 
+    size_t count;
+    {
+        PerpendicularCheckTable lookup(dictionary);
+        Board prepared = *board;
+        prepared.prepare_perpendicular_checks(lookup);
+        count = rack_oriented_full_board_solver(
+            &dictionary, &patterns, &rack_subset_keys, &prepared, rack_length
+        );
+        assert(count == reference_count);
+    }
     rows.destroy();
     dictionary.destroy();
 
