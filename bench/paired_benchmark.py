@@ -1,6 +1,7 @@
 """Qualify a manifest, then emit one CSV row per paired workload (times in ms)."""
 import argparse
 import csv
+import hashlib
 import io
 import itertools
 import os
@@ -15,6 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build"
 FIXTURE = ROOT / "bench/fixtures/paired"
 FULL_CACHE = ROOT / "data/caches/pattern_and_rack_anagram_to_words.cache"
+
+
+def sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def matching_full_cache(worker, dictionary):
@@ -67,11 +72,16 @@ def read_cases(manifest):
 
 
 def qualify(dictionary, shared_cache, cases):
+    positions = (pos for case in cases for pos in case.workloads().values())
+    return qualify_positions(dictionary, shared_cache, positions)
+
+
+def qualify_positions(dictionary, shared_cache, positions, variants=()):
     subprocess.run([BUILD / "perpendicular_checks_test"], check=True)
-    positions = dict.fromkeys(pos for case in cases for pos in case.workloads().values())
+    positions = dict.fromkeys(positions)
     requests = "".join(f"{pos.board}\t{pos.rack}\n" for pos in positions)
     output = subprocess.check_output(
-        [BUILD / "placement_equivalence_test", dictionary, shared_cache], input=requests, text=True)
+        [BUILD / "placement_equivalence_test", dictionary, shared_cache, *variants], input=requests, text=True)
     rows = csv.DictReader(io.StringIO(output))
     return {pos: {key: int(value) for key, value in row.items()}
             for pos, row in zip(positions, rows, strict=True)}

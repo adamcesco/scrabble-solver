@@ -2,6 +2,42 @@
 
 Run from the repository root with Python 3.10+ and the C++17 toolchain.
 
+## Compare window counters on prepared boards
+
+`make -s window-benchmark` qualifies and times `packed` and `one-gap` on the small fixture. Use `--variants BASELINE CHALLENGER` to select a different pair. The runner takes the primary board and rack of each case in the paired manifest. Each CSV row records both solve times in microseconds, their difference (baseline minus challenger), the run order, stage, directional counts, input fingerprints, compiler flags, worker fingerprint and CPU affinity.
+
+The qualifier compares each counter with place-and-restore on every measured position. It checks every empty square's allowed letters and compares candidate coordinates, words and decisions with duplicates retained in each direction. It also checks the restored rows and prepared grid identities, and the packed counter's lookup counts. The timing worker loads the same dictionary and pattern table once and prepares the board before each pair. Each pair runs two warm-up rounds, then one measured round. Both counters solve the same prepared board in the assigned order in all three rounds. The clock covers rack-subset generation, both directional counts and the final view swap. The runner checks both release counts against qualification before writing the CSV. Within each stage, successive cases alternate which counter goes first. Each case also reverses order on its next repetition.
+
+The recorded runs used logical CPU 2 on an i7-6700K. Select an available CPU on another host. The replay command verifies and exports the six pilot positions using the full project dictionary.
+
+```sh
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
+    BENCH_ARGS='--variants packed one-gap --repetitions 20' > bench/results/window-fixture.csv
+python3 bench/sample_turns.py --verify bench/fixtures/pilot/corpus.json --benchmark-dir build/timing-pilot
+taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
+    BENCH_ARGS='--variants packed one-gap --repetitions 20 --cases build/timing-pilot/cases.csv --dictionary data/dictionaries/sample_dictionary.txt' \
+    > bench/results/window-pilot.csv
+```
+
+To add a counter, define its window callable beside `PackedCounter` and register `measure_solve<YourCounter>` under a name in `window_variant`. The qualifier and worker compile that registry. The production entry calls the packed counter directly. [Counter implementations and registry](../src/rack_oriented_solver.cpp)
+
+In the recorded Clang 18.1.3 worker, `objdump -d -C build/window_worker` shows separate timed drivers at `0x3cf0` and `0x3de0`. Each calls rack-subset generation immediately after the start clock and reads the end clock after the second view swap. Both the production packed entry and the packed driver call the traversal at `0x3f00`. In the one-gap traversal the binary-probe and merge paths test the key letter with `bt` at `0x5002` and `0x523e`, then branch around the addition of the group count on a miss. Neither path fetches a candidate word. Multi-gap matches call the packed candidate check directly. The variant name lookup is outside both timed drivers.
+
+### One-gap results
+
+| Position set | Pairs | Packed mean (µs) | One-gap mean (µs) | Packed minus one-gap (µs) |
+| --- | ---: | ---: | ---: | ---: |
+| Small fixture | 20 | 8.46 | 8.16 | +0.30 |
+| Early pilot | 40 | 403.33 | 418.45 | −15.13 |
+| Middle pilot | 40 | 502.41 | 513.67 | −11.26 |
+| Late pilot | 40 | 264.05 | 258.36 | +5.69 |
+| **Pilot, equal stage weights** | **120** | **389.93** | **396.83** | **−6.90** |
+
+With the full 191,852-word dictionary, one-gap added 6.90 µs per solve (1.8%) on the six pilot positions. It saved time on both late positions. The 95% stratified bootstrap interval for packed minus one-gap was −10.10 to −3.70 µs, averaging repetitions per game before resampling the two games per stage (20,000 draws, seed 15). The small fixture's 0.30 µs mean saving had a within-pair difference standard deviation of 2.75 µs. [Pilot pairs](results/window-pilot.csv) · [Fixture pairs](results/window-fixture.csv)
+
+Order affected these warm solves. Mean packed minus one-gap on the pilot was +1.25 µs with packed first and −15.05 µs with one-gap first. Each game contributed ten pairs in each order. The interval above describes variation across these six game means. Held-out games are needed to rank finalists.
+
 ## Replay a recorded game
 
 The saved game contains all 20 placements and pre-move racks from Alec Sjoholm vs. Cesar Del Solar. Turns are numbered from one in playing order. The solver can use turns **2–6, 8, 10–16 and 18–20**. Turn 1 opens the board. On turns 7, 9 and 17 the rack contains a blank. Replay still applies those moves so later boards contain the assigned letters. [Recorded racks and moves](fixtures/replay/sjoholm-del-solar.csv) · [Original Macondo game record](https://github.com/domino14/macondo/blob/9fe4fe8cdf3b4e6cbcf42be5f205d463510c2e72/puzzles/testdata/well_played_game.gcg)

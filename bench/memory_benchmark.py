@@ -1,14 +1,13 @@
 """Measure peak and retained bytes in separate original and packed worker processes."""
 import argparse
 import csv
-import hashlib
 import os
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-from paired_benchmark import BUILD, ROOT, matching_full_cache, warm_files
+from paired_benchmark import BUILD, ROOT, matching_full_cache, sha256, warm_files
 
 FULL_DICTIONARY = ROOT / "data/dictionaries/sample_dictionary.txt"
 SAMPLE_BOARD = ROOT / "data/boards/sample_board.csv"
@@ -71,10 +70,6 @@ def measure(variant, dictionary, board, rack, shared_cache):
                    dictionary, cache, board, rack]
         with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as worker:
             return observe(worker)
-
-
-def sha256(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def main():

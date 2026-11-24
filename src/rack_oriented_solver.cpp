@@ -8,6 +8,12 @@
 #include <optional>
 #include <stdint.h>
 
+#ifdef SCRABBLE_WINDOW_VARIANTS
+#include "window_variants.h"
+#include <chrono>
+#include <string>
+#endif
+
 #ifdef SCRABBLE_TRACE_PLACEMENTS
 #include "placement_trace.h"
 #else
@@ -262,13 +268,107 @@ size_t count_rack_windows(
                         rack_subset_keys->keys[empty_count], rack_subset_keys->counts[empty_count], visit
                     );
                 };
-                count += count_window(row_index, window, visit_groups);
+                count += count_window(row_index, window, empty_count, visit_groups);
             }
         }
     }
     return count;
 }
+
+struct PackedCounter {
+    const WordTable &dictionary;
+    const WordPatternTable &patterns;
+    const Board &board;
+
+    PackedCounter(const WordTable &dictionary, const WordPatternTable &patterns, const Board &board)
+        : dictionary(dictionary), patterns(patterns), board(board) {}
+
+    template <typename VisitGroups>
+    size_t operator()(uint8_t row, const MatchedWindow &window, uint8_t, VisitGroups visit_groups) const
+    {
+        size_t count = 0;
+        std::optional<WindowMasks> masks;
+        visit_groups([&](const WordPatternAnagramGroup &group) {
+            if (!masks) {
+                masks.emplace(board, row, window);
+            }
+            const uint32_t *ids = patterns.word_indices.data() + group.word_indices.start;
+            if (masks->ruled_out) {
+                trace_placements(row, window.start, ids, group.word_indices.count, false);
+                return;
+            }
+            for (size_t i = 0; i < group.word_indices.count; ++i) {
+                bool accepted = masks->accepts(dictionary.words[ids[i]]);
+                count += accepted;
+                trace_placements(row, window.start, ids + i, 1, accepted);
+            }
+        });
+        return count;
+    }
+};
+
+#ifdef SCRABBLE_WINDOW_VARIANTS
+struct OneGapCounter : PackedCounter {
+    using PackedCounter::PackedCounter;
+
+    template <typename VisitGroups>
+    size_t operator()(uint8_t row, const MatchedWindow &window, uint8_t empty_count, VisitGroups visit_groups) const
+    {
+        if (empty_count != 1) {
+            return PackedCounter::operator()(row, window, empty_count, visit_groups);
+        }
+        std::optional<uint32_t> letters;
+        size_t count = 0;
+        visit_groups([&](const WordPatternAnagramGroup &group) {
+            if (!letters) {
+                const auto span = low_bit_mask_u16(window.length) << window.start;
+                const auto gap = span & ~board.rows[row].occupiedMask;
+                letters = board.perpendicular_check_set(row, __builtin_ctz(gap));
+            }
+            const auto tile = get_byte_128(group.rack_letters, 0, BOARD_SIZE);
+            const bool accepted = *letters & (1u << (tile - 'A'));
+            if (accepted) {
+                count += group.word_indices.count;
+            }
+            trace_placements(row, window.start, patterns.word_indices.data() + group.word_indices.start,
+                             group.word_indices.count, accepted);
+        });
+        return count;
+    }
+};
+
+template <typename Counter>
+benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTable &patterns,
+                                     Board &board, const benchmark::Rack &rack)
+{
+    using Clock = std::chrono::steady_clock;
+    auto start = Clock::now();
+    auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
+    Counter counter(words, patterns, board);
+    auto counts = count_both_views(board, [&] {
+        return count_rack_windows(&patterns, &keys, &board, rack.length, counter);
+    });
+    auto end = Clock::now();
+    return {counts, std::chrono::duration<double, std::micro>(end - start).count()};
 }
+#endif
+}
+
+#ifdef SCRABBLE_WINDOW_VARIANTS
+const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
+{
+    static constexpr WindowVariant variants[] = {
+        {"packed", measure_solve<PackedCounter>},
+        {"one-gap", measure_solve<OneGapCounter>},
+    };
+    for (const auto &variant : variants) {
+        if (variant.name == name) {
+            return variant;
+        }
+    }
+    throw std::invalid_argument("unknown window counter: " + std::string(name));
+}
+#endif
 
 size_t rack_oriented_full_board_solver(
     const WordTable *dictionary,
@@ -279,26 +379,7 @@ size_t rack_oriented_full_board_solver(
 )
 {
     return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
-        [&](uint8_t row, const MatchedWindow &window, auto visit_groups) {
-            size_t count = 0;
-            std::optional<WindowMasks> masks;
-            visit_groups([&](const WordPatternAnagramGroup &group) {
-                if (!masks) {
-                    masks.emplace(*board, row, window);
-                }
-                const uint32_t *words = word_patterns->word_indices.data() + group.word_indices.start;
-                if (masks->ruled_out) {
-                    trace_placements(row, window.start, words, group.word_indices.count, false);
-                    return;
-                }
-                for (size_t i = 0; i < group.word_indices.count; ++i) {
-                    bool accepted = masks->accepts(dictionary->words[words[i]]);
-                    count += accepted;
-                    trace_placements(row, window.start, words + i, 1, accepted);
-                }
-            });
-            return count;
-        });
+                              PackedCounter(*dictionary, *word_patterns, *board));
 }
 
 size_t rack_oriented_full_board_solver(
@@ -312,7 +393,7 @@ size_t rack_oriented_full_board_solver(
 {
     const Board original_board = *board;
     return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
-        [&](uint8_t row, const MatchedWindow &window, auto visit_groups) {
+        [&](uint8_t row, const MatchedWindow &window, uint8_t, auto visit_groups) {
             size_t count = 0;
             visit_groups([&](const WordPatternAnagramGroup &group) {
                 count += validate_rack_window_words(

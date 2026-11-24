@@ -1,7 +1,7 @@
 #ifndef PLACEMENT_COMPARISON_H
 #define PLACEMENT_COMPARISON_H
 
-#include "rack_oriented_solver.h"
+#include "window_variants.h"
 
 #include <array>
 #include <optional>
@@ -14,12 +14,12 @@ using Decisions = std::vector<Decision>;
 
 struct SolverBoardSnapshot {
     Board original;
+    bool is_down(const Board &board) const;
     void check(const Board &board, bool down) const;
 };
 
-struct PassCounts {
-    size_t accepted, candidates;
-};
+using ViewDecisions = std::array<Decisions, 2>;
+using WindowVariants = std::vector<const benchmark::WindowVariant *>;
 
 struct PlacementComparison {
     const WordTable &words;
@@ -29,13 +29,11 @@ struct PlacementComparison {
 
     ~PlacementComparison() { rows.destroy(); }
 
-    Decisions compare_pass(Board &board, const SolverBoardSnapshot &snapshot, bool down,
-                           RackSubsetKeys &rack, uint8_t length) const;
-    std::array<PassCounts, 2> compare_board(const char *name, Board original, const std::string &letters,
-                                            const std::optional<Decision> &required_play = {}) const;
+    ViewDecisions compare_board(const char *name, Board original, std::string letters,
+                                const WindowVariants &variants = {&benchmark::window_variant("packed")},
+                                const std::optional<Decision> &required_play = {}) const;
 };
 
 size_t accepted_count(const Decisions &decisions);
-RackSubsetKeys rack_for(std::string letters);
 
 #endif

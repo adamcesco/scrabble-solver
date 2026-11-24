@@ -17,7 +17,9 @@ SOLVER_HEADERS = include/rack_oriented_solver.h include/row_windows.h include/va
                 include/board.h include/utils.h include/dictionary.h $(DICTIONARY_SRC:src/%.cpp=include/%.h)
 RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp $(SOLVER_SRC)
 COMPARISON_SRC = tests/placement_comparison.cpp $(SOLVER_SRC)
-COMPARISON_HEADERS = tests/placement_comparison.h tests/placement_trace.h tests/perpendicular_fixtures.h tests/square_equivalence.h $(SOLVER_HEADERS)
+WINDOW_HEADERS = bench/window_variants.h bench/benchmark_solver.h
+WINDOW_FLAGS = -DSCRABBLE_WINDOW_VARIANTS -Ibench
+COMPARISON_HEADERS = $(WINDOW_HEADERS) tests/placement_comparison.h tests/placement_trace.h tests/perpendicular_fixtures.h tests/square_equivalence.h $(SOLVER_HEADERS)
 PERPENDICULAR_CHECKS_TEST_SRC = tests/perpendicular_checks_test.cpp $(COMPARISON_SRC)
 PLACEMENT_EQUIVALENCE_TEST_SRC = tests/placement_equivalence_test.cpp $(COMPARISON_SRC)
 SOLVER_BENCHMARK_SRC = bench/solver_benchmark.cpp $(SOLVER_SRC)
@@ -88,17 +90,17 @@ $(VALIDATION_HOT_TEST_TARGET): $(VALIDATION_HOT_TEST_SRC)
 
 build/perpendicular_checks.o: include/perpendicular_checks.h include/validation_hot.h include/board.h include/word_table.h
 
-$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) $(COMPARISON_HEADERS)
+$(PERPENDICULAR_CHECKS_TEST_TARGET): $(PERPENDICULAR_CHECKS_TEST_SRC) $(COMPARISON_HEADERS) build/window-config
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
+	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PERPENDICULAR_CHECKS_TEST_SRC)
 
 $(RACK_ORIENTED_SOLVER_TEST_TARGET): $(RACK_ORIENTED_SOLVER_TEST_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(RACK_ORIENTED_SOLVER_TEST_SRC)
 
-$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) $(COMPARISON_HEADERS)
+$(PLACEMENT_EQUIVALENCE_TEST_TARGET): $(PLACEMENT_EQUIVALENCE_TEST_SRC) $(COMPARISON_HEADERS) build/window-config
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PLACEMENT_EQUIVALENCE_TEST_SRC)
+	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -UNDEBUG -DSCRABBLE_TRACE_PLACEMENTS -Itests -o $@ $(PLACEMENT_EQUIVALENCE_TEST_SRC)
 
 $(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC)
 	mkdir -p build
@@ -107,6 +109,18 @@ $(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC)
 build/paired_worker: bench/paired_worker.cpp bench/benchmark_solver.h $(SOLVER_SRC) $(SOLVER_HEADERS)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ bench/paired_worker.cpp $(SOLVER_SRC)
+
+# Invalidate both experiment binaries when the requested compiler or flags change.
+build/window-config: FORCE
+	@mkdir -p build
+	@printf '%s\n' '$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS)' > $@.tmp
+	@cmp -s $@.tmp $@ || cp $@.tmp $@
+
+build/window_worker: bench/window_worker.cpp $(WINDOW_HEADERS) $(SOLVER_SRC) $(SOLVER_HEADERS) build/window-config
+	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -DWINDOW_BUILD_FLAGS='"$(CXXFLAGS) $(WINDOW_FLAGS)"' -o $@ bench/window_worker.cpp $(SOLVER_SRC)
+
+window-benchmark: build/window_worker $(PERPENDICULAR_CHECKS_TEST_TARGET) $(PLACEMENT_EQUIVALENCE_TEST_TARGET)
+	python3 bench/window_benchmark.py $(BENCH_ARGS)
 
 # Allocation entry points used by the solver on x86-64 Linux with libstdc++.
 MEMORY_WRAP = $(foreach name,malloc calloc free _Znwm _ZdlPv _ZdlPvm,-Wl,--wrap=$(name))
@@ -133,7 +147,7 @@ endif
 endif
 endif
 
-test: $(TEST_TARGETS) build/paired_worker
+test: $(TEST_TARGETS) build/paired_worker build/window_worker
 	./$(BOARD_FROM_CSV_TEST_TARGET)
 	./$(CONFIG_MAPS_TEST_TARGET)
 	./$(MAKE_ROW_TEST_TARGET)
@@ -157,4 +171,4 @@ benchmark: $(SOLVER_BENCHMARK_TARGET)
 clean:
 	rm -rf build/
 
-.PHONY: all test test-memory benchmark paired-benchmark memory-benchmark clean
+.PHONY: all test test-memory benchmark paired-benchmark memory-benchmark window-benchmark FORCE clean

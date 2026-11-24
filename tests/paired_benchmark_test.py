@@ -9,6 +9,36 @@ from pathlib import Path
 
 
 class PairedBenchmarkTest(unittest.TestCase):
+    def test_paired_window_solves(self):
+        output = subprocess.check_output(
+            ["python3", "bench/window_benchmark.py", "--variants", "packed", "one-gap", "--repetitions", "2"],
+            text=True)
+        rows = list(csv.DictReader(io.StringIO(output)))
+        self.assertEqual([r["first_variant"] for r in rows], ["packed", "one-gap"])
+        for row in rows:
+            self.assertEqual((row["across"], row["down"], row["rack"]), ("6", "6", "ART"))
+            self.assertEqual((row["baseline"], row["challenger"]), ("packed", "one-gap"))
+            baseline, challenger = float(row["baseline_solve_us"]), float(row["challenger_solve_us"])
+            self.assertGreater(min(baseline, challenger), 0)
+            self.assertAlmostEqual(float(row["saving_us"]), baseline - challenger)
+
+    def test_qualify_named_window_counters_on_same_input(self):
+        fixture = Path("bench/fixtures/paired")
+        with tempfile.TemporaryDirectory() as directory:
+            counts = subprocess.check_output(
+                ["build/placement_equivalence_test", fixture / "dictionary.txt",
+                 Path(directory) / "patterns", "packed", "one-gap"],
+                input=f"{fixture / 'crossings.csv'}\tRT\n", text=True)
+            self.assertEqual(list(csv.reader(io.StringIO(counts)))[1:], [["2", "4", "1", "5"]])
+
+    def test_unknown_window_counter_prevents_timing(self):
+        for command in (["python3", "bench/window_benchmark.py", "--variants", "packed", "absent"],
+                        ["build/window_worker", "packed", "absent", "unused-dictionary", "unused-cache"]):
+            result = subprocess.run(command, text=True, capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("unknown window counter: absent", result.stderr)
+            self.assertEqual(result.stdout, "")
+
     def test_standalone_qualification_finds_matching_project_cache(self):
         dictionary = Path("bench/fixtures/paired/dictionary.txt")
         with tempfile.TemporaryDirectory() as directory:

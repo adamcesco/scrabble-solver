@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstring>
 #include <set>
 #include <stdexcept>
 
@@ -28,13 +27,19 @@ void SolverBoardSnapshot::check(const Board &board, bool down) const
     assert(board.perpendicular_runs == (down ? original.normal_runs : original.perpendicular_runs));
 }
 
+bool SolverBoardSnapshot::is_down(const Board &board) const
+{
+    return board.normal_runs == original.perpendicular_runs;
+}
+
 struct Trace {
     const WordTable &dictionary;
     const Board &board;
     const SolverBoardSnapshot &snapshot;
-    bool down;
-    Decisions decisions;
-    LookupCounts lookups{};
+    ViewDecisions decisions{};
+    std::array<LookupCounts, 2> lookups{};
+
+    bool down() const { return snapshot.is_down(board); }
 };
 
 static Trace *active_trace;
@@ -42,17 +47,18 @@ static Trace *active_trace;
 void trace_square_lookup(uint8_t row, uint8_t col)
 {
     if (active_trace) {
-        ++active_trace->lookups[row][col];
+        ++active_trace->lookups[active_trace->down()][row][col];
     }
 }
 
 void trace_placements(uint8_t row, uint8_t start, const uint32_t *words, size_t count, bool accepted)
 {
     if (active_trace) {
-        active_trace->snapshot.check(active_trace->board, active_trace->down);
+        const bool down = active_trace->down();
+        active_trace->snapshot.check(active_trace->board, down);
         for (size_t i = 0; i < count; ++i) {
-            active_trace->decisions.emplace_back(active_trace->down, row, start,
-                                                  active_trace->dictionary.words[words[i]], accepted);
+            active_trace->decisions[down].emplace_back(down, row, start,
+                                                       active_trace->dictionary.words[words[i]], accepted);
         }
     }
 }
@@ -82,62 +88,62 @@ size_t accepted_count(const Decisions &decisions)
     });
 }
 
-Decisions PlacementComparison::compare_pass(Board &board, const SolverBoardSnapshot &snapshot, bool down,
-                                             RackSubsetKeys &rack, uint8_t length) const
-{
-    Trace reference{words, board, snapshot, down, {}};
-    active_trace = &reference;
-    size_t expected_count = rack_oriented_full_board_solver(
-        &words, &patterns, &rows, &rack, &board, length);
-    snapshot.check(board, down);
-
-    Trace packed{words, board, snapshot, down, {}};
-    active_trace = &packed;
-    size_t count = rack_oriented_full_board_solver(&words, &patterns, &rack, &board, length);
-    active_trace = nullptr;
-    snapshot.check(board, down);
-
-    // Compare sorted copies so duplicate decisions and the actual visit order are both observable.
-    Decisions sorted = packed.decisions;
-    std::sort(sorted.begin(), sorted.end());
-    std::sort(reference.decisions.begin(), reference.decisions.end());
-    assert(sorted == reference.decisions);
-    assert(packed.lookups == expected_lookups(board, reference.decisions));
-    assert(count == expected_count);
-    assert(count == accepted_count(sorted));
-    return packed.decisions;
-}
-
-RackSubsetKeys rack_for(std::string letters)
-{
-    std::sort(letters.begin(), letters.end());
-    uint64_t packed = 0;
-    memcpy(&packed, letters.data(), letters.size());
-    return rack_subset_keys_for_rack(packed, letters.size());
-}
-
-std::array<PassCounts, 2> PlacementComparison::compare_board(
-    const char *name, Board original, const std::string &letters, const std::optional<Decision> &required_play) const
+ViewDecisions PlacementComparison::compare_board(
+    const char *name, Board original, std::string letters, const WindowVariants &variants,
+    const std::optional<Decision> &required_play) const
 {
     check_legal_runs(name, words, original);
     Board board = original;
     board.prepare_perpendicular_checks(lookup);
-    SolverBoardSnapshot snapshot{board};
-    auto rack = rack_for(letters);
-    std::array<PassCounts, 2> counts;
+    const SolverBoardSnapshot snapshot{board};
+    std::sort(letters.begin(), letters.end());
+    const benchmark::Rack rack(letters);
+    auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
+    Trace reference{words, board, snapshot};
+    std::array<size_t, 2> expected_counts;
+    std::array<LookupCounts, 2> packed_lookups;
+    ViewDecisions sorted_reference;
     for (bool down : {false, true}) {
         check_view(name, down ? "down" : "across", words, original, board);
-        auto decisions = compare_pass(board, snapshot, down, rack, letters.size());
-        if (required_play) {
-            const auto &[play_down, row, start, word, accepted] = *required_play;
-            if (play_down == down && std::find(decisions.begin(), decisions.end(), *required_play) == decisions.end()) {
-                throw std::runtime_error(std::string(name) + ": solver did not accept recorded play " + word);
-            }
-        }
-        counts[down] = {accepted_count(decisions), decisions.size()};
+        active_trace = &reference;
+        expected_counts[down] = rack_oriented_full_board_solver(&words, &patterns, &rows, &keys, &board, rack.length);
+        active_trace = nullptr;
+        snapshot.check(board, down);
+        packed_lookups[down] = expected_lookups(board, reference.decisions[down]);
+        sorted_reference[down] = reference.decisions[down];
+        std::sort(sorted_reference[down].begin(), sorted_reference[down].end());
         board.swap_views();
-        std::swap(original.rows, original.perpendicularRows);
+        original.swap_views();
     }
     snapshot.check(board, false);
-    return counts;
+    if (required_play) {
+        const auto &[down, row, start, word, accepted] = *required_play;
+        const auto &decisions = sorted_reference[down];
+        if (!std::binary_search(decisions.begin(), decisions.end(), *required_play)) {
+            throw std::runtime_error(std::string(name) + ": solver did not accept recorded play " + word);
+        }
+    }
+
+    for (const auto *variant : variants) {
+        Trace actual{words, board, snapshot};
+        active_trace = &actual;
+        auto counts = variant->solve(words, patterns, board, rack).counts;
+        active_trace = nullptr;
+        snapshot.check(board, false);
+        for (bool down : {false, true}) {
+            auto &sorted = actual.decisions[down];
+            std::sort(sorted.begin(), sorted.end());
+            const size_t count = down ? counts.down : counts.across;
+            if (sorted != sorted_reference[down] || count != accepted_count(sorted) ||
+                count != expected_counts[down]) {
+                throw std::runtime_error(std::string(name) + " " + variant->name +
+                                         (down ? " down" : " across") + ": placement mismatch");
+            }
+            if (variant == &benchmark::window_variant("packed")) {
+                assert(actual.lookups[down] == packed_lookups[down]);
+            }
+        }
+    }
+    // Fixtures can inspect the order in which the oracle encountered the candidates.
+    return reference.decisions;
 }
