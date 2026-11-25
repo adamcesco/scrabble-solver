@@ -2,6 +2,7 @@
 import csv
 import fcntl
 import gzip
+import inspect
 import json
 import math
 import os
@@ -9,9 +10,10 @@ import shlex
 import subprocess
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from bench.corpus.sample_turns import PILOT, case_name, write_benchmark
-from bench.measurement_support.benchmark_inputs import Position, qualify_positions, read_manifest, select_cache, sha256
+from bench.measurement_support.benchmark_inputs import Position, SelectedCache, qualify_positions, read_manifest, select_cache, sha256
 from bench.window_counters.tuning_builds import CONFIGS, EDGES, NATIVE, PORTABLE, WORK, build, identity, write_json
 from bench.window_counters.window_benchmark import WindowCase, paired_order
 from bench.window_counters.window_games import reserved_cases
@@ -42,19 +44,21 @@ def inputs():
     return cases, manifest
 
 
-def qualification(cases, manifest, host):
-    directory = Path(subprocess.check_output(
-        ["make", "-s", "--no-print-directory", "window-tools", "CXX=clang++-18",
-         "CXXFLAGS=-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude"], text=True).strip())
-    cache = select_cache(host, DICTIONARY, WORK / "patterns")
-    key = identity([manifest, sha256(DICTIONARY), *VARIANTS, sha256(directory / "placement_equivalence_test"),
+def qualification(cases, manifest, directory, work=WORK, dictionary=DICTIONARY):
+    cache = select_cache(directory / "window_worker", dictionary, work / "patterns")
+    key = identity([manifest, sha256(dictionary), *VARIANTS, sha256(directory / "placement_equivalence_test"),
                     sha256(directory / "perpendicular_checks_test")])
-    saved = WORK / f"qualified-{key[:20]}.json"
-    if not saved.exists():
-        print("qualify development and training positions", flush=True)
-        positions = [c.position for c in cases]
-        counts = qualify_positions(DICTIONARY, cache, positions, VARIANTS, directory)
-        write_json(saved, {c.name: counts[c.position] for c in cases})
+    saved = work / f"qualified-{key[:20]}.json"
+    if not saved.exists() or not cache.existing:
+        pending = cases if not saved.exists() else []
+        print(f"prepare pattern table and qualify {len(pending)} positions", flush=True)
+        with TemporaryDirectory(dir=work) as temp:
+            selected = cache if cache.existing else SelectedCache(Path(temp) / "patterns", False)
+            counts = qualify_positions(dictionary, selected, (case.position for case in pending), VARIANTS, directory)
+            if not cache.existing:
+                selected.path.replace(cache.path)
+        if pending:
+            write_json(saved, {case.name: counts[case.position] for case in pending})
     return cache.path, json.loads(saved.read_text()), key
 
 
@@ -146,7 +150,10 @@ def run():
     os.sched_setaffinity(0, {CPU})
     host = build("host", PORTABLE)
     cases, manifest = inputs()
-    cache, counts, qualification_id = qualification(cases["development"] + cases["pgo"], manifest, host["binary"])
+    qualifier = Path(subprocess.check_output(
+        ["make", "-s", "--no-print-directory", "window-tools", "CXX=clang++-18",
+         "CXXFLAGS=-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude"], text=True).strip())
+    cache, counts, qualification_id = qualification(cases["development"] + cases["pgo"], manifest, qualifier)
     builds = {name: build(name, flags) for name, flags in CONFIGS.items()}
     training = {}
     for target, flags in (("portable", PORTABLE), ("native", NATIVE)):
@@ -158,26 +165,29 @@ def run():
                    .replace("\t", "").splitlines() if ": " in line)
     metadata = dict(host=host, builds=builds, training=training, inputs=manifest, counts=counts,
                     dictionary_sha256=sha256(DICTIONARY), qualification_id=qualification_id,
-                    schedule={"pilot": 4, "development": 40}, cpu=cpuinfo["model name"], microcode=cpuinfo.get("microcode"), affinity=CPU,
-                    runner_sha256=sha256(Path(__file__)), kernel=os.uname().release)
+                    schedule={"pilot": 4, "development": 40},
+                    case_order={split: [c.name for c in cases[split]] for split in ("pilot", "development")},
+                    protocol_sha256=identity([inspect.getsource(observations), inspect.getsource(paired_order)]),
+                    cpu=cpuinfo["model name"], microcode=cpuinfo.get("microcode"), affinity=CPU, kernel=os.uname().release)
     # A changed binary, profile, input or schedule starts a separate run.
     output = WORK / "runs" / identity(metadata)[:20]
     output.mkdir(parents=True, exist_ok=True)
-    write_json(output / "manifest.json", metadata)
+    if not (output / "manifest.json").exists():
+        write_json(output / "manifest.json", dict(metadata, runner_sha256=sha256(Path(__file__))))
     print(f"results {output}", flush=True)
     with ExitStack() as stack:
         proc = None
         for split, reps in metadata["schedule"].items():
             for left, right in comparisons(builds):
-                a, b = left
-                c, d = right
-                filename = output / f"{split}_{a}.{b}_{c}.{d}.csv.gz"
+                left_build, left_counter = left
+                right_build, right_counter = right
+                filename = output / f"{split}_{left_build}.{left_counter}_{right_build}.{right_counter}.csv.gz"
                 if filename.exists():
                     continue
                 if proc is None:
                     proc = stack.enter_context(session(host["binary"], cache))
-                rows = observations(proc, (builds[a]["binary"], builds[c]["binary"]),
-                                    (b, d), cases[split], reps, counts)
+                binaries = (builds[left_build]["binary"], builds[right_build]["binary"])
+                rows = observations(proc, binaries, (left_counter, right_counter), cases[split], reps, counts)
                 tmp = filename.with_suffix(".partial")
                 with gzip.open(tmp, "wt", newline="") as stream:
                     writer = csv.DictWriter(stream, fieldnames=("case", "stage", "repetition", "first", "across",

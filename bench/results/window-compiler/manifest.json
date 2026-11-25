@@ -486,6 +486,48 @@
       "text_bytes": 44629
     }
   },
+  "case_order": {
+    "development": [
+      "games/7bbdiRsCRY.csv#4",
+      "games/RHaUnC67uz.csv#15",
+      "games/6zTBhes669.csv#25",
+      "games/CpZHNqsaAe.csv#8",
+      "../replay/sjoholm-del-solar.csv#12",
+      "games/NSFqNG8yP5.csv#23",
+      "data/lewis/lewis1923.csv#5",
+      "data/traditional/traditional4982.csv#16",
+      "data/traditional/traditional2278.csv#22",
+      "data/traditional/traditional1484.csv#6",
+      "data/traditional/traditional8122.csv#14",
+      "data/random/random126.csv#20",
+      "data/one/one362.csv#6",
+      "data/traditional/traditional10562.csv#13",
+      "data/random/random272.csv#17",
+      "data/lewis/lewis4508.csv#4",
+      "data/fifty/fifty262.csv#18",
+      "data/lewis/lewis1684.csv#19",
+      "data/lewis/lewis12453.csv#2",
+      "data/one/one4373.csv#13",
+      "data/traditional/traditional5901.csv#18",
+      "data/random/random1155.csv#6",
+      "data/lewis/lewis13729.csv#9",
+      "data/random/random206.csv#20",
+      "data/random/random78.csv#4",
+      "data/one/one2848.csv#10",
+      "data/traditional/traditional2625.csv#21",
+      "data/lewis/lewis2827.csv#5",
+      "data/random/random1464.csv#10",
+      "data/lewis/lewis10012.csv#19"
+    ],
+    "pilot": [
+      "games/7bbdiRsCRY.csv#4",
+      "games/RHaUnC67uz.csv#15",
+      "games/6zTBhes669.csv#25",
+      "games/CpZHNqsaAe.csv#8",
+      "../replay/sjoholm-del-solar.csv#12",
+      "games/NSFqNG8yP5.csv#23"
+    ]
+  },
   "counts": {
     "../replay/sjoholm-del-solar.csv#12": {
       "across": 165,
@@ -1475,6 +1517,7 @@
   },
   "kernel": "6.18.58.1-microsoft-standard-WSL2",
   "microcode": "0xffffffff",
+  "protocol_sha256": "6db42afe66ef7341680bbc6dbd75418e809fe6fccf6790d6c13d16208e7062b7",
   "qualification_id": "f0e6c7f0a52e3c6417d6c97f0639e29a3fba93324f05942a23ded5daf25876d5",
   "runner_sha256": "b40260d0c313985658055d1ee27eb01e6281d9de939980c25f01ce50103b6a21",
   "schedule": {

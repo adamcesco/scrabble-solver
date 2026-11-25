@@ -43,6 +43,26 @@ def window_groups(visits, *, row, start, length, down=False):
 
 
 class WindowBenchmarkTest(unittest.TestCase):
+    @unittest.skipUnless(sys.platform.startswith("linux"), "compiler trials use Linux CPU affinity")
+    def test_compiler_trials_restore_a_missing_cache_from_saved_qualification(self):
+        from bench.measurement_support.benchmark_inputs import Position
+        from bench.window_counters.compiler_trials import qualification
+        from bench.window_counters.window_benchmark import WindowCase
+
+        tools = window_build()
+        case = WindowCase("crossings", "fixture", Position.parse(FIXTURE / "crossings.csv", "RT"))
+        with tempfile.TemporaryDirectory() as temp:
+            args = ([case], {"crossings": {"rack": "RT"}}, tools, Path(temp), FIXTURE / "dictionary.txt")
+            cache, counts, key = qualification(*args)
+            self.assertEqual((counts["crossings"]["across"], counts["crossings"]["down"]), (2, 1))
+            data = cache.read_bytes()
+            stamp, = Path(temp).glob("qualified-*.json")
+            modified = stamp.stat().st_mtime_ns
+            cache.unlink()
+            self.assertEqual(qualification(*args), (cache, counts, key))
+            self.assertEqual(cache.read_bytes(), data)
+            self.assertEqual(stamp.stat().st_mtime_ns, modified)
+
     def test_candidate_batches_keep_partial_groups_and_their_final_letters(self):
         board = [["."] * 15 for _ in range(15)]
         board[1][0], board[0][3] = "A", "X"

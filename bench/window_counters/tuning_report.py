@@ -8,11 +8,10 @@ from pathlib import Path
 from statistics import fmean
 from typing import NamedTuple
 
-from bench.corpus.sample_turns import PILOT, STAGES, case_name
+from bench.corpus.sample_turns import STAGES
 from bench.measurement_support.paired_timings import Pair, summarize
 from bench.window_counters.compiler_trials import comparisons
 from bench.window_counters.window_benchmark import paired_order
-from bench.window_counters.window_games import reserved_cases
 
 ARCHIVE = Path("bench/results/window-compiler")
 
@@ -46,16 +45,17 @@ def main():
     directory = parser.parse_args().directory
     pairs = directory / "pairs" if (directory / "pairs").is_dir() else directory
     manifest = json.loads((directory / "manifest.json").read_text())
-    cases = [Game(case_name(g), g["stage"]) for g in reserved_cases("development")]
-    pilot = {case_name(g) for g in json.loads((PILOT / "corpus.json").read_text())["cases"]}
+    cases = {split: [Game(name, manifest["inputs"][name]["stage"]) for name in names]
+             for split, names in manifest["case_order"].items()}
+    pilot = set(manifest["case_order"]["pilot"])
     print("| Left build · counter | Right build · counter | Left / right µs | Saving µs (95% CI) "
           "| Saving outside pilot (95% CI) |")
     print("| --- | --- | ---: | ---: | ---: |")
     for left, right in comparisons(manifest["builds"]):
         a, b = (".".join(side) for side in (left, right))
-        for dataset, selected in (("pilot", [c for c in cases if c.name in pilot]), ("development", cases)):
+        for dataset in ("pilot", "development"):
             path = pairs / f"{dataset}_{a}_{b}.csv.gz"
-            games = read_pairs(path, selected, manifest["schedule"][dataset], manifest["counts"])
+            games = read_pairs(path, cases[dataset], manifest["schedule"][dataset], manifest["counts"])
         full = estimate(games, set())
         separate = estimate(games, pilot)
         print(f"| {a} | {b} | {full.original:.2f} / {full.packed:.2f} "
