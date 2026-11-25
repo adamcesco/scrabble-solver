@@ -2,9 +2,11 @@
 
 **Portable C++17 advances three counters.** `rack-neighbor-cache`, `rack-all-checks` and `rack-neighbor` tied in all three direct development comparisons. Adding the row cache to `rack-neighbor` cost 2.04 µs/solve (95% CI −1.56 to +6.29). The direct comparison of the cache and all-checks finalists included one 13 ms observation on each side in different games. Its interval for cache minus all-checks was −32.60 to +28.95 µs. All observations enter the estimate. [Portable comparisons](development.md#portable)
 
-**The i7-6700K advances `rack-neighbor` and `rack-neighbor-cache`.** In their direct Skylake comparison, `rack-neighbor` averaged 317.90 µs/solve and the cached version averaged 325.26. Adding the cache cost 7.37 µs/solve (95% CI 3.89 to 11.22). Against its matched packed baseline, `rack-neighbor` saved 93.65 µs/solve (78.35 to 109.07). The runner-up advances under the preselected rule. Both targets include `packed` in the held-out comparison. [Skylake comparisons](development.md#skylake) · [Frozen inputs and counters](freeze.json)
+**The i7-6700K advances `rack-neighbor` and `rack-neighbor-cache`.** In the initial direct Skylake comparison, `rack-neighbor` averaged 317.90 µs/solve and the cached version averaged 325.26. Adding the cache cost 7.37 µs/solve (95% CI 3.89 to 11.22). Against its matched packed baseline, `rack-neighbor` saved 93.65 µs/solve (78.35 to 109.07). A second aligned comparison tied, with a cache saving of 2.80 µs/solve (−10.49 to +24.80). Both advance under the preselected rule. Both targets include `packed` in the held-out comparison. [Skylake comparisons](development.md#skylake) · [Frozen inputs and counters](freeze.json)
 
-The requested `neighbor-cache` combination beat `row-cache` on both targets. Against the stronger `neighbor-bits` constituent it tied on portable (saving 0.76 µs, −3.40 to +5.43) and regressed on Skylake (cost 14.32 µs, 9.96 to 19.13). All five combinations beat packed on both targets. The paired tables include each regression and tie against the individual changes. [All development pairs](development.md)
+All three portable finalist comparisons also tied on the 24 games outside the pilot. On those games, adding the row cache to `rack-neighbor` cost 2.57 µs/solve on portable (95% CI −1.79 to +7.61) and 7.85 µs/solve with aligned Skylake (4.66 to 11.47). One constituent comparison changed classification. Portable `rack-cache` tied `rack` across all 30 games and saved 4.25 µs/solve on the separate 24 (0.19 to 9.00). The final column of each development table gives the separate-corpus interval for every pair. [Paired estimates](development.md)
+
+The `neighbor-cache` combination beat `row-cache` on both targets. Against the stronger `neighbor-bits` constituent it tied on portable (saving 0.76 µs, −3.40 to +5.43) and regressed on Skylake (cost 14.32 µs, 9.96 to 19.13). All five combinations beat packed on both targets. The paired tables include each regression and tie against the individual changes. [All development pairs](development.md)
 
 ## Development experiment
 
@@ -24,7 +26,11 @@ Rank contenders within a target by mean elapsed time, giving each of the six opp
 
 For the two advancing Skylake counters, compare the same implementation at `-O3` with branch alignment enabled and disabled. Also compare packed under both settings and the four counter/build combinations head to head. Keep the original aligned build for a finalist unless disabling alignment saves time with a positive paired interval on both the full 30 and the 24 games outside the pilot. Each finalist carries its selected build and a packed baseline with identical flags into confirmation.
 
-### Work done per solve
+Both native finalists retain `-mbranches-within-32B-boundaries`. At `-O3`, enabling it saved 8.59 µs/solve for `rack-neighbor` (95% CI 3.13 to 14.38) and 8.90 outside the pilot (2.68 to 15.88). The cached finalist tied across settings, with a 0.70 µs saving for disabling alignment (−1.99 to +3.70). The packed control also tied. At default alignment, the two finalists tied on the full set, while the separate 24 favored the cached version. [All 11 alignment comparisons](alignment/development.md) · [Matched build commands and counts](alignment/manifest.json) · [Raw observations](alignment/pairs)
+
+Together the two experiments saved 77,112 pairs, including 1,512 pilot pairs. The original development run used source `ec354c5`. The alignment run and held-out freeze use `6c51053`. The timing host and both original release libraries reproduced byte for byte at the frozen source revision. [Build identities](freeze.json)
+
+### Development workload
 
 The full development set supplied 72,530 candidate decisions per counter. The table shows totals across the 30 positions and both views in a separate, untimed trace. With the neighbor filter in place, caching reduced actual calls from 10,289 to 1,715 under rack pruning. Both variants still examined the same 21,624 words and visited the same 27,518 gaps. Those word checks and the traversal of matching windows and rack subsets remain part of each solve. [Development workload by stage](workload.json)
 
@@ -65,9 +71,10 @@ From the repository root with the full dictionary, the recorded Clang/LLVM 18 to
 python3 -u -m bench.window_counters.finalist_trials
 python3 -u -m bench.window_counters.finalist_trials --alignment
 python3 -m bench.window_counters.finalist_report
+python3 -m bench.window_counters.finalist_report bench/results/window-finalists/alignment
 ```
 
-To reproduce the untimed trace and inspect linked instructions from the release library listed in the manifest, run the following commands.
+To reproduce the untimed trace and inspect linked instructions from the portable release library in the freeze, run the following commands.
 
 ```sh
 tools=$(make -s window-tools CXX=clang++-18 'CXXFLAGS=-std=c++17 -O3 -march=x86-64 -Wall -Wextra -Iinclude')
@@ -75,11 +82,11 @@ python3 -m bench.window_counters.window_profile --build-dir "$tools" --gap-check
   --variants packed row-cache neighbor-bits all-checks rack neighbor-cache rack-cache \
   rack-neighbor rack-neighbor-cache rack-all-checks > build/window-finalists-workload.json
 cmp bench/results/window-finalists/workload.json build/window-finalists-workload.json
-lib=$(python3 -c 'import json; print(json.load(open("bench/results/window-finalists/manifest.json"))["builds"]["portable"]["binary"])')
+lib=$(python3 -c 'import json; print(json.load(open("bench/results/window-finalists/freeze.json"))["builds"]["portable"]["binary"])')
 objdump -d -M intel "$lib" > build/window-finalists-portable.asm
 ```
 
-The following commands are for issue 14. The runner checks frozen input, host, library and analysis hashes and writes the held-out observations to the directory it prints.
+The following Bash commands are for issue 14. Before preparing the held-out positions, the runner checks the frozen CPU and affinity, input and analysis hashes, and linked host and library hashes. It writes the held-out observations to the directory it prints.
 
 ```sh
 set -o pipefail
