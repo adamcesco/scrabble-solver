@@ -110,15 +110,15 @@ void measure(bool use_packed, bool expect_hit, const char *dictionary_path, cons
 
 int main(int argc, char **argv)
 {
-    if (argc == 4 && std::strcmp(argv[1], "--check-cache") == 0) {
-        return benchmark::check_cache(argv[2], argv[3]);
-    }
-    if (argc != 10 || (std::strcmp(argv[1], "original") && std::strcmp(argv[1], "packed")) ||
-        (std::strcmp(argv[2], "hit") && std::strcmp(argv[2], "miss"))) {
-        std::fprintf(stderr, "usage: %s original|packed hit|miss dictionary cache board rack new-board rack additional-rack\n", argv[0]);
-        return 1;
-    }
     try {
+        if (auto result = benchmark::pattern_cache_command(argc, argv)) {
+            return *result;
+        }
+        if (argc != 10 || (std::strcmp(argv[1], "original") && std::strcmp(argv[1], "packed")) ||
+            (std::strcmp(argv[2], "hit") && std::strcmp(argv[2], "miss"))) {
+            std::fprintf(stderr, "usage: %s original|packed hit|miss dictionary cache board rack new-board rack additional-rack\n", argv[0]);
+            return 1;
+        }
         measure(std::strcmp(argv[1], "packed") == 0, std::strcmp(argv[2], "hit") == 0, argv[3], argv[4],
                 argv[5], Rack(argv[6]), argv[7], Rack(argv[8]), Rack(argv[9]));
     } catch (const std::exception &error) {

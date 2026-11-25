@@ -10,7 +10,7 @@ import tempfile
 from collections import Counter
 from pathlib import Path
 
-from paired_benchmark import ROOT, FIXTURE, matching_full_cache, qualify_positions, read_cases, sha256
+from paired_benchmark import ROOT, FIXTURE, qualify_positions, read_cases, select_cache, sha256
 
 
 def window_build():
@@ -82,10 +82,10 @@ def main():
     build = args.build_dir or window_build()
     worker = build / "window_worker"
     with tempfile.TemporaryDirectory() as directory:
-        cache = args.cache or matching_full_cache(worker, args.dictionary) or Path(directory) / "patterns"
+        cache = select_cache(worker, args.dictionary, args.cache or Path(directory) / "patterns")
         positions = (case.first for case in cases)
         counts = qualify_positions(args.dictionary, cache, positions, args.variants, build)
-        rows = list(paired_rows(worker, args.dictionary, cache, cases, args.variants, args.repetitions, counts))
+        rows = list(paired_rows(worker, args.dictionary, cache.path, cases, args.variants, args.repetitions, counts))
         writer = csv.DictWriter(sys.stdout, fieldnames=rows[0], lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)

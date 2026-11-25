@@ -7,7 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from paired_benchmark import BUILD, ROOT, matching_full_cache, sha256, warm_files
+from paired_benchmark import BUILD, ROOT, select_cache, sha256, warm_files
 
 FULL_DICTIONARY = ROOT / "data/dictionaries/sample_dictionary.txt"
 SAMPLE_BOARD = ROOT / "data/boards/sample_board.csv"
@@ -82,12 +82,10 @@ def main():
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("--repetitions must be positive")
-    cache = args.cache
     dictionary_sha = sha256(args.dictionary)
-    if cache is None:
-        cache = matching_full_cache(BUILD / "memory_worker", args.dictionary)
-    if cache is not None and not cache.is_file():
-        parser.error(f"pattern cache missing: {cache}")
+    if args.cache is not None and not args.cache.is_file():
+        parser.error(f"pattern cache missing: {args.cache}")
+    cache = select_cache(BUILD / "memory_worker", args.dictionary, args.cache).path
     rack = "".join(sorted(args.rack))
     metadata = dict(dictionary=os.path.relpath(args.dictionary), dictionary_sha256=dictionary_sha,
                     board=os.path.relpath(args.board), board_sha256=sha256(args.board), rack=rack,

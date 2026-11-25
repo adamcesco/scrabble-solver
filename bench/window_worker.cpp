@@ -53,19 +53,19 @@ static void measure_pairs(const char *dictionary, const char *cache, const Windo
 
 int main(int argc, char **argv)
 {
-    if (argc == 4 && std::string_view(argv[1]) == "--check-cache") {
-        return benchmark::check_cache(argv[2], argv[3]);
-    }
-    if (argc == 2 && std::string_view(argv[1]) == "--build-info") {
-        std::puts(__VERSION__);
-        std::puts(WINDOW_BUILD_FLAGS);
-        return 0;
-    }
-    if (argc != 5) {
-        std::fprintf(stderr, "usage: %s baseline challenger dictionary cache\n", argv[0]);
-        return 1;
-    }
     try {
+        if (auto result = benchmark::pattern_cache_command(argc, argv)) {
+            return *result;
+        }
+        if (argc == 2 && std::string_view(argv[1]) == "--build-info") {
+            std::puts(__VERSION__);
+            std::puts(WINDOW_BUILD_FLAGS);
+            return 0;
+        }
+        if (argc != 5) {
+            std::fprintf(stderr, "usage: %s baseline challenger dictionary cache\n", argv[0]);
+            return 1;
+        }
         const WindowVariant *variants[] = {&benchmark::window_variant(argv[1]), &benchmark::window_variant(argv[2])};
         measure_pairs(argv[3], argv[4], variants);
     } catch (const std::exception &error) {

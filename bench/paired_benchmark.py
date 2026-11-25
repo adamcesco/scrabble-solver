@@ -15,19 +15,24 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build"
 FIXTURE = ROOT / "bench/fixtures/paired"
-FULL_CACHE = ROOT / "data/caches/pattern_and_rack_anagram_to_words.cache"
 
 
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def matching_full_cache(worker, dictionary):
-    if FULL_CACHE.is_file():
-        probe = subprocess.check_output([worker, "--check-cache", dictionary, FULL_CACHE], text=True)
-        if probe.strip() == "match":
-            return FULL_CACHE
-    return None
+@dataclass(frozen=True)
+class SelectedCache:
+    path: Path | None  # A memory run can leave the private destination to each worker.
+    existing: bool
+
+
+def select_cache(worker, dictionary, requested):
+    result = subprocess.check_output([worker, "--select-cache", dictionary, ROOT, requested or ""])
+    state, path = result.split(b"\n", 1)
+    if state not in (b"existing", b"build"):
+        raise ValueError(f"unrecognized pattern cache selection: {state!r}")
+    return SelectedCache(Path(os.fsdecode(path)) if path else None, state == b"existing")
 
 
 @dataclass(frozen=True)
@@ -81,7 +86,9 @@ def qualify_positions(dictionary, shared_cache, positions, variants=(), build=BU
     positions = dict.fromkeys(positions)
     requests = "".join(f"{pos.board}\t{pos.rack}\n" for pos in positions)
     output = subprocess.check_output(
-        [build / "placement_equivalence_test", dictionary, shared_cache, *variants], input=requests, text=True)
+        [build / "placement_equivalence_test", dictionary, shared_cache.path,
+         "--load-cache" if shared_cache.existing else "--build-cache", *variants],
+        input=requests, text=True)
     rows = csv.DictReader(io.StringIO(output))
     return {pos: {key: int(value) for key, value in row.items()}
             for pos, row in zip(positions, rows, strict=True)}
@@ -155,13 +162,12 @@ def main():
     with tempfile.TemporaryDirectory() as directory:
         if args.cache is not None and not args.cache.is_file():
             parser.error(f"pattern cache missing: {args.cache}")
-        existing = args.cache or matching_full_cache(BUILD / "paired_worker", args.dictionary)
-        cache = existing or Path(directory) / "shared-patterns"
+        cache = select_cache(BUILD / "paired_worker", args.dictionary, args.cache or Path(directory) / "shared-patterns")
         counts = qualify(args.dictionary, cache, cases)
         writer = None
-        condition = args.condition or ("hit" if existing else "both")
+        condition = args.condition or ("hit" if cache.existing else "both")
         conditions = ("hit", "miss") if condition == "both" else (condition,)
-        for row in paired_rows(args.dictionary, cache, cases, args.repetitions, counts, conditions):
+        for row in paired_rows(args.dictionary, cache.path, cases, args.repetitions, counts, conditions):
             if writer is None:
                 writer = csv.DictWriter(sys.stdout, fieldnames=row, lineterminator="\n")
                 writer.writeheader()

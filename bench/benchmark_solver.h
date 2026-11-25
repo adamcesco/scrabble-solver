@@ -6,21 +6,56 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <optional>
 #include <stdexcept>
 #include <string_view>
 
 namespace benchmark {
-inline int check_cache(const char *dictionary, const char *cache)
+struct PatternCache {
+    std::filesystem::path path;
+    bool existing;
+};
+
+inline PatternCache select_pattern_cache(const WordTable &words, const std::filesystem::path &requested,
+                                         const std::filesystem::path &project_root)
 {
-    WordTable words = WordTable::from_file(dictionary);
+    const auto path = requested.empty() ? requested : std::filesystem::absolute(requested);
+    if (std::filesystem::exists(path)) {
+        return {path, true};
+    }
+    if (!project_root.empty()) {
+        const auto project_cache = project_root / "data/caches/pattern_and_rack_anagram_to_words.cache";
+        std::error_code error;
+        if (std::filesystem::is_regular_file(project_cache, error) &&
+            WordPatternTable::cache_matches_dictionary(words, project_cache.c_str())) {
+            return {std::filesystem::absolute(project_cache), true};
+        }
+    }
+    return {path, false};
+}
+
+inline std::optional<int> pattern_cache_command(int argc, char **argv)
+{
+    const bool check = argc == 4 && std::string_view(argv[1]) == "--check-cache";
+    const bool select = argc == 5 && std::string_view(argv[1]) == "--select-cache";
+    if (!check && !select) {
+        return std::nullopt;
+    }
+    WordTable words = WordTable::from_file(argv[2]);
     if (!words.count) {
         std::fprintf(stderr, "dictionary read failed\n");
         return 1;
     }
-    bool match = WordPatternTable::cache_matches_dictionary(words, cache);
+    if (check) {
+        const bool match = WordPatternTable::cache_matches_dictionary(words, argv[3]);
+        std::puts(match ? "match" : "different");
+    } else {
+        const auto cache = select_pattern_cache(words, argv[4], argv[3]);
+        // Everything after the first newline is the native path, including any whitespace.
+        std::printf("%s\n%s", cache.existing ? "existing" : "build", cache.path.c_str());
+    }
     words.destroy();
-    std::puts(match ? "match" : "different");
     return 0;
 }
 

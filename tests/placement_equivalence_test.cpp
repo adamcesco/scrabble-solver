@@ -128,18 +128,28 @@ static void compare_gap_keys_at_the_board_edge(const WindowVariants &variants)
     words.destroy();
 }
 
+static std::filesystem::path qualifier_project(const char *executable)
+{
+    // Keep the invocation path so a symlink staged under build/ belongs to that project.
+    auto dir = std::filesystem::absolute(executable).parent_path();
+    for (; dir.has_relative_path(); dir = dir.parent_path()) {
+        if (dir.filename() == "build") {
+            return dir.parent_path();
+        }
+    }
+    return {};
+}
+
 // A replay can append the expected play: down (0/1), view row, start, complete word.
-static void qualify_inputs(const char *dictionary_path, std::filesystem::path cache_path,
-                           const std::filesystem::path &project_cache, const WindowVariants &variants)
+static void qualify_inputs(const char *dictionary_path, const std::filesystem::path &requested, const char *executable,
+                           const std::optional<bool> selected_existing, const WindowVariants &variants)
 {
     WordTable words = WordTable::from_file(dictionary_path);
     assert(words.count > 0);
     {
-        if (!std::filesystem::exists(cache_path) &&
-            WordPatternTable::cache_matches_dictionary(words, project_cache.c_str())) {
-            cache_path = project_cache;
-        }
-        const bool existing = std::filesystem::exists(cache_path);
+        const auto [cache_path, existing] = selected_existing.has_value()
+            ? benchmark::PatternCache{requested, *selected_existing || std::filesystem::exists(requested)}
+            : benchmark::select_pattern_cache(words, requested, qualifier_project(executable));
         std::cerr << "Qualification " << (existing ? "loading " : "building ") << cache_path << '\n';
         PlacementComparison fixture{words, existing ? WordPatternTable::load(words, cache_path.c_str())
                                                     : WordPatternTable::from_words(words)};
@@ -185,7 +195,12 @@ int main(int argc, char **argv)
 {
     try {
         WindowVariants variants;
-        for (int i = 3; i < argc; ++i) {
+        const std::string_view mode = argc > 3 ? argv[3] : "";
+        std::optional<bool> selected_existing;
+        if (mode == "--load-cache" || mode == "--build-cache") {
+            selected_existing = (mode == "--load-cache");
+        }
+        for (int i = selected_existing.has_value() ? 4 : 3; i < argc; ++i) {
             variants.push_back(&benchmark::window_variant(argv[i]));
         }
         if (variants.empty()) {
@@ -197,8 +212,7 @@ int main(int argc, char **argv)
         compare_rack_groups_and_ruled_out_windows(variants);
         one_tile_counts_in_both_directions_and_restores_the_prepared_board(variants);
         if (argc >= 3) {
-            const auto root = std::filesystem::absolute(argv[0]).parent_path().parent_path();
-            qualify_inputs(argv[1], argv[2], root / "data/caches/pattern_and_rack_anagram_to_words.cache", variants);
+            qualify_inputs(argv[1], argv[2], argv[0], selected_existing, variants);
         } else if (argc != 1) {
             return 1;
         }
