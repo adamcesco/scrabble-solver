@@ -205,6 +205,9 @@ struct MatchedWindow {
     const WordPattern *match;
 };
 
+enum class GapTraversal { scan, empty_bits, neighbor_bits };
+
+template <GapTraversal traversal>
 struct WindowMasks {
     struct Gap {
         uint8_t offset;
@@ -214,16 +217,27 @@ struct WindowMasks {
     uint8_t gap_count = 0;
     bool ruled_out = false;
 
-    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window)
+    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window, uint16_t eligible_columns = UINT16_MAX)
     {
-        for (uint8_t offset = 0; offset < window.length; ++offset) {
-            uint8_t col = window.start + offset;
-            if (board.rows[row].occupiedMask & bit_at_u16(col)) {
-                continue;
-            }
-            uint32_t letters = board.perpendicular_check_set(row, col);
+        auto add_gap = [&](uint8_t offset, uint32_t letters) {
             gaps[gap_count++] = {offset, letters};
             ruled_out |= letters == 0;
+        };
+        if constexpr (traversal == GapTraversal::scan) {
+            for (uint8_t offset = 0; offset < window.length; ++offset) {
+                uint8_t col = window.start + offset;
+                if (!(board.rows[row].occupiedMask & bit_at_u16(col))) {
+                    add_gap(offset, board.perpendicular_check_set(row, col));
+                }
+            }
+        } else {
+            const uint16_t span = low_bit_mask_u16(window.length) << window.start;
+            uint16_t remaining = span & ~board.rows[row].occupiedMask & eligible_columns;
+            while (remaining) {
+                const uint8_t col = __builtin_ctz(remaining);
+                add_gap(col - window.start, board.perpendicular_check_set(row, col));
+                remaining &= remaining - 1u;
+            }
         }
     }
 
@@ -256,7 +270,7 @@ size_t count_rack_windows(
         // its end must be just before the next empty square or at the board edge.
         MatchedWindow by_empty_count[MAX_RACK_TILES + 1][BOARD_SIZE];
         uint8_t counts[MAX_RACK_TILES + 1] = {};
-        visit_row_windows(
+        const uint16_t neighbors = visit_row_windows(
             board->rows, row_index, rack_length,
             [&](uint8_t start, const PatternRow &pattern, uint8_t empty_count) {
                 const WordPattern *match = word_patterns->get(pattern);
@@ -277,29 +291,34 @@ size_t count_rack_windows(
                         rack_subset_keys->keys[empty_count], rack_subset_keys->counts[empty_count], visit
                     );
                 };
-                count += count_window(row_index, window, empty_count, visit_groups);
+                count += count_window(row_index, neighbors, window, empty_count, visit_groups);
             }
         }
     }
     return count;
 }
 
-struct PackedCounter {
+template <GapTraversal traversal>
+struct WindowCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
     const Board &board;
 
-    PackedCounter(const WordTable &dictionary, const WordPatternTable &patterns, const Board &board)
+    WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns, const Board &board)
         : dictionary(dictionary), patterns(patterns), board(board) {}
 
     template <typename VisitGroups>
-    size_t operator()(uint8_t row, const MatchedWindow &window, uint8_t, VisitGroups visit_groups) const
+    size_t operator()(uint8_t row, uint16_t neighbors, const MatchedWindow &window, uint8_t, VisitGroups visit_groups) const
     {
         size_t count = 0;
-        std::optional<WindowMasks> masks;
+        std::optional<WindowMasks<traversal>> masks;
         visit_groups([&](const WordPatternAnagramGroup &group) {
             if (!masks) {
-                masks.emplace(board, row, window);
+                if constexpr (traversal == GapTraversal::neighbor_bits) {
+                    masks.emplace(board, row, window, neighbors);
+                } else {
+                    masks.emplace(board, row, window);
+                }
             }
             const uint32_t *ids = patterns.word_indices.data() + group.word_indices.start;
             if (masks->ruled_out) {
@@ -316,15 +335,18 @@ struct PackedCounter {
     }
 };
 
+using PackedCounter = WindowCounter<GapTraversal::scan>;
+
 #ifdef SCRABBLE_WINDOW_VARIANTS
 struct OneGapCounter : PackedCounter {
     using PackedCounter::PackedCounter;
 
     template <typename VisitGroups>
-    size_t operator()(uint8_t row, const MatchedWindow &window, uint8_t empty_count, VisitGroups visit_groups) const
+    size_t operator()(uint8_t row, uint16_t neighbors, const MatchedWindow &window, uint8_t empty_count,
+                      VisitGroups visit_groups) const
     {
         if (empty_count != 1) {
-            return PackedCounter::operator()(row, window, empty_count, visit_groups);
+            return PackedCounter::operator()(row, neighbors, window, empty_count, visit_groups);
         }
         std::optional<uint32_t> letters;
         size_t count = 0;
@@ -375,6 +397,8 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
         {"one-gap", measure_solve<OneGapCounter>},
+        {"empty-bits", measure_solve<WindowCounter<GapTraversal::empty_bits>>},
+        {"neighbor-bits", measure_solve<WindowCounter<GapTraversal::neighbor_bits>>},
     };
     for (const auto &variant : variants) {
         if (variant.name == name) {
@@ -408,7 +432,7 @@ size_t rack_oriented_full_board_solver(
 {
     const Board original_board = *board;
     return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
-        [&](uint8_t row, const MatchedWindow &window, uint8_t, auto visit_groups) {
+        [&](uint8_t row, uint16_t, const MatchedWindow &window, uint8_t, auto visit_groups) {
             size_t count = 0;
             visit_groups([&](const WordPatternAnagramGroup &group) {
                 count += validate_rack_window_words(

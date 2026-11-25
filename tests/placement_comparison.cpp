@@ -43,6 +43,7 @@ struct VisitedWindow {
     uint8_t row, start, length, empty;
     bool pattern_match;
     std::vector<VisitedGroup> groups;
+    unsigned lookups = 0;
 };
 
 struct WindowWorkload {
@@ -67,7 +68,8 @@ struct WindowWorkload {
             auto emit = [&](VisitedGroup group) {
                 output.stream << output.position << ',' << variant << ',' << down << ',' << +w.row << ','
                               << +w.start << ',' << +w.length << ',' << +w.empty << ',' << constrained << ','
-                              << w.pattern_match << ',' << group.words << ',' << group.individual_checks << '\n';
+                              << w.pattern_match << ',' << group.words << ',' << group.individual_checks << ','
+                              << w.lookups << '\n';
             };
             if (w.groups.empty()) {
                 emit({0});
@@ -114,6 +116,9 @@ void trace_square_lookup(uint8_t row, uint8_t col)
 {
     if (active_trace) {
         ++active_trace->lookups[active_trace->down()][row][col];
+        if (active_trace->workload) {
+            ++active_trace->workload->windows.back().lookups;
+        }
     }
 }
 
@@ -168,6 +173,7 @@ ViewDecisions PlacementComparison::compare_board(
     PlacementTrace reference{words, board, snapshot};
     std::array<size_t, 2> expected_counts;
     std::array<LookupCounts, 2> packed_lookups;
+    std::array<LookupCounts, 2> neighbor_lookups{};
     ViewDecisions sorted_reference;
     for (bool down : {false, true}) {
         check_view(name, down ? "down" : "across", words, original, board);
@@ -176,6 +182,15 @@ ViewDecisions PlacementComparison::compare_board(
         active_trace = nullptr;
         snapshot.check(board, down);
         packed_lookups[down] = expected_lookups(board, reference.decisions[down]);
+        // Use perpendicular columns to check the filter independently of the solver's row union.
+        for (int row = 0; row < BOARD_SIZE; ++row) {
+            const unsigned adjacent = ((1u << row) >> 1) | (1u << (row + 1));
+            for (int col = 0; col < BOARD_SIZE; ++col) {
+                if (board.perpendicularRows[col].occupiedMask & adjacent) {
+                    neighbor_lookups[down][row][col] = packed_lookups[down][row][col];
+                }
+            }
+        }
         sorted_reference[down] = reference.decisions[down];
         std::sort(sorted_reference[down].begin(), sorted_reference[down].end());
         board.swap_views();
@@ -206,8 +221,10 @@ ViewDecisions PlacementComparison::compare_board(
                 throw std::runtime_error(std::string(name) + " " + variant->name +
                                          (down ? " down" : " across") + ": placement mismatch");
             }
-            if (variant == &benchmark::window_variant("packed")) {
+            if (variant == &benchmark::window_variant("packed") || variant == &benchmark::window_variant("empty-bits")) {
                 assert(actual.lookups[down] == packed_lookups[down]);
+            } else if (variant == &benchmark::window_variant("neighbor-bits")) {
+                assert(actual.lookups[down] == neighbor_lookups[down]);
             }
         }
         if (profile) {

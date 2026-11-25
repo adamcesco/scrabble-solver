@@ -56,6 +56,48 @@ With the full 191,852-word dictionary, one-gap added 6.90 µs per solve (1.8%) o
 
 Order affected these warm solves. Mean packed minus one-gap on the pilot was +1.25 µs with packed first and −15.05 µs with one-gap first. Each game contributed ten pairs in each order. The interval above describes variation across these six game means. Held-out games are needed to rank finalists.
 
+### Filter empty squares by perpendicular neighbors
+
+`packed` scans the window from left to right. `empty-bits` visits the same gaps in the same order by iterating the set bits of the window’s empty-square mask. `neighbor-bits` first intersects that mask with the occupancy union of the adjacent rows in the active board view. A skipped square allows every letter. A square with a neighbor still gets its full perpendicular-check set. All three build masks on the first matching group and use the same per-word acceptance test.
+
+| Paired comparison | Baseline mean (µs/solve) | Challenger mean (µs/solve) | Paired saving (µs/solve) | 95% CI on saving |
+| --- | ---: | ---: | ---: | ---: |
+| Packed scan → empty bits | 387.36 | 385.95 | +1.41 | −0.46 to +3.32 |
+| Packed scan → neighbor bits | 395.08 | 377.24 | +17.84 | +13.79 to +22.41 |
+| Empty bits → neighbor bits | 384.78 | 375.59 | +9.19 | +6.52 to +11.92 |
+
+Each row comes from its own paired run. Positive savings favor the challenger. Empty-bit iteration alone tied the packed scan at this precision. Filtering saved 2.4% against unfiltered bit iteration. The direct saving was 7.27 µs on the six pilot games (95% CI 4.02 to 10.52) and 9.67 µs on the 24 additional development games (6.53 to 12.89). The direct means were positive in both run orders and in all three stages. [Scan vs. empty-bit pairs](results/window-packed-empty-bits.csv.gz) · [Scan vs. filtered pairs](results/window-packed-neighbor-bits.csv.gz) · [Direct filter pairs](results/window-empty-bits-neighbor-bits.csv.gz)
+
+The full-dictionary run used Clang 18.1.3 at `-O2 -march=x86-64` on logical CPU 2 of the i7-6700K. Each pairing has 40 repetitions per game, 20 in each order. Each game contributes its mean paired difference. Confidence intervals resample whole games within each stage (sorted by case name, 20,000 draws, seed 15) and weight early, middle and late equally. The 30 development games include the six pilot games and 24 separate Quackle games. The timing covers rack subsets, both views and restoration on a prepared board.
+
+The separate trace counted calls during mask construction. The last column counts only windows that reached at least one matching rack group. Every other visited window already avoided construction in all three variants.
+
+| Stage | Packed or empty-bit lookups | Filtered lookups | Calls eliminated | Matched windows with zero filtered lookups |
+| --- | ---: | ---: | ---: | ---: |
+| Early | 9,151 | 3,344 | 5,807 | 869 / 2,652 |
+| Middle | 11,127 | 5,111 | 6,016 | 890 / 3,469 |
+| Late | 8,361 | 4,621 | 3,740 | 666 / 3,063 |
+| **All** | **28,639** | **13,076** | **15,563 (54.3%)** | **2,425 / 9,184 (26.4%)** |
+
+Filtering also removes the skipped squares’ descriptors from the per-word loop. All three constructors still visited 49,421 groups, produced 72,530 candidate decisions and ran 40,724 individual word checks. Across and down totals are available for each stage. [Development workload and lookup counts](results/window-workload.json)
+
+The production solver translation unit’s `.text` section matched the pre-experiment build byte for byte with the measured flags. In the linked worker, both bit constructors select the lowest set bit before calling `Board::perpendicular_check_set`. The filtered constructor intersects the mask with the row union and jumps over that loop when the result is zero.
+
+These commands reproduce the timings and the separate lookup profile from the repository root.
+
+```sh
+export CXX=clang++
+export CXXFLAGS='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+python3 -m bench.window_counters.window_games --export development build/window-development
+for pair in 'packed empty-bits' 'packed neighbor-bits' 'empty-bits neighbor-bits'; do
+    set -- $pair
+    taskset -c 2 python3 -m bench.window_counters.window_benchmark --variants "$1" "$2" \
+        --cases build/window-development/cases.csv --dictionary data/dictionaries/sample_dictionary.txt \
+        --repetitions 40 > "build/window-$1-$2.csv" || break
+done
+python3 -m bench.window_counters.window_profile > build/window-workload.json
+```
+
 ### Profile the development workload and export reserved games
 
 Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator and reconciles the sum of visited group sizes with the oracle's candidate records separately for each game, counter and direction.

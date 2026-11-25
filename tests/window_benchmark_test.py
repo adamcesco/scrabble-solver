@@ -63,7 +63,7 @@ class WindowBenchmarkTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             counts = subprocess.check_output(
                 ["build/placement_equivalence_test", fixture / "dictionary.txt",
-                 Path(directory) / "patterns", "packed", "one-gap"],
+                 Path(directory) / "patterns", "packed", "one-gap", "empty-bits", "neighbor-bits"],
                 input=f"{fixture / 'crossings.csv'}\tRT\n", text=True)
             self.assertEqual(list(csv.reader(io.StringIO(counts)))[1:], [["2", "4", "1", "5"]])
 
@@ -99,6 +99,41 @@ class WindowBenchmarkTest(unittest.TestCase):
         # Matching the combined total is insufficient if either direction is wrong.
         with self.assertRaisesRegex(ValueError, "RT packed across"):
             summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
+
+    def test_neighbor_lookups_at_both_edges_in_both_views(self):
+        variants = ("packed", "empty-bits", "neighbor-bits")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            # Every crossing with A permits all letters, even when a lookup is needed.
+            words = {"ST", "TS"}
+            for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+                words.update(("A" + char, char + "A"))
+            (root / "words").write_text("\n".join(sorted(words)) + "\n")
+            board = [["."] * 15 for _ in range(15)]
+            board[1][1] = board[13][13] = "A"
+            with (root / "board.csv").open("w") as stream:
+                csv.writer(stream, lineterminator="\n").writerows(board)
+            output = subprocess.check_output(
+                [window_build() / "placement_equivalence_test", root / "words", root / "cache",
+                 "--profile", root / "visits", *variants], input=f"{root / 'board.csv'}\tST\n", text=True)
+            qualified = {k: int(v) for k, v in next(csv.DictReader(io.StringIO(output))).items()}
+            self.assertEqual(qualified["across"], 24)
+            self.assertEqual(qualified["down"], 24)
+            profile = (root / "visits").read_text()
+        cases = [{"case": "two As", "stage": "early"}]
+        stage = summarize(io.StringIO(profile), cases, variants, [qualified])["early"]
+        for name in variants:
+            filtered = name == "neighbor-bits"
+            for direction in ("across", "down"):
+                self.assertEqual(stage["variants"][name]["lookup_counts"][direction],
+                                 dict(calls=8 if filtered else 20, matched_windows=12,
+                                      matched_windows_without_lookups=4 if filtered else 0))
+            edges = [r for r in csv.DictReader(io.StringIO(profile)) if r["variant"] == name
+                     and r["row"] in ("0", "14") and r["group_size"] != "0"]
+            self.assertEqual({(r["row"], r["down"]) for r in edges},
+                             {("0", "0"), ("14", "0"), ("0", "1"), ("14", "1")})
+            self.assertTrue(all(r["constrained"] == "0" and int(r["lookups"]) == (1 if filtered else 2)
+                                for r in edges))
 
     def test_workload_output_cannot_overwrite_qualification_inputs(self):
         with tempfile.TemporaryDirectory() as directory:

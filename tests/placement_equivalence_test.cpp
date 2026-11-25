@@ -185,7 +185,7 @@ static void qualify_inputs(const char *dictionary_path, const std::filesystem::p
             }
             visits.exceptions(std::ios::failbit | std::ios::badbit);
             visits.open(profile_path);
-            visits << "position,variant,down,row,start,length,empty,constrained,pattern_match,group_size,individual_checks\n";
+            visits << "position,variant,down,row,start,length,empty,constrained,pattern_match,group_size,individual_checks,lookups\n";
         }
         std::cout << "across,across_candidates,down,down_candidates\n";
         std::string line;

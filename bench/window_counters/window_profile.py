@@ -21,6 +21,8 @@ def window_histograms():
 
 def variant_profile():
     return dict(windows={kind: window_histograms() for kind in ("no_dictionary_match", "no_matching_group", "matching_groups")},
+                lookup_counts={direction: dict(calls=0, matched_windows=0, matched_windows_without_lookups=0)
+                               for direction in ("across", "down")},
                 groups_by_size=defaultdict(Counter), one_gap_groups=0, one_gap_candidates=0)
 
 
@@ -28,8 +30,9 @@ def summarize(visits, cases, variants, qualified):
     stages = {stage: dict(games=0, qualified_candidates=Counter(),
                           variants={name: variant_profile() for name in variants}) for stage in STAGES}
     observed = Counter()
-    window_key = itemgetter("position", "variant", "down", "empty", "constrained", "pattern_match", "row", "start", "length")
-    for (index, name, down, empty, constrained, pattern, *_), groups in groupby(csv.DictReader(visits), window_key):
+    window_key = itemgetter("position", "variant", "down", "empty", "constrained", "pattern_match", "lookups",
+                            "row", "start", "length")
+    for (index, name, down, empty, constrained, pattern, lookups, *_), groups in groupby(csv.DictReader(visits), window_key):
         case = cases[int(index)]
         profile = stages[case["stage"]]["variants"][name]
         candidates = 0
@@ -46,8 +49,12 @@ def summarize(visits, cases, variants, qualified):
                     profile["one_gap_candidates"] += size
 
         kind = "no_matching_group" if pattern == "1" else "no_dictionary_match"
+        lookup_counts = profile["lookup_counts"]["down" if down == "1" else "across"]
+        lookup_counts["calls"] += int(lookups)
         if candidates:
             kind = "matching_groups"
+            lookup_counts["matched_windows"] += 1
+            lookup_counts["matched_windows_without_lookups"] += int(lookups) == 0
         windows = profile["windows"][kind]
         windows["windows"] += 1
         windows["by_empty_squares"][int(empty)] += 1
@@ -69,7 +76,7 @@ def summarize(visits, cases, variants, qualified):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--variants", nargs="+", default=["packed", "one-gap"])
+    parser.add_argument("--variants", nargs="+", default=["packed", "one-gap", "empty-bits", "neighbor-bits"])
     parser.add_argument("--dictionary", type=Path, default=ROOT / "data/dictionaries/sample_dictionary.txt")
     args = parser.parse_args()
     if len(set(args.variants)) != len(args.variants):

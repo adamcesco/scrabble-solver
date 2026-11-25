@@ -16,8 +16,9 @@ inline constexpr auto row_window_tile_masks = [] {
 
 // Pass board.rows or board.perpendicularRows, a row in that view, and a limit in [0, 7].
 // Calls visit(start_column, pattern, empty_count) once per connected, complete window.
+// Returns the adjacent rows' occupancy union for perpendicular checks in this row.
 template <typename Visitor>
-void visit_row_windows(const Row (&rows)[BOARD_SIZE], uint8_t row_index, uint8_t empty_limit, Visitor &&visit)
+uint16_t visit_row_windows(const Row (&rows)[BOARD_SIZE], uint8_t row_index, uint8_t empty_limit, Visitor &&visit)
 {
     const Row &row = rows[row_index];
     const uint16_t neighbors = (row_index > 0 ? rows[row_index - 1].occupiedMask : 0)
@@ -51,6 +52,7 @@ void visit_row_windows(const Row (&rows)[BOARD_SIZE], uint8_t row_index, uint8_t
             visit(start, pattern, empty_count);
         }
     }
+    return neighbors;
 }
 
 #endif
