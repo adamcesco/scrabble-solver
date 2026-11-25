@@ -1,4 +1,4 @@
-"""Qualify two window counters, then time paired solves on each manifest's primary board and rack."""
+"""Qualify two window counters, then time them on each supplied board and rack."""
 import argparse
 import csv
 import io
@@ -8,9 +8,17 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 
-from paired_benchmark import ROOT, FIXTURE, qualify_positions, read_cases, select_cache, sha256
+from benchmark_inputs import ROOT, FIXTURE, Position, qualify_positions, read_manifest, select_cache, sha256
+
+
+@dataclass(frozen=True)
+class WindowCase:
+    name: str
+    stage: str
+    position: Position
 
 
 def window_build():
@@ -43,11 +51,11 @@ def paired_rows(worker, dictionary, cache, cases, variants, repetitions, counts)
     info = build_info(worker, dictionary)
     board_hashes = {p.board: sha256(p.board) for p in counts}
     schedule = list(paired_order(cases, repetitions))
-    requests = "".join(f"{case.first.board}\t{case.first.rack}\t{first}\n" for _, case, first in schedule)
+    requests = "".join(f"{case.position.board}\t{case.position.rack}\t{first}\n" for _, case, first in schedule)
     output = subprocess.check_output([worker, *variants, dictionary, cache], input=requests, text=True)
     observations = csv.reader(io.StringIO(output))
     for repetition, case, first in schedule:
-        position = case.first
+        position = case.position
         expected = counts[position]
         times = {}
         for index in (first, 1 - first):
@@ -69,7 +77,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--variants", nargs=2, metavar=("BASELINE", "CHALLENGER"), default=("packed", "one-gap"))
     parser.add_argument("--dictionary", type=Path, default=FIXTURE / "dictionary.txt")
-    parser.add_argument("--cases", type=Path, default=FIXTURE / "cases.csv")
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument("--cases", type=Path, help="CSV manifest of positions to compare")
+    inputs.add_argument("--board", type=Path, help="one board CSV to compare with --rack")
+    parser.add_argument("--rack", help="1-7 uppercase tiles for --board")
     parser.add_argument("--cache", type=Path, help="existing matching pattern cache")
     parser.add_argument("--repetitions", type=int, default=4)
     parser.add_argument("--build-dir", type=Path, default=os.environ.get("WINDOW_BUILD"), help=argparse.SUPPRESS)
@@ -78,12 +89,22 @@ def main():
         parser.error("expected positive repetitions and two distinct variant names")
     if args.cache is not None and not args.cache.is_file():
         parser.error(f"pattern cache missing: {args.cache}")
-    cases = read_cases(args.cases)
+    if (args.board is None) != (args.rack is None):
+        parser.error("--board and --rack must be supplied together")
+    try:
+        if args.board is not None:
+            cases = [WindowCase(args.board.stem, "single", Position.parse(args.board, args.rack))]
+        else:
+            manifest = args.cases or FIXTURE / "cases.csv"
+            cases = [WindowCase(row["case"], row["stage"], Position.from_row(manifest, row))
+                     for row in read_manifest(manifest)]
+    except (OSError, ValueError) as error:
+        parser.error(str(error))
     build = args.build_dir or window_build()
     worker = build / "window_worker"
     with tempfile.TemporaryDirectory() as directory:
         cache = select_cache(worker, args.dictionary, args.cache or Path(directory) / "patterns")
-        positions = (case.first for case in cases)
+        positions = (case.position for case in cases)
         counts = qualify_positions(args.dictionary, cache, positions, args.variants, build)
         rows = list(paired_rows(worker, args.dictionary, cache.path, cases, args.variants, args.repetitions, counts))
         writer = csv.DictWriter(sys.stdout, fieldnames=rows[0], lineterminator="\n")

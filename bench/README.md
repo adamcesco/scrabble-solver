@@ -4,7 +4,15 @@ Run from the repository root with Python 3.10+ and the C++17 toolchain.
 
 ## Compare window counters on prepared boards
 
-`make -s window-benchmark` qualifies and times `packed` and `one-gap` on the small fixture. Use `--variants BASELINE CHALLENGER` to select a different pair. The runner takes the primary board and rack of each case in the paired manifest. Each CSV row records both solve times in microseconds, their difference (baseline minus challenger), the run order, stage, directional counts, input fingerprints, compiler flags, worker fingerprint and CPU affinity.
+`make -s window-benchmark` qualifies and times `packed` and `one-gap` on the small fixture. Use `--variants BASELINE CHALLENGER` to select a different pair. Each CSV row records both solve times in microseconds, their difference (baseline minus challenger), the run order, stage, directional counts, input fingerprints, compiler flags, worker fingerprint and CPU affinity.
+
+To compare counters on one position, pass a board CSV and its rack. The board path is relative to the working directory. The output uses the board filename stem as the case name and `single` as the stage.
+
+```sh
+make -s window-benchmark BENCH_ARGS='--board bench/fixtures/paired/crossings.csv --rack RT'
+```
+
+For batches, pass `--cases` with a CSV headed `case,stage,board,rack`. Each case name must be distinct. Board paths are relative to the manifest and racks contain one to seven uppercase tiles in any order. Existing paired manifests work too. Window timing reads only these four fields.
 
 The qualifier compares each counter with place-and-restore on every measured position. It checks every empty square's allowed letters and compares candidate coordinates, words and decisions with duplicates retained in each direction. It also checks the restored rows and prepared grid identities, and the packed counter's lookup counts. The timing worker loads the same dictionary and pattern table once and prepares the board before each pair. Each pair runs two warm-up rounds, then one measured round. Both counters solve the same prepared board in the assigned order in all three rounds. The clock covers rack-subset generation, both directional counts and the final view swap. The runner checks both release counts against qualification before writing the CSV. Within each stage and repetition, successive cases alternate which counter goes first. Each case also reverses order on its next repetition.
 
@@ -14,9 +22,9 @@ The recorded runs used logical CPU 2 on an i7-6700K. Select an available CPU on 
 flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
 taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
     BENCH_ARGS='--variants packed one-gap --repetitions 20' > bench/results/window-fixture.csv
-python3 bench/sample_turns.py --verify bench/fixtures/pilot/corpus.json --benchmark-dir build/timing-pilot
+python3 bench/sample_turns.py --verify bench/fixtures/pilot/corpus.json --window-dir build/window-pilot
 taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
-    BENCH_ARGS='--variants packed one-gap --repetitions 20 --cases build/timing-pilot/cases.csv --dictionary data/dictionaries/sample_dictionary.txt' \
+    BENCH_ARGS='--variants packed one-gap --repetitions 20 --cases build/window-pilot/cases.csv --dictionary data/dictionaries/sample_dictionary.txt' \
     > bench/results/window-pilot.csv
 ```
 
@@ -84,7 +92,7 @@ From a clean checkout, the following command verifies every saved board, rack an
 python3 tests/sample_turns_test.py SampleTurnsTest.test_replays_every_saved_case_with_the_fixture_dictionary
 ```
 
-The optional benchmark export writes solver CSV boards and `cases.csv` for the paired runner below. For each case it takes the next different board in the same stage whose rack has at least two tiles, wrapping at the end. For the new-rack workload it removes the last recorded tile from that board's rack. A one-tile rack is still eligible for the first-board workload. Each case needs a suitable companion for export. Use the same dictionary for sampling and timing.
+Use `--window-dir` to export the sampled positions directly for window timing, including a sample of one turn. The `--benchmark-dir` export writes solver CSV boards and `cases.csv` for the paired validator runner below. For each case it takes the next different board in the same stage whose rack has at least two tiles, wrapping at the end. For the new-rack workload it removes the last recorded tile from that board's rack. A one-tile rack is still eligible for the first-board workload. Each case needs a suitable companion for export. Use the same dictionary for sampling and timing.
 
 ## Replay or resize the mass-scale corpus
 

@@ -42,6 +42,44 @@ def record_worker_caches(binary, directory):
 
 
 class PairedBenchmarkTest(unittest.TestCase):
+    def test_window_times_one_board_and_rack(self):
+        output = subprocess.check_output(
+            ["python3", "bench/window_benchmark.py", "--board", FIXTURE / "crossings.csv",
+             "--rack", "TR", "--repetitions", "1"], text=True)
+        row, = csv.DictReader(io.StringIO(output))
+        self.assertEqual(Path(row["board"]).resolve(), FIXTURE / "crossings.csv")
+        self.assertEqual((row["rack"], row["across"], row["down"]), ("RT", "2", "1"))
+
+    def test_only_paired_timing_requires_companion_fields(self):
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = Path(directory) / "cases.csv"
+            (manifest.parent / "board.csv").symlink_to(FIXTURE / "opening.csv")
+            for header, values in [("", ""), (",new_board,new_board_rack,additional_rack", ",missing.csv,RT,RST")]:
+                with self.subTest(header=header):
+                    manifest.write_text(f"case,stage,board,rack{header}\nopening,early,board.csv,TRA{values}\n")
+                    args = ["--cases", manifest, "--repetitions", "1"]
+                    output = subprocess.check_output(["python3", "bench/window_benchmark.py", *args], text=True)
+                    row, = csv.DictReader(io.StringIO(output))
+                    self.assertEqual((row["case"], row["stage"], row["rack"], row["across"], row["down"]),
+                                     ("opening", "early", "ART", "6", "6"))
+                    paired = subprocess.run(["python3", "bench/paired_benchmark.py", *args],
+                                            text=True, capture_output=True)
+                    self.assertNotEqual(paired.returncode, 0)
+                    self.assertIn("missing columns: new_board" if not header else "missing.csv", paired.stderr)
+                    self.assertEqual(paired.stdout, "")
+
+    def test_invalid_manifest_rack_identifies_the_case_and_column(self):
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = Path(directory) / "cases.csv"
+            manifest.write_text("case,stage,board,rack,new_board,new_board_rack,additional_rack\n"
+                                f"bad-reuse,early,{FIXTURE / 'opening.csv'},ART,{FIXTURE / 'crossings.csv'},RT,?\n")
+            result = subprocess.run(["python3", "bench/paired_benchmark.py", "--cases", manifest],
+                                    text=True, capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("bad-reuse", result.stderr)
+            self.assertIn("additional_rack", result.stderr)
+            self.assertEqual(result.stdout, "")
+
     def test_paired_window_solves(self):
         output = subprocess.check_output(
             ["python3", "bench/window_benchmark.py", "--variants", "packed", "one-gap", "--repetitions", "2"],
@@ -117,7 +155,7 @@ class PairedBenchmarkTest(unittest.TestCase):
                     self.assertEqual(probe.strip(), "match")
 
             # Offer a matching project cache alongside a caller-supplied file that cannot load.
-            shutil.copyfile(private, project_cache)
+            shutil.copyfile(outside / "absent", project_cache)
             explicit = outside / "explicit"
             explicit.write_bytes(b"invalid")
             result = subprocess.run([qualifier, dictionary, explicit], cwd=outside, input=b"", capture_output=True)
@@ -131,7 +169,7 @@ class PairedBenchmarkTest(unittest.TestCase):
             outside = Path(directory)
             runner = outside / "project/bench"
             runner.mkdir(parents=True)
-            for script in ("paired_benchmark.py", "window_benchmark.py"):
+            for script in ("benchmark_inputs.py", "window_benchmark.py"):
                 shutil.copyfile(Path("bench") / script, runner / script)
 
             # The tools' own project has a matching cache even when the runner's project doesn't.
@@ -186,7 +224,8 @@ class PairedBenchmarkTest(unittest.TestCase):
             project = Path(directory)
             runner = project / "bench/paired_benchmark.py"
             runner.parent.mkdir()
-            shutil.copyfile(Path("bench") / runner.name, runner)
+            for script in ("benchmark_inputs.py", runner.name):
+                shutil.copyfile(Path("bench") / script, runner.parent / script)
             build = project / "build"
             native = Path("build").resolve()
             qualifier = stage_qualifier(native, build)

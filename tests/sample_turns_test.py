@@ -159,6 +159,21 @@ class SampleTurnsTest(unittest.TestCase):
                             "middle" if case["turn"] <= middle_end else "late")
                 self.assertEqual(case["stage"], expected, case["game"])
 
+    def test_one_sampled_turn_can_be_timed_without_a_companion(self):
+        with tempfile.TemporaryDirectory() as directory:
+            corpus = json.loads(sample("--size", "1", "--window-dir", directory))
+            case, = corpus["cases"]
+            manifest = Path(directory) / "cases.csv"
+            with manifest.open() as stream:
+                exported, = csv.DictReader(stream)
+            self.assertEqual(set(exported), {"case", "stage", "board", "rack"})
+            timings = subprocess.check_output(
+                [sys.executable, "bench/window_benchmark.py", "--cases", manifest,
+                 "--dictionary", PILOT / "words.txt", "--repetitions", "1"], text=True)
+            row, = csv.DictReader(io.StringIO(timings))
+            self.assertEqual((row["case"], row["stage"], row["rack"]),
+                             (f"{case['game']}#{case['turn']}", case["stage"], "".join(sorted(case["rack"]))))
+
     def test_exports_the_pilot_for_all_paired_workloads(self):
         with tempfile.TemporaryDirectory() as directory:
             corpus = json.loads(sample("--benchmark-dir", directory))

@@ -1,7 +1,6 @@
 """Qualify a manifest, then emit one CSV row per paired workload (times in ms)."""
 import argparse
 import csv
-import hashlib
 import io
 import itertools
 import os
@@ -12,33 +11,7 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / "build"
-FIXTURE = ROOT / "bench/fixtures/paired"
-
-
-def sha256(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-@dataclass(frozen=True)
-class SelectedCache:
-    path: Path
-    existing: bool
-
-
-def select_cache(worker, dictionary, requested):
-    result = subprocess.check_output([worker, "--select-cache", dictionary, ROOT, requested])
-    state, path = result.split(b"\n", 1)
-    if state not in (b"existing", b"build"):
-        raise ValueError(f"unrecognized pattern cache selection: {state!r}")
-    return SelectedCache(Path(os.fsdecode(path)), state == b"existing")
-
-
-@dataclass(frozen=True)
-class Position:
-    board: Path
-    rack: str
+from benchmark_inputs import BUILD, FIXTURE, Position, qualify_positions, read_manifest, select_cache, warm_files
 
 
 @dataclass(frozen=True)
@@ -55,50 +28,19 @@ class Case:
 
 def read_cases(manifest):
     cases = []
-    with manifest.open(newline="") as stream:
-        for row in csv.DictReader(stream):
-            def position(board, rack):
-                tiles = row[rack]
-                if not 1 <= len(tiles) <= 7 or any(c < "A" or c > "Z" for c in tiles):
-                    raise ValueError(f"invalid {rack} in {row['case']}: {tiles!r}")
-                path = (manifest.parent / row[board]).resolve(strict=True)
-                if any(c in str(path) for c in "\n\r\t"):
-                    raise ValueError(f"unsupported control character in board path: {path!r}")
-                return Position(path, "".join(sorted(tiles)))
-
-            case = Case(row["case"], row["stage"], position("board", "rack"),
-                        position("new_board", "new_board_rack"), position("new_board", "additional_rack"))
-            if case.new_rack == case.new_board:
-                raise ValueError(f"{case.name}: additional rack must change the tiles")
-            cases.append(case)
-    if not cases or len({case.name for case in cases}) != len(cases):
-        raise ValueError("expected a nonempty manifest with distinct case names")
+    for row in read_manifest(manifest, ("new_board", "new_board_rack", "additional_rack")):
+        case = Case(row["case"], row["stage"], Position.from_row(manifest, row),
+                    Position.from_row(manifest, row, "new_board", "new_board_rack"),
+                    Position.from_row(manifest, row, "new_board", "additional_rack"))
+        if case.new_rack == case.new_board:
+            raise ValueError(f"{case.name}: additional rack must change the tiles")
+        cases.append(case)
     return cases
 
 
 def qualify(dictionary, shared_cache, cases):
     positions = (pos for case in cases for pos in case.workloads().values())
     return qualify_positions(dictionary, shared_cache, positions)
-
-
-def qualify_positions(dictionary, shared_cache, positions, variants=(), build=BUILD):
-    subprocess.run([build / "perpendicular_checks_test"], check=True)
-    positions = dict.fromkeys(positions)
-    requests = "".join(f"{pos.board}\t{pos.rack}\n" for pos in positions)
-    output = subprocess.check_output(
-        [build / "placement_equivalence_test", dictionary, shared_cache.path,
-         "--load-cache" if shared_cache.existing else "--build-cache", *variants],
-        input=requests, text=True)
-    rows = csv.DictReader(io.StringIO(output))
-    return {pos: {key: int(value) for key, value in row.items()}
-            for pos, row in zip(positions, rows, strict=True)}
-
-
-def warm_files(paths):
-    for path in dict.fromkeys(paths):
-        with path.open("rb") as stream:
-            while stream.read(1024 * 1024):
-                pass
 
 
 def observe(variant, condition, dictionary, shared_cache, case, counts):
@@ -129,7 +71,7 @@ def observe(variant, condition, dictionary, shared_cache, case, counts):
     return timings
 
 
-def paired_rows(dictionary, cache, cases, repetitions, counts, conditions):
+def paired_rows(dictionary, cache, cases: list[Case], repetitions: int, counts, conditions):
     for condition in conditions:
         group_indices = Counter()
         for repetition, case in itertools.product(range(1, repetitions + 1), cases):
@@ -158,7 +100,10 @@ def main():
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("--repetitions must be positive")
-    cases = read_cases(args.cases)
+    try:
+        cases = read_cases(args.cases)
+    except (OSError, ValueError) as error:
+        parser.error(str(error))
     with tempfile.TemporaryDirectory() as directory:
         if args.cache is not None and not args.cache.is_file():
             parser.error(f"pattern cache missing: {args.cache}")
