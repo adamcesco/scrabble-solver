@@ -12,7 +12,7 @@ FIXTURE = Path("bench/fixtures/paired")
 
 def report(dictionary, *cache):
     output = subprocess.check_output([
-        "python3", "bench/memory_benchmark.py", "--dictionary", dictionary,
+        "python3", "-m", "bench.memory.memory_benchmark", "--dictionary", dictionary,
         "--board", FIXTURE / "crossings.csv", "--rack", "RT", *cache,
     ], text=True, stderr=subprocess.PIPE)
     return {row["metric"]: row for row in csv.DictReader(io.StringIO(output))}

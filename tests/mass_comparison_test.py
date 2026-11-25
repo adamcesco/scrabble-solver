@@ -5,8 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bench"))
-from mass_comparison import Pair, WORKLOADS, games_per_stage, read_timings, summarize, recovery
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from bench.validator_comparison.mass_comparison import Pair, WORKLOADS, games_per_stage, read_timings, summarize, recovery
 
 
 class MassComparisonTest(unittest.TestCase):

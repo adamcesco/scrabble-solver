@@ -8,9 +8,9 @@ from itertools import islice
 from pathlib import Path
 from typing import NamedTuple, TypedDict
 
-from replay_game import eligible_turn, load_dictionary, replay, write_board_csv
+from bench.corpus.replay_game import eligible_turn, load_dictionary, replay, write_board_csv
 
-BENCH = Path(__file__).resolve().parent
+BENCH = Path(__file__).resolve().parents[1]
 PILOT = BENCH / "fixtures/pilot"
 STAGES = ("early", "middle", "late")
 

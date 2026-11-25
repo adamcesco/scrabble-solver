@@ -2,6 +2,16 @@
 
 Run from the repository root with Python 3.10+ and the C++17 toolchain.
 
+| Directory | What belongs here |
+| --- | --- |
+| [validator_comparison/](validator_comparison/) | Paired timing of the original and packed validators, including the mass comparison of their results. |
+| [window_counters/](window_counters/) | Qualification and timing of window counters on the same prepared board. |
+| [memory/](memory/) | Allocation tracing and memory comparisons for the first solve. |
+| [measurement_support/](measurement_support/) | Input handling, cache selection and solver code used by multiple measurements. |
+| [corpus/](corpus/) | Recorded-game import, replay, sampling and export of benchmark positions. |
+
+Each measurement owns its runner and native worker. Python code shared between measurements belongs in `measurement_support/`. `make check-bench-imports` checks this rule and runs as part of `make test`. Run the Python commands below as modules from the repository root.
+
 ## Compare window counters on prepared boards
 
 `make -s window-benchmark` qualifies and times `packed` and `one-gap` on the small fixture. Use `--variants BASELINE CHALLENGER` to select a different pair. Each CSV row records both solve times in microseconds, their difference (baseline minus challenger), the run order, stage, directional counts, input fingerprints, compiler flags, worker fingerprint and CPU affinity.
@@ -22,7 +32,7 @@ The recorded runs used logical CPU 2 on an i7-6700K. Select an available CPU on 
 flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
 taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
     BENCH_ARGS='--variants packed one-gap --repetitions 20' > bench/results/window-fixture.csv
-python3 bench/sample_turns.py --verify bench/fixtures/pilot/corpus.json --window-dir build/window-pilot
+python3 -m bench.corpus.sample_turns --verify bench/fixtures/pilot/corpus.json --window-dir build/window-pilot
 taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
     BENCH_ARGS='--variants packed one-gap --repetitions 20 --cases build/window-pilot/cases.csv --dictionary data/dictionaries/sample_dictionary.txt' \
     > bench/results/window-pilot.csv
@@ -51,9 +61,9 @@ Order affected these warm solves. Mean packed minus one-gap on the pilot was +1.
 The saved game contains all 20 placements and pre-move racks from Alec Sjoholm vs. Cesar Del Solar. Turns are numbered from one in playing order. The solver can use turns **2–6, 8, 10–16 and 18–20**. Turn 1 opens the board. On turns 7, 9 and 17 the rack contains a blank. Replay still applies those moves so later boards contain the assigned letters. [Recorded racks and moves](fixtures/replay/sjoholm-del-solar.csv) · [Original Macondo game record](https://github.com/domino14/macondo/blob/9fe4fe8cdf3b4e6cbcf42be5f205d463510c2e72/puzzles/testdata/well_played_game.gcg)
 
 ```sh
-python3 bench/replay_game.py
-python3 bench/replay_game.py --turn 18 --board-csv /tmp/turn-18.csv
-python3 bench/replay_game.py --turn 18 | cmp - bench/fixtures/replay/turn-18.json
+python3 -m bench.corpus.replay_game
+python3 -m bench.corpus.replay_game --turn 18 --board-csv /tmp/turn-18.csv
+python3 -m bench.corpus.replay_game --turn 18 | cmp - bench/fixtures/replay/turn-18.json
 ```
 
 The first command lists eligible turns. Selecting a turn prints the player's rack and all 15 board rows immediately before the play. Lowercase letters mark assigned blanks in the JSON. The solver CSV uses uppercase for every occupied square. At turn 18 Cesar held `AFFIIPW`. He placed `WAFFI` down C10–C14 through the E at C15 to form `WAFFIE`. Those five squares are empty in the saved position and occupied before turn 19. [Saved turn 18](fixtures/replay/turn-18.json)
@@ -80,10 +90,10 @@ The sampler ranks eligible turns from one in playing order and splits them into 
 The byte comparison below requires the project's separately supplied `data/dictionaries/sample_dictionary.txt` with SHA-256 `559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd`. Each saved case records this fingerprint.
 
 ```sh
-python3 bench/sample_turns.py --seed 10 | cmp - bench/fixtures/pilot/corpus.json
-python3 bench/replay_game.py --game bench/fixtures/pilot/games/6zTBhes669.csv \
+python3 -m bench.corpus.sample_turns --seed 10 | cmp - bench/fixtures/pilot/corpus.json
+python3 -m bench.corpus.replay_game --game bench/fixtures/pilot/games/6zTBhes669.csv \
     --dictionary data/dictionaries/sample_dictionary.txt --turn 25
-python3 bench/sample_turns.py --benchmark-dir /tmp/scrabble-pilot > /tmp/scrabble-pilot.json
+python3 -m bench.corpus.sample_turns --benchmark-dir /tmp/scrabble-pilot > /tmp/scrabble-pilot.json
 ```
 
 From a clean checkout, the following command verifies every saved board, rack and stage using the bundled 252-word dictionary. It covers every word played or formed in these six games. Each `game` path is relative to the input games manifest. To use a different collection or dictionary, pass `--games` or `--dictionary`. [Replay dictionary](fixtures/pilot/words.txt)
@@ -103,18 +113,18 @@ With the project dictionary in `data/dictionaries/sample_dictionary.txt`, these 
 ```sh
 mkdir -p build/mass-games
 tar -xzf bench/fixtures/mass/games.tar.gz -C build/mass-games
-python3 bench/sample_turns.py --games build/mass-games/games.csv \
+python3 -m bench.corpus.sample_turns --games build/mass-games/games.csv \
     --verify bench/fixtures/mass/corpus.json.gz --benchmark-dir build/mass-paired
 ```
 
 Set `--size` to the number of distinct games required. For example, the following selects 12,000 positions from the saved pool. The sampler gives leftover cases to the earlier stages. It compares boards as the solver reads them and racks by sorted letters, retaining every copy. If a pair repeats, it tries another eligible turn or game. If the pool cannot fill the quotas, the command exits with an error.
 
 ```sh
-python3 bench/sample_turns.py --games build/mass-games/games.csv \
+python3 -m bench.corpus.sample_turns --games build/mass-games/games.csv \
     --seed 11 --size 12000 > build/corpus-12000.json
 ```
 
-The bundled pool contains **12,592 games**. For larger samples, supply a larger `game,source` manifest with one recording per game. Paths are relative to the manifest. To inspect an individual selection, pass its game path and turn to `bench/replay_game.py` with the same dictionary.
+The bundled pool contains **12,592 games**. For larger samples, supply a larger `game,source` manifest with one recording per game. Paths are relative to the manifest. To inspect an individual selection, pass its game path and turn to `python3 -m bench.corpus.replay_game` with the same dictionary.
 
 The recordings come from Kevin McElwee's tile-value experiment. Of the selected games, 3,645 used traditional scoring and 6,355 used alternate tile values. The importer keeps complete games containing only placements and replays every move against the sample dictionary. This excludes games with exchanges or passes. The benchmark consumes board letters and actual racks. The tile values influence which moves Quackle played. [Pinned original game records](https://github.com/kmcelwee/scrabble/tree/b4c0ccf7c6db50399a3f867cb359b45c861292f0/data)
 
@@ -123,7 +133,7 @@ To rebuild the source pool from the original archive, run the following commands
 ```sh
 curl -fL https://codeload.github.com/kmcelwee/scrabble/tar.gz/b4c0ccf7c6db50399a3f867cb359b45c861292f0 \
     -o build/quackle-games.tar.gz
-python3 bench/import_quackle_games.py build/quackle-games.tar.gz build/imported-games
+python3 -m bench.corpus.import_quackle_games build/quackle-games.tar.gz build/imported-games
 diff -qr build/mass-games build/imported-games
 ```
 
@@ -160,18 +170,18 @@ Use the full project dictionary for both the six-game pilot and the verified Qua
 
 ```sh
 make build/placement_equivalence_test build/perpendicular_checks_test build/paired_worker
-python3 bench/sample_turns.py --verify bench/fixtures/pilot/corpus.json --benchmark-dir build/timing-pilot
+python3 -m bench.corpus.sample_turns --verify bench/fixtures/pilot/corpus.json --benchmark-dir build/timing-pilot
 dictionary=data/dictionaries/sample_dictionary.txt
 for condition in hit miss; do
     pilot=bench/results/pilot-$condition.csv
     pairs=bench/results/mass-$condition.csv
     cases=build/timing-$condition
-    taskset -c 2 python3 bench/paired_benchmark.py --dictionary "$dictionary" \
+    taskset -c 2 python3 -m bench.validator_comparison.paired_benchmark --dictionary "$dictionary" \
         --condition "$condition" --repetitions 1 --cases build/timing-pilot/cases.csv > "$pilot" || break
-    python3 bench/mass_comparison.py --condition "$condition" --pilot "$pilot" --benchmark-dir "$cases" || break
-    taskset -c 2 python3 bench/paired_benchmark.py --dictionary "$dictionary" \
+    python3 -m bench.validator_comparison.mass_comparison --condition "$condition" --pilot "$pilot" --benchmark-dir "$cases" || break
+    taskset -c 2 python3 -m bench.validator_comparison.paired_benchmark --dictionary "$dictionary" \
         --condition "$condition" --repetitions 1 --cases "$cases/cases.csv" > "$pairs" || break
-    python3 bench/mass_comparison.py --condition "$condition" --pilot "$pilot" --report "$pairs" || break
+    python3 -m bench.validator_comparison.mass_comparison --condition "$condition" --pilot "$pilot" --report "$pairs" || break
 done
 ```
 
@@ -184,7 +194,7 @@ The report uses 20,000 bootstrap draws with seed 15. Each draw samples whole pai
 Revision `691c1b0` ran 20 pairs per cache condition in manifest order. Both workers used the same executable, built with Ubuntu Clang 18.1.3 and `-std=c++17 -O2 -Wall -Wextra -Iinclude`, the default glibc 2.39 allocator, and logical CPU 2 of an Intel Core i7-6700K under x86-64 Linux on WSL2. Inputs and temporary caches were on ext4 with the pre-read policy described above.
 
 ```sh
-taskset -c 2 python3 bench/paired_benchmark.py --repetitions 20 > bench/results/paired-fixture.csv
+taskset -c 2 python3 -m bench.validator_comparison.paired_benchmark --repetitions 20 > bench/results/paired-fixture.csv
 ```
 
 Each entry is an arithmetic mean over the 20 pairs. The last column gives the sample standard deviation of the within-pair differences.

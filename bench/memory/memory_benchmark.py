@@ -7,7 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from benchmark_inputs import BUILD, ROOT, select_cache, sha256, warm_files
+from bench.measurement_support.benchmark_inputs import BUILD, ROOT, select_cache, sha256, warm_files
 
 FULL_DICTIONARY = ROOT / "data/dictionaries/sample_dictionary.txt"
 SAMPLE_BOARD = ROOT / "data/boards/sample_board.csv"

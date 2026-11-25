@@ -11,13 +11,14 @@ import unittest
 from collections import Counter
 from pathlib import Path
 
+SAMPLER = [sys.executable, "-m", "bench.corpus.sample_turns"]
 PILOT = Path("bench/fixtures/pilot")
 MASS = Path("bench/fixtures/mass")
 TIMING_DICTIONARY = Path("data/dictionaries/sample_dictionary.txt")
 
 
 def sample(*args):
-    return subprocess.check_output([sys.executable, "bench/sample_turns.py",
+    return subprocess.check_output([*SAMPLER,
                                     "--dictionary", PILOT / "words.txt", *args], text=True)
 
 
@@ -41,7 +42,7 @@ class SampleTurnsTest(unittest.TestCase):
             root = Path(tmp)
             subprocess.run(["tar", "-xzf", MASS / "games.tar.gz", "-C", root], check=True)
             export = root / "paired"
-            summary = subprocess.check_output([sys.executable, "bench/sample_turns.py",
+            summary = subprocess.check_output([*SAMPLER,
                                                "--games", root / "games.csv", "--verify", MASS / "corpus.json.gz",
                                                "--benchmark-dir", export], text=True)
             self.assertIn("Verified 10000 cases in order", summary)
@@ -74,7 +75,7 @@ class SampleTurnsTest(unittest.TestCase):
             corpus["cases"].reverse()
             path.write_bytes(gzip.compress(json.dumps(corpus).encode()))
             with self.assertRaises(subprocess.CalledProcessError) as caught:
-                subprocess.check_output([sys.executable, "bench/sample_turns.py", "--verify", path,
+                subprocess.check_output([*SAMPLER, "--verify", path,
                                          "--dictionary", PILOT / "words.txt"], stderr=subprocess.STDOUT)
             self.assertIn(b"case 1", caught.exception.output)
 
@@ -90,7 +91,7 @@ class SampleTurnsTest(unittest.TestCase):
             for rack in ("TSS", "STT"):
                 (root / "second.csv").write_text(
                     header + f"A,EA,8H,EA\nB,T,8H,..T\nA,{rack},8H,...S\n")
-                run = subprocess.run([sys.executable, "bench/sample_turns.py", "--games", manifest,
+                run = subprocess.run([*SAMPLER, "--games", manifest,
                                       "--dictionary", dictionary], text=True, capture_output=True)
                 if rack == "TSS":
                     self.assertNotEqual(run.returncode, 0)
@@ -118,7 +119,7 @@ class SampleTurnsTest(unittest.TestCase):
 
     @unittest.skipUnless(TIMING_DICTIONARY.is_file(), "full timing dictionary is supplied separately")
     def test_reproduces_the_committed_corpus_byte_for_byte(self):
-        output = subprocess.check_output([sys.executable, "bench/sample_turns.py", "--seed", "10"])
+        output = subprocess.check_output([*SAMPLER, "--seed", "10"])
         self.assertEqual(output, (PILOT / "corpus.json").read_bytes())
 
     def test_replays_every_saved_case_with_the_fixture_dictionary(self):
@@ -132,7 +133,7 @@ class SampleTurnsTest(unittest.TestCase):
         self.assertEqual(corpus["stage_counts"], saved["stage_counts"])
         for case, expected in zip(corpus["cases"], saved["cases"], strict=True):
             replay = json.loads(subprocess.check_output([
-                sys.executable, "bench/replay_game.py", "--game", PILOT / case["game"],
+                sys.executable, "-m", "bench.corpus.replay_game", "--game", PILOT / case["game"],
                 "--dictionary", dictionary, "--turn", str(case["turn"])]))
             self.assertEqual((case["board"], case["rack"]), (replay["board"], replay["rack"]))
             self.assertEqual(case["dictionary_sha256"], fingerprint)
@@ -168,7 +169,7 @@ class SampleTurnsTest(unittest.TestCase):
                 exported, = csv.DictReader(stream)
             self.assertEqual(set(exported), {"case", "stage", "board", "rack"})
             timings = subprocess.check_output(
-                [sys.executable, "bench/window_benchmark.py", "--cases", manifest,
+                [sys.executable, "-m", "bench.window_counters.window_benchmark", "--cases", manifest,
                  "--dictionary", PILOT / "words.txt", "--repetitions", "1"], text=True)
             row, = csv.DictReader(io.StringIO(timings))
             self.assertEqual((row["case"], row["stage"], row["rack"]),
@@ -191,7 +192,7 @@ class SampleTurnsTest(unittest.TestCase):
                 self.assertEqual((row["stage"], row["new_board_rack"]),
                                  (companion["stage"], companion["rack"]))
             timings = subprocess.check_output(
-                [sys.executable, "bench/paired_benchmark.py", "--cases", manifest,
+                [sys.executable, "-m", "bench.validator_comparison.paired_benchmark", "--cases", manifest,
                  "--dictionary", PILOT / "words.txt", "--repetitions", "1"], text=True)
             self.assertEqual(len(list(csv.DictReader(io.StringIO(timings)))), 36)
 

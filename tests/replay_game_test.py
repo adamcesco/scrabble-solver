@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+REPLAY = [sys.executable, "-m", "bench.corpus.replay_game"]
 FIXTURE = Path("bench/fixtures/replay")
 ACROSS, DOWN = 0, 1
 # Complete words at their zero-based row and start in the solver's directional view.
@@ -30,7 +31,7 @@ RECORDED_PLAYS = {
 
 
 def replay(*args):
-    return subprocess.check_output([sys.executable, "bench/replay_game.py", *args], text=True)
+    return subprocess.check_output([*REPLAY, *args], text=True)
 
 
 class ReplayGameTest(unittest.TestCase):
@@ -46,7 +47,7 @@ class ReplayGameTest(unittest.TestCase):
         self.assertEqual(json.loads(replay()), list(RECORDED_PLAYS))
 
     def test_blank_rack_is_ineligible_even_when_the_player_keeps_the_blank(self):
-        result = subprocess.run([sys.executable, "bench/replay_game.py", "--turn", "7"],
+        result = subprocess.run([*REPLAY, "--turn", "7"],
                                 capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("turn 7 is ineligible", result.stderr)
@@ -57,7 +58,7 @@ class ReplayGameTest(unittest.TestCase):
             words = (FIXTURE / "words.txt").read_text().splitlines()
             words.remove("MIGHTY")  # The Y in WYN extends the opening word.
             dictionary.write_text("\n".join(words))
-            result = subprocess.run([sys.executable, "bench/replay_game.py", "--dictionary", dictionary],
+            result = subprocess.run([*REPLAY, "--dictionary", dictionary],
                                     capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("turn 6: word MIGHTY is absent", result.stderr)

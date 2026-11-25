@@ -6,7 +6,7 @@ import re
 import tarfile
 from pathlib import Path
 
-from replay_game import load_dictionary, replay_events
+from bench.corpus.replay_game import load_dictionary, replay_events
 
 REVISION = "b4c0ccf7c6db50399a3f867cb359b45c861292f0"
 ARCHIVE_SHA256 = "e2ec01161abe1fd6a21647914441cb1797784215e4d24e3ac472aac30455beeb"

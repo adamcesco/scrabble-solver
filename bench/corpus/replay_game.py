@@ -7,7 +7,7 @@ import re
 from collections import Counter
 from pathlib import Path
 
-FIXTURE = Path(__file__).resolve().parent / "fixtures/replay"
+FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/replay"
 GAME = FIXTURE / "sjoholm-del-solar.csv"
 SIZE = 15
 

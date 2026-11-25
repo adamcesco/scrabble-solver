@@ -11,7 +11,7 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-from benchmark_inputs import ROOT, FIXTURE, Position, qualify_positions, read_manifest, select_cache, sha256
+from bench.measurement_support.benchmark_inputs import ROOT, FIXTURE, Position, qualify_positions, read_manifest, select_cache, sha256
 
 
 @dataclass(frozen=True)

@@ -11,7 +11,7 @@ from pathlib import Path
 from statistics import fmean, quantiles, variance
 from typing import NamedTuple
 
-from sample_turns import BENCH, PILOT, STAGES, write_benchmark
+from bench.corpus.sample_turns import BENCH, PILOT, STAGES, write_benchmark
 
 MASS = BENCH / "fixtures/mass/corpus.json.gz"
 WORKLOADS = ("first_board", "new_board", "new_rack")

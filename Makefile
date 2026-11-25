@@ -17,8 +17,8 @@ SOLVER_HEADERS = include/rack_oriented_solver.h include/row_windows.h include/va
                 include/board.h include/utils.h include/dictionary.h $(DICTIONARY_SRC:src/%.cpp=include/%.h)
 RACK_ORIENTED_SOLVER_TEST_SRC = tests/rack_oriented_solver_test.cpp $(SOLVER_SRC)
 COMPARISON_SRC = tests/placement_comparison.cpp $(SOLVER_SRC)
-WINDOW_HEADERS = bench/window_variants.h bench/benchmark_solver.h
-WINDOW_FLAGS = -DSCRABBLE_WINDOW_VARIANTS -Ibench
+WINDOW_HEADERS = bench/window_counters/window_variants.h bench/measurement_support/benchmark_solver.h
+WINDOW_FLAGS = -DSCRABBLE_WINDOW_VARIANTS -Ibench/window_counters -Ibench/measurement_support
 # Keep a run's qualifier, worker and embedded build details together across concurrent configurations.
 WINDOW_CONFIG := $(shell printf '%s\n' '$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS)' | git hash-object --stdin)
 WINDOW_BUILD = build/window/$(WINDOW_CONFIG)
@@ -110,31 +110,31 @@ $(SOLVER_BENCHMARK_TARGET): $(SOLVER_BENCHMARK_SRC)
 	mkdir -p build
 	$(CXX) $(CXXFLAGS) -o $@ $(SOLVER_BENCHMARK_SRC)
 
-build/paired_worker: bench/paired_worker.cpp bench/benchmark_solver.h $(SOLVER_SRC) $(SOLVER_HEADERS)
+build/paired_worker: bench/validator_comparison/paired_worker.cpp bench/measurement_support/benchmark_solver.h $(SOLVER_SRC) $(SOLVER_HEADERS)
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) -o $@ bench/paired_worker.cpp $(SOLVER_SRC)
+	$(CXX) $(CXXFLAGS) -Ibench/measurement_support -o $@ bench/validator_comparison/paired_worker.cpp $(SOLVER_SRC)
 
-$(WINDOW_BUILD)/window_worker: bench/window_worker.cpp $(WINDOW_HEADERS) $(SOLVER_SRC) $(SOLVER_HEADERS)
+$(WINDOW_BUILD)/window_worker: bench/window_counters/window_worker.cpp $(WINDOW_HEADERS) $(SOLVER_SRC) $(SOLVER_HEADERS)
 	mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -DWINDOW_BUILD_FLAGS='"$(CXXFLAGS) $(WINDOW_FLAGS)"' -o $@.$$$$ bench/window_worker.cpp $(SOLVER_SRC) && mv $@.$$$$ $@
+	$(CXX) $(CXXFLAGS) $(WINDOW_FLAGS) -DWINDOW_BUILD_FLAGS='"$(CXXFLAGS) $(WINDOW_FLAGS)"' -o $@.$$$$ bench/window_counters/window_worker.cpp $(SOLVER_SRC) && mv $@.$$$$ $@
 
 window-tools: $(WINDOW_TOOLS)
 	@echo $(WINDOW_BUILD)
 
 window-benchmark: $(WINDOW_TOOLS)
-	python3 bench/window_benchmark.py --build-dir $(WINDOW_BUILD) $(BENCH_ARGS)
+	python3 -m bench.window_counters.window_benchmark --build-dir $(WINDOW_BUILD) $(BENCH_ARGS)
 
 # Allocation entry points used by the solver on x86-64 Linux with libstdc++.
 MEMORY_WRAP = $(foreach name,malloc calloc free _Znwm _ZdlPv _ZdlPvm,-Wl,--wrap=$(name))
-build/memory_worker: bench/memory_worker.cpp bench/memory_trace.cpp bench/memory_trace.h bench/benchmark_solver.h $(SOLVER_SRC) $(SOLVER_HEADERS)
+build/memory_worker: bench/memory/memory_worker.cpp bench/memory/memory_trace.cpp bench/memory/memory_trace.h bench/measurement_support/benchmark_solver.h $(SOLVER_SRC) $(SOLVER_HEADERS)
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) -DSCRABBLE_MEMORY_TRACE -Ibench -o $@ bench/memory_worker.cpp bench/memory_trace.cpp $(SOLVER_SRC) $(MEMORY_WRAP)
+	$(CXX) $(CXXFLAGS) -DSCRABBLE_MEMORY_TRACE -Ibench/memory -Ibench/measurement_support -o $@ bench/memory/memory_worker.cpp bench/memory/memory_trace.cpp $(SOLVER_SRC) $(MEMORY_WRAP)
 
 memory-benchmark: build/memory_worker
-	python3 bench/memory_benchmark.py $(BENCH_ARGS)
+	python3 -m bench.memory.memory_benchmark $(BENCH_ARGS)
 
 paired-benchmark: build/paired_worker $(PERPENDICULAR_CHECKS_TEST_TARGET) $(PLACEMENT_EQUIVALENCE_TEST_TARGET)
-	python3 bench/paired_benchmark.py $(BENCH_ARGS)
+	python3 -m bench.validator_comparison.paired_benchmark $(BENCH_ARGS)
 
 test-memory: build/memory_worker
 	python3 tests/memory_benchmark_test.py
@@ -149,7 +149,10 @@ endif
 endif
 endif
 
-test: $(TEST_TARGETS) build/paired_worker $(WINDOW_TOOLS)
+check-bench-imports:
+	python3 tests/bench_imports_test.py
+
+test: check-bench-imports $(TEST_TARGETS) build/paired_worker $(WINDOW_TOOLS)
 	./$(BOARD_FROM_CSV_TEST_TARGET)
 	./$(CONFIG_MAPS_TEST_TARGET)
 	./$(MAKE_ROW_TEST_TARGET)
@@ -162,6 +165,7 @@ test: $(TEST_TARGETS) build/paired_worker $(WINDOW_TOOLS)
 	./$(PERPENDICULAR_CHECKS_TEST_TARGET)
 	./$(RACK_ORIENTED_SOLVER_TEST_TARGET)
 	./$(PLACEMENT_EQUIVALENCE_TEST_TARGET)
+	WINDOW_BUILD=$(abspath $(WINDOW_BUILD)) python3 tests/window_benchmark_test.py
 	WINDOW_BUILD=$(abspath $(WINDOW_BUILD)) python3 tests/paired_benchmark_test.py
 	python3 tests/mass_comparison_test.py
 	python3 tests/replay_game_test.py
@@ -173,4 +177,4 @@ benchmark: $(SOLVER_BENCHMARK_TARGET)
 clean:
 	rm -rf build/
 
-.PHONY: all test test-memory benchmark paired-benchmark memory-benchmark window-benchmark window-tools clean
+.PHONY: all test check-bench-imports test-memory benchmark paired-benchmark memory-benchmark window-benchmark window-tools clean

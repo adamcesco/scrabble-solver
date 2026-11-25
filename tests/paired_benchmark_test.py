@@ -1,4 +1,4 @@
-"""Exercise the paired report through the same runner used for larger manifests."""
+"""Exercise the paired validator report and the shared manifest rules."""
 import csv
 import io
 import os
@@ -9,47 +9,13 @@ import unittest
 from collections import defaultdict
 from pathlib import Path
 
-
-PROJECT_CACHE = Path("data/caches/pattern_and_rack_anagram_to_words.cache")
-FIXTURE = Path("bench/fixtures/paired").resolve()
-
-
-def window_build():
-    directory = os.environ.get("WINDOW_BUILD") or subprocess.check_output(
-        ["make", "-s", "--no-print-directory", "window-tools"], text=True).strip()
-    return Path(directory).resolve()
-
-
-def stage_qualifier(binaries, directory):
-    directory.mkdir(parents=True)
-    qualifier = directory / "placement_equivalence_test"
-    qualifier.symlink_to(binaries / qualifier.name)
-    return qualifier
-
-
-def seed_cache(qualifier, dictionary, cache, cwd):
-    subprocess.run([qualifier, dictionary, cache], cwd=cwd, input=b"", check=True, capture_output=True)
-
-
-def record_worker_caches(binary, directory):
-    # Paired and window workers both take the timing cache as their fourth argument.
-    worker = directory / binary.name
-    worker.with_suffix(".native").symlink_to(binary)
-    worker.write_text('#!/bin/sh\ncase "$1" in --*) ;; *) printf "%s\\0" "$4" >> "$0.paths" ;; esac\n'
-                      'exec "$0.native" "$@"\n')
-    worker.chmod(0o755)
-    return worker.with_suffix(".paths")
+from benchmark_test_support import (
+    FIXTURE, PAIRED, PROJECT_CACHE, WINDOW, record_worker_caches, seed_cache,
+    stage_benchmark_code, stage_qualifier, window_build,
+)
 
 
 class PairedBenchmarkTest(unittest.TestCase):
-    def test_window_times_one_board_and_rack(self):
-        output = subprocess.check_output(
-            ["python3", "bench/window_benchmark.py", "--board", FIXTURE / "crossings.csv",
-             "--rack", "TR", "--repetitions", "1"], text=True)
-        row, = csv.DictReader(io.StringIO(output))
-        self.assertEqual(Path(row["board"]).resolve(), FIXTURE / "crossings.csv")
-        self.assertEqual((row["rack"], row["across"], row["down"]), ("RT", "2", "1"))
-
     def test_only_paired_timing_requires_companion_fields(self):
         with tempfile.TemporaryDirectory() as directory:
             manifest = Path(directory) / "cases.csv"
@@ -58,11 +24,11 @@ class PairedBenchmarkTest(unittest.TestCase):
                 with self.subTest(header=header):
                     manifest.write_text(f"case,stage,board,rack{header}\nopening,early,board.csv,TRA{values}\n")
                     args = ["--cases", manifest, "--repetitions", "1"]
-                    output = subprocess.check_output(["python3", "bench/window_benchmark.py", *args], text=True)
+                    output = subprocess.check_output([*WINDOW, *args], text=True)
                     row, = csv.DictReader(io.StringIO(output))
                     self.assertEqual((row["case"], row["stage"], row["rack"], row["across"], row["down"]),
                                      ("opening", "early", "ART", "6", "6"))
-                    paired = subprocess.run(["python3", "bench/paired_benchmark.py", *args],
+                    paired = subprocess.run([*PAIRED, *args],
                                             text=True, capture_output=True)
                     self.assertNotEqual(paired.returncode, 0)
                     self.assertIn("missing columns: new_board" if not header else "missing.csv", paired.stderr)
@@ -73,42 +39,11 @@ class PairedBenchmarkTest(unittest.TestCase):
             manifest = Path(directory) / "cases.csv"
             manifest.write_text("case,stage,board,rack,new_board,new_board_rack,additional_rack\n"
                                 f"bad-reuse,early,{FIXTURE / 'opening.csv'},ART,{FIXTURE / 'crossings.csv'},RT,?\n")
-            result = subprocess.run(["python3", "bench/paired_benchmark.py", "--cases", manifest],
+            result = subprocess.run([*PAIRED, "--cases", manifest],
                                     text=True, capture_output=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("bad-reuse", result.stderr)
             self.assertIn("additional_rack", result.stderr)
-            self.assertEqual(result.stdout, "")
-
-    def test_paired_window_solves(self):
-        output = subprocess.check_output(
-            ["python3", "bench/window_benchmark.py", "--variants", "packed", "one-gap", "--repetitions", "2"],
-            text=True)
-        rows = list(csv.DictReader(io.StringIO(output)))
-        self.assertEqual([r["first_variant"] for r in rows], ["packed", "one-gap"])
-        for row in rows:
-            self.assertEqual((row["across"], row["down"], row["rack"]), ("6", "6", "ART"))
-            self.assertEqual((row["baseline"], row["challenger"]), ("packed", "one-gap"))
-            baseline, challenger = float(row["baseline_solve_us"]), float(row["challenger_solve_us"])
-            self.assertGreater(min(baseline, challenger), 0)
-            self.assertAlmostEqual(float(row["saving_us"]), baseline - challenger)
-
-    def test_qualify_named_window_counters_on_same_input(self):
-        fixture = Path("bench/fixtures/paired")
-        with tempfile.TemporaryDirectory() as directory:
-            counts = subprocess.check_output(
-                ["build/placement_equivalence_test", fixture / "dictionary.txt",
-                 Path(directory) / "patterns", "packed", "one-gap"],
-                input=f"{fixture / 'crossings.csv'}\tRT\n", text=True)
-            self.assertEqual(list(csv.reader(io.StringIO(counts)))[1:], [["2", "4", "1", "5"]])
-
-    def test_unknown_window_counter_prevents_timing(self):
-        directory = window_build()
-        for command in (["python3", "bench/window_benchmark.py", "--variants", "packed", "absent"],
-                        [directory / "window_worker", "packed", "absent", "unused-dictionary", "unused-cache"]):
-            result = subprocess.run(command, text=True, capture_output=True)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("unknown window counter: absent", result.stderr)
             self.assertEqual(result.stdout, "")
 
     def test_standalone_qualification_finds_matching_project_cache(self):
@@ -162,70 +97,11 @@ class PairedBenchmarkTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(explicit.read_bytes(), b"invalid")
 
-    def test_window_worker_loads_the_file_used_for_qualification(self):
-        dictionary = FIXTURE / "dictionary.txt"
-        binaries = window_build()
-        with tempfile.TemporaryDirectory() as directory:
-            outside = Path(directory)
-            runner = outside / "project/bench"
-            runner.mkdir(parents=True)
-            for script in ("benchmark_inputs.py", "window_benchmark.py"):
-                shutil.copyfile(Path("bench") / script, runner / script)
-
-            # The tools' own project has a matching cache even when the runner's project doesn't.
-            tools = outside / "tools"
-            build = tools / "build/window" / binaries.name
-            qualifier = stage_qualifier(binaries, build)
-            (build / "perpendicular_checks_test").symlink_to(binaries / "perpendicular_checks_test")
-            paths = record_worker_caches(binaries / "window_worker", build)
-            tools_cache = tools / PROJECT_CACHE
-            tools_cache.parent.mkdir(parents=True)
-            seed_cache(qualifier, dictionary, tools_cache, outside)
-
-            project_cache = runner.parent / PROJECT_CACHE
-            project_cache.parent.mkdir(parents=True)
-            explicit = outside / "explicit patterns"
-            shutil.copyfile(tools_cache, explicit)
-            for case in ("absent", "mismatched", "matching", "explicit"):
-                with self.subTest(case=case):
-                    options = []
-                    project_cache.unlink(missing_ok=True)
-                    if case == "mismatched":
-                        other = outside / "other-dictionary"
-                        other.write_bytes(dictionary.read_bytes() + b"\nZZ\n")
-                        seed_cache(qualifier, other, project_cache, outside)
-                    elif case in ("matching", "explicit"):
-                        shutil.copyfile(tools_cache, project_cache)
-                    if case == "explicit":
-                        options = ["--cache", explicit]
-                    before = project_cache.read_bytes() if project_cache.exists() else None
-                    paths.write_bytes(b"")
-                    result = subprocess.run(["python3", runner / "window_benchmark.py", "--build-dir", build,
-                                             "--dictionary", dictionary, "--cases", FIXTURE / "cases.csv",
-                                             "--repetitions", "1", *options], cwd=outside, capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 0, result.stderr)
-                    timed_path, terminator = paths.read_bytes().split(b"\0")
-                    self.assertEqual(terminator, b"")
-                    timed = Path(os.fsdecode(timed_path))
-                    if case in ("matching", "explicit"):
-                        self.assertEqual(timed, explicit if options else project_cache)
-                        action = "loading"
-                    else:
-                        self.assertNotIn(timed, (tools_cache, project_cache, explicit))
-                        action = "building"
-                    self.assertIn(f'Qualification {action} "{timed}"', result.stderr)
-                    self.assertEqual(project_cache.read_bytes() if project_cache.exists() else None, before)
-                    row, = csv.DictReader(io.StringIO(result.stdout))
-                    self.assertEqual((row["across"], row["down"]), ("6", "6"))
-
     def test_existing_pattern_cache_survives_qualification_and_timing(self):
         dictionary = FIXTURE / "dictionary.txt"
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
-            runner = project / "bench/paired_benchmark.py"
-            runner.parent.mkdir()
-            for script in ("benchmark_inputs.py", runner.name):
-                shutil.copyfile(Path("bench") / script, runner.parent / script)
+            stage_benchmark_code(project)
             build = project / "build"
             native = Path("build").resolve()
             qualifier = stage_qualifier(native, build)
@@ -238,9 +114,9 @@ class PairedBenchmarkTest(unittest.TestCase):
             for condition, options in [("hit", ["--cache", cache]), ("miss", ["--condition", "miss"])]:
                 with self.subTest(condition=condition):
                     paths.write_bytes(b"")
-                    result = subprocess.run(["python3", runner, "--dictionary", dictionary, "--cases",
+                    result = subprocess.run([*PAIRED, "--dictionary", dictionary, "--cases",
                                              FIXTURE / "cases.csv", "--repetitions", "1", *options],
-                                            capture_output=True, text=True, check=True)
+                                            cwd=project, capture_output=True, text=True, check=True)
                     self.assertIn(f'Qualification loading "{cache}"', result.stderr)
                     self.assertEqual(cache.stat().st_mtime_ns, modified)
                     self.assertEqual([r["cache"] for r in csv.DictReader(io.StringIO(result.stdout))], [condition] * 3)
@@ -257,7 +133,7 @@ class PairedBenchmarkTest(unittest.TestCase):
             # AS and SAT remain legal. The second board also contains TO.
             dictionary.write_text("AS\nSAT\nAR\nAT\nRAT\nTAR\n")
             result = subprocess.run(
-                ["python3", "bench/paired_benchmark.py", "--dictionary", dictionary],
+                [*PAIRED, "--dictionary", dictionary],
                 capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("illegal run TO", result.stderr)
@@ -265,7 +141,7 @@ class PairedBenchmarkTest(unittest.TestCase):
 
     def test_fixture_report(self):
         output = subprocess.check_output(
-            ["python3", "bench/paired_benchmark.py", "--repetitions", "2"], text=True)
+            [*PAIRED, "--repetitions", "2"], text=True)
         groups = defaultdict(list)
         for row in csv.DictReader(io.StringIO(output)):
             groups[row["cache"], row["workload"]].append(row)
