@@ -116,15 +116,14 @@ class WindowBenchmarkTest(unittest.TestCase):
             self.assertEqual(any(int(r["individual_checks"]) for r in single), variant == "packed")
 
         cases = [{"case": "RT", "stage": "early"}]
-        stage = summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 4, "down_candidates": 5}])["early"]
+        stage = summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 4, "down_candidates": 5}],
+                          gap_checks=True)["early"]
         self.assertEqual(stage["variants"]["one-gap"]["groups_by_size"][2],
                          {"groups": 2, "candidate_words": 4, "individual_checks": 2})
         self.assertEqual(stage["variants"]["packed"]["windows"]["matching_groups"]["by_candidates"], {1: 1, 2: 4})
-        gap_stage = summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 4, "down_candidates": 5}],
-                              gap_checks=True)["early"]["variants"]
-        self.assertEqual(gap_stage["packed"]["gap_evaluation"],
+        self.assertEqual(stage["variants"]["packed"]["gap_evaluation"],
                          dict(candidates=9, checked_candidates=5, gap_checks=7, first_failures={1: 1, 2: 1}))
-        self.assertEqual(gap_stage["one-gap"]["gap_evaluation"],
+        self.assertEqual(stage["variants"]["one-gap"]["gap_evaluation"],
                          dict(candidates=9, checked_candidates=2, gap_checks=4, first_failures={2: 1}))
         # Matching the combined total is insufficient if either direction is wrong.
         with self.assertRaisesRegex(ValueError, "RT packed across"):

@@ -284,28 +284,6 @@ struct GapDescriptors {
     void set(uint8_t i, uint8_t offset, uint32_t letters) { entries[i] = {offset, letters}; }
     uint8_t offset_at(uint8_t i) const { return entries[i].offset; }
     uint32_t letters_at(uint8_t i) const { return entries[i].letters; }
-
-    void order_by_selectivity(uint8_t count)
-    {
-        if (count < 2) {
-            return;
-        }
-        // Stable insertion sort of at most seven gaps, counting each mask's letters once.
-        unsigned char sizes[MAX_RACK_TILES];
-        sizes[0] = __builtin_popcount(entries[0].letters);
-        for (uint8_t i = 1; i < count; ++i) {
-            const Gap gap = entries[i];
-            const auto size = __builtin_popcount(gap.letters);
-            uint8_t j = i;
-            while (j > 0 && sizes[j - 1] > size) {
-                entries[j] = entries[j - 1];
-                sizes[j] = sizes[j - 1];
-                --j;
-            }
-            entries[j] = gap;
-            sizes[j] = size;
-        }
-    }
 };
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
@@ -366,6 +344,33 @@ struct GapChecks {
         return accepted;
     }
 };
+
+#ifdef SCRABBLE_WINDOW_VARIANTS
+inline void order_by_selectivity(GapChecks<GapDescriptors> &checks)
+{
+    const uint8_t count = checks.gap_count;
+    auto &entries = checks.gaps.entries;
+    if (count < 2) {
+        return;
+    }
+    // Stable insertion sort of at most seven gaps, counting each mask's letters once.
+    unsigned char sizes[MAX_RACK_TILES];
+    sizes[0] = __builtin_popcount(entries[0].letters);
+    for (uint8_t i = 1; i < count; ++i) {
+        const auto gap = entries[i];
+        const auto size = __builtin_popcount(gap.letters);
+        uint8_t j = i;
+        while (j > 0 && sizes[j - 1] > size) {
+            entries[j] = entries[j - 1];
+            sizes[j] = sizes[j - 1];
+            --j;
+        }
+        entries[j] = gap;
+        sizes[j] = size;
+    }
+}
+
+#endif
 
 struct GroupWords {
     const WordTable &dictionary;
@@ -529,7 +534,7 @@ struct WindowCounter {
                 masks.emplace(checks, window, neighbors);
             }
             if constexpr (order == GapOrder::selectivity) {
-                masks->gaps.order_by_selectivity(masks->gap_count);
+                order_by_selectivity(*masks);
             }
             trace_mask_built(masks->ruled_out, masks->gap_count);
         };

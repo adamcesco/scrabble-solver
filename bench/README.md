@@ -338,6 +338,8 @@ All four counters build the packed descriptors once, on the first matching group
 
 The initial run used six pilot games with four pairs per game. Each row above compares the same 30 development positions (including the pilot six) on logical CPU 2 of the i7-6700K, using Clang 18.1.3 at `-O2 -march=x86-64` and the full 191,852-word dictionary. Each position ran 40 pairs, 20 in each order, with two warm-ups per counter per pair. Savings subtract the challenger from its paired control. The 95% interval resamples game means within stage (20,000 draws, seed 15) and gives early, middle and late games equal weight. [Initial pilot pairs](results/window-gap-order/pilot.csv.gz)
 
+On the 24 development games outside the pilot, `selective-first` tied both controls. Its paired saving was +0.63 µs/solve against `early-exit` (95% CI −3.00 to +4.18) and −2.46 µs/solve against `packed` (−5.96 to +0.93). The six pilot games in the same run gave −3.48 and −6.64 µs/solve, respectively.
+
 The paired mean savings against `early-exit` varied by game stage.
 
 | Challenger | Early µs/solve | Middle µs/solve | Late µs/solve |
