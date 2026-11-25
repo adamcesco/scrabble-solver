@@ -22,6 +22,8 @@ The six pilot games ran first with four pairs per game. The full comparison used
 
 Rank contenders within a target by mean elapsed time, giving each of the six opponents in the round robin equal weight. Keep the two fastest and any additional contender whose direct paired interval against the leader includes zero or favors that contender. Packed accompanies the finalists on each target. The selection rule and executable analysis were committed before timing. Use each direct pair to interpret a saving, since absolute times vary between runs.
 
+For the two advancing Skylake counters, compare the same implementation at `-O3` with branch alignment enabled and disabled. Also compare packed under both settings and the four counter/build combinations head to head. Keep the original aligned build for a finalist unless disabling alignment saves time with a positive paired interval on both the full 30 and the 24 games outside the pilot. Each finalist carries its selected build and a packed baseline with identical flags into confirmation.
+
 ### Work done per solve
 
 The full development set supplied 72,530 candidate decisions per counter. The table shows totals across the 30 positions and both views in a separate, untimed trace. With the neighbor filter in place, caching reduced actual calls from 10,289 to 1,715 under rack pruning. Both variants still examined the same 21,624 words and visited the same 27,518 gaps. Those word checks and the traversal of matching windows and rack subsets remain part of each solve. [Development workload by stage](workload.json)
@@ -61,6 +63,7 @@ From the repository root with the full dictionary, the recorded Clang/LLVM 18 to
 
 ```sh
 python3 -u -m bench.window_counters.finalist_trials
+python3 -u -m bench.window_counters.finalist_trials --alignment
 python3 -m bench.window_counters.finalist_report
 ```
 
@@ -80,6 +83,7 @@ The following commands are for issue 14. The runner checks frozen input, host, l
 
 ```sh
 set -o pipefail
+mkdir -p build
 python3 -u -m bench.window_counters.finalist_trials --frozen bench/results/window-finalists/freeze.json | tee build/window-finalists-held-out.log
 held_out_results=$(sed -n 's/^results //p' build/window-finalists-held-out.log)
 python3 -m bench.window_counters.finalist_report "$held_out_results"
