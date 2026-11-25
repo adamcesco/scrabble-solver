@@ -132,6 +132,47 @@ taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$win
 python3 -m bench.window_counters.window_profile > build/window-workload.json
 ```
 
+### Mask construction and stopping impossible windows
+
+Each comparison changes one decision in the packed scan. `eager` constructs the mask as soon as the dictionary contains the window’s word pattern. `packed` waits for the first matching rack subset. `stop-gap` keeps that lazy construction and ends the scan at the first empty perpendicular-check set. `stop-window` also ends the search for matching groups in that window. A group whose words all fail can still be followed by a group that produces a move.
+
+| Control → challenger | Control µs/solve | Challenger µs/solve | Paired saving µs/solve (95% CI) | Raw pairs |
+| --- | ---: | ---: | ---: | --- |
+| `packed` → `eager` | 399.16 | 399.44 | −0.28 (−3.59 to +2.99) | [CSV](results/window-packed-eager.csv.gz) |
+| `packed` → `stop-gap` | 407.24 | 403.88 | +3.35 (−3.37 to +8.11) | [CSV](results/window-packed-stop-gap.csv.gz) |
+| `stop-gap` → `stop-window` | 404.29 | 361.88 | +42.40 (+33.53 to +51.32) | [CSV](results/window-stop-gap-stop-window.csv.gz) |
+| `packed` → `stop-window` | 403.09 | 349.14 | +53.94 (+43.57 to +63.86) | [CSV](results/window-packed-stop-window.csv.gz) |
+
+Eager construction and stopping only the scan both tied packed at this precision. Clang inlined the eager group visitor and emitted a call to the packed visitor in both matching loops. Ending the group search saved 42.40 µs per solve against its immediate control. This saving was 33.23 µs on the six pilot games and 44.70 µs on the other 24 development games. The direct comparison with packed saved 13.4%. Each row uses its own paired differences before rounding.
+
+The four runs used the full project dictionary, Clang 18.1.3 with `-O2 -march=x86-64`, and logical CPU 2 of the i7-6700K. Each row summarizes 1,200 pairs over 30 development games, with two warm-ups per counter and 20 measured pairs per game in each order. For each interval, games are sorted by case name within stage. The bootstrap resamples their paired means within stage, gives each stage equal weight, and uses 20,000 draws with seed 15. Every release observation returned the qualified across and down counts.
+
+The untimed trace counted one mask per construction and one lookup per queried gap. The 5,732 windows whose pattern had no dictionary match never reached construction. The other 18,030 windows broke down as follows. [Development diagnostics by stage](results/window-workload.json)
+
+| Window outcome | Windows | Masks, eager / lazy | Eager lookups | Packed lookups | Stop-gap or stop-window lookups |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| At least one accepted word | 3,725 | 3,725 / 3,725 | 9,621 | 9,621 | 9,621 |
+| All matching words rejected | 5,459 | 5,459 / 5,459 | 19,018 | 19,018 | 14,674 |
+| Word pattern with no matching rack subset | 8,846 | 8,846 / 0 | 44,110 | 0 | 0 |
+| **Total** | **18,030** | **18,030 / 9,184** | **72,749** | **28,639** | **24,295** |
+
+Stopping construction skipped **4,344 lookups** within the 3,246 matched windows with an empty check set. Stopping the group search there also avoided **43,613 subset probes** and **23,280 merge comparisons**. One probe is a search for one rack subset. One merge comparison examines the current pair of group and subset keys. The trace continued both searches to identify the 17,048 skipped groups and their 27,401 word IDs. All 72,530 logical candidate decisions, including those rejections, matched place-and-restore with multiplicity in each direction. All four counters still performed 40,724 individual word checks. The linked release worker tests the visitor result and branches to the next window in both loops.
+
+To reproduce the four comparisons and the separate diagnostic profile, run from the repository root.
+
+```sh
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+window_tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
+python3 -m bench.window_counters.window_games --export development build/window-development
+for pair in 'packed eager' 'packed stop-gap' 'stop-gap stop-window' 'packed stop-window'; do
+    set -- $pair
+    taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$window_tools" \
+        --variants "$1" "$2" --cases build/window-development/cases.csv \
+        --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > "build/window-$1-$2.csv" || break
+done
+python3 -m bench.window_counters.window_profile > build/window-workload.json
+```
+
 ### Profile the development workload and export reserved games
 
 Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator and reconciles the sum of visited group sizes with the oracle's candidate records separately for each game, counter and direction.
