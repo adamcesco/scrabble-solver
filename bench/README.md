@@ -56,6 +56,30 @@ With the full 191,852-word dictionary, one-gap added 6.90 µs per solve (1.8%) o
 
 Order affected these warm solves. Mean packed minus one-gap on the pilot was +1.25 µs with packed first and −15.05 µs with one-gap first. Each game contributed ten pairs in each order. The interval above describes variation across these six game means. Held-out games are needed to rank finalists.
 
+### Profile the development workload and export reserved games
+
+Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator and reconciles the sum of visited group sizes with the oracle's candidate records separately for each game, counter and direction.
+
+```sh
+mkdir -p build
+python3 -m bench.window_counters.window_profile > build/window-workload.json
+cmp build/window-workload.json bench/results/window-workload.json
+python3 -m bench.window_counters.window_games | cmp - bench/fixtures/window-game-sets.csv
+python3 -m bench.window_counters.window_games --export development build/window-development
+```
+
+Each of the 30 development games contributes one turn. Within each stage, development uses the two pilot games and the first eight games from the saved Quackle corpus. PGO uses the next 16 games per stage. The held-out set takes the last 32 per stage for confirmation after finalist selection. Selection uses saved corpus order and stage only. The exporter checks the frozen case identities and rejects repeated game IDs or source records across the three lists. Use `--export pgo build/window-pgo` for profile training and `--export held-out build/window-held-out` for final comparisons. Each export writes the selected boards and a `cases.csv` for the window benchmark. [Frozen game lists](fixtures/window-game-sets.csv)
+
+| Stage | Windows visited | No dictionary pattern | Pattern with zero matching groups | Visited groups | Candidate words | Packed individual checks | One-gap individual checks |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Early | 6,408 | 751 | 3,005 | 13,308 | 20,211 | 12,228 | 11,783 |
+| Middle | 9,001 | 2,326 | 3,206 | 23,118 | 34,891 | 19,512 | 18,622 |
+| Late | 8,353 | 2,655 | 2,635 | 12,995 | 17,428 | 8,984 | 8,125 |
+
+The two zero-group columns together cover every visited window with zero candidates. Each group visit contributes its full word range to candidate words, including words rejected by an impossible gap. Individual checks count actual calls to the per-word acceptance test. Windows with exactly one empty square accounted for 467 early candidates (2.3%), 986 middle (2.8%) and 1,047 late (6.0%). Packed already ruled out some of these in bulk. The one-gap shortcut avoided 445, 890 and 859 additional individual checks, respectively.
+
+The JSON gives exact frequency tables by stage and counter for empty squares, constrained gaps and candidates per window. It keeps windows with matching groups, unmatched rack subsets and absent dictionary patterns separate. A constrained gap is an empty square whose perpendicular-check set permits fewer than 26 letters, including zero. The qualifier inspects those squares after the traced solve, so these diagnostic lookups preserve the baseline lookup check. The `groups_by_size` table gives visits, candidate words and individual checks for each group size. [Full development profile](results/window-workload.json)
+
 ## Replay a recorded game
 
 The saved game contains all 20 placements and pre-move racks from Alec Sjoholm vs. Cesar Del Solar. Turns are numbered from one in playing order. The solver can use turns **2–6, 8, 10–16 and 18–20**. Turn 1 opens the board. On turns 7, 9 and 17 the rack contains a blank. Replay still applies those moves so later boards contain the assigned letters. [Recorded racks and moves](fixtures/replay/sjoholm-del-solar.csv) · [Original Macondo game record](https://github.com/domino14/macondo/blob/9fe4fe8cdf3b4e6cbcf42be5f205d463510c2e72/puzzles/testdata/well_played_game.gcg)

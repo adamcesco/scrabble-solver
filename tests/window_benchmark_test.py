@@ -4,6 +4,7 @@ import io
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,8 +14,29 @@ from benchmark_test_support import (
     stage_benchmark_code, stage_qualifier, window_build,
 )
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from bench.window_counters.window_profile import summarize
+
 
 class WindowBenchmarkTest(unittest.TestCase):
+    def test_reserved_game_lists_reproduce_and_export_disjoint_cases(self):
+        command = ["python3", "-m", "bench.window_counters.window_games"]
+        manifest = Path("bench/fixtures/window-game-sets.csv")
+        self.assertEqual(subprocess.check_output(command), manifest.read_bytes())
+        with manifest.open() as stream:
+            members = list(csv.DictReader(stream))
+        self.assertEqual(len({r["game"] for r in members}), len(members))
+        with tempfile.TemporaryDirectory() as directory:
+            for split, per_stage in (("development", 10), ("pgo", 16), ("held-out", 32)):
+                dest = Path(directory) / split
+                subprocess.run([*command, "--export", split, dest], check=True)
+                with (dest / "cases.csv").open() as stream:
+                    cases = list(csv.DictReader(stream))
+                expected = [(r["case"], r["stage"]) for r in members if r["set"] == split]
+                self.assertEqual([(r["case"], r["stage"]) for r in cases], expected)
+                for stage in ("early", "middle", "late"):
+                    self.assertEqual(sum(r["stage"] == stage for r in cases), per_stage)
+
     def test_window_times_one_board_and_rack(self):
         output = subprocess.check_output(
             [*WINDOW, "--board", FIXTURE / "crossings.csv",
@@ -44,6 +66,39 @@ class WindowBenchmarkTest(unittest.TestCase):
                  Path(directory) / "patterns", "packed", "one-gap"],
                 input=f"{fixture / 'crossings.csv'}\tRT\n", text=True)
             self.assertEqual(list(csv.reader(io.StringIO(counts)))[1:], [["2", "4", "1", "5"]])
+
+    def test_workload_counts_individually_checked_words_after_group_shortcuts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            profile = Path(directory) / "visits.csv"
+            counts = subprocess.check_output(
+                [window_build() / "placement_equivalence_test", FIXTURE / "dictionary.txt",
+                 Path(directory) / "patterns", "--profile", profile, "packed", "one-gap"],
+                input=f"{FIXTURE / 'crossings.csv'}\tRT\n", text=True)
+            self.assertEqual(list(csv.reader(io.StringIO(counts)))[1:], [["2", "4", "1", "5"]])
+            raw_visits = profile.read_text()
+        visits = list(csv.DictReader(io.StringIO(raw_visits)))
+        variants = ("packed", "one-gap")
+        for variant in variants:
+            rows = [r for r in visits if r["variant"] == variant]
+            self.assertEqual(sum(int(r["group_size"]) for r in rows), 9)
+            self.assertTrue(any(r["group_size"] == "0" and r["pattern_match"] == "1" for r in rows))
+            self.assertTrue(any(r["pattern_match"] == "0" for r in rows))
+            # RAT and TAR share the RT group at .A. across. Their order matters.
+            group, = [r for r in rows if (r["down"], r["row"], r["start"], r["length"]) == ("0", "8", "6", "3")]
+            self.assertEqual((group["empty"], group["constrained"], group["group_size"], group["individual_checks"]),
+                             ("2", "2", "2", "2"))
+            single = [r for r in rows if r["empty"] == "1" and r["group_size"] != "0"]
+            self.assertTrue(single)
+            self.assertEqual(any(int(r["individual_checks"]) for r in single), variant == "packed")
+
+        cases = [{"case": "RT", "stage": "early"}]
+        stage = summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 4, "down_candidates": 5}])["early"]
+        self.assertEqual(stage["variants"]["one-gap"]["groups_by_size"][2],
+                         {"groups": 2, "candidate_words": 4, "individual_checks": 2})
+        self.assertEqual(stage["variants"]["packed"]["windows"]["matching_groups"]["by_candidates"], {1: 1, 2: 4})
+        # Matching the combined total is insufficient if either direction is wrong.
+        with self.assertRaisesRegex(ValueError, "RT packed across"):
+            summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
 
     def test_unknown_window_counter_prevents_timing(self):
         directory = window_build()

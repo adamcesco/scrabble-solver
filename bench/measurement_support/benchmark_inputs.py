@@ -70,13 +70,14 @@ def read_manifest(manifest: Path, extra_columns=()):
     return rows
 
 
-def qualify_positions(dictionary, shared_cache, positions, variants=(), build=BUILD):
+def qualify_positions(dictionary, shared_cache, positions, variants=(), build=BUILD, *, profile=None):
     subprocess.run([build / "perpendicular_checks_test"], check=True)
     positions = dict.fromkeys(positions)
     requests = "".join(f"{pos.board}\t{pos.rack}\n" for pos in positions)
+    profile_args = ["--profile", profile] if profile is not None else []
     output = subprocess.check_output(
         [build / "placement_equivalence_test", dictionary, shared_cache.path,
-         "--load-cache" if shared_cache.existing else "--build-cache", *variants],
+         "--load-cache" if shared_cache.existing else "--build-cache", *profile_args, *variants],
         input=requests, text=True)
     rows = csv.DictReader(io.StringIO(output))
     return {pos: {key: int(value) for key, value in row.items()}

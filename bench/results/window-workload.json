@@ -1,0 +1,869 @@
+{
+  "dictionary_sha256": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+  "game_set": "development",
+  "stages": {
+    "early": {
+      "games": 10,
+      "qualified_candidates": {
+        "across": 11368,
+        "down": 8843
+      },
+      "variants": {
+        "one-gap": {
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 8699,
+              "groups": 8699,
+              "individual_checks": 5740
+            },
+            "2": {
+              "candidate_words": 6300,
+              "groups": 3150,
+              "individual_checks": 3738
+            },
+            "3": {
+              "candidate_words": 2937,
+              "groups": 979,
+              "individual_checks": 1488
+            },
+            "4": {
+              "candidate_words": 948,
+              "groups": 237,
+              "individual_checks": 384
+            },
+            "5": {
+              "candidate_words": 1075,
+              "groups": 215,
+              "individual_checks": 370
+            },
+            "9": {
+              "candidate_words": 252,
+              "groups": 28,
+              "individual_checks": 63
+            }
+          },
+          "one_gap_candidates": 467,
+          "one_gap_groups": 467,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            },
+            "no_pattern": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            }
+          }
+        },
+        "packed": {
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 8699,
+              "groups": 8699,
+              "individual_checks": 6185
+            },
+            "2": {
+              "candidate_words": 6300,
+              "groups": 3150,
+              "individual_checks": 3738
+            },
+            "3": {
+              "candidate_words": 2937,
+              "groups": 979,
+              "individual_checks": 1488
+            },
+            "4": {
+              "candidate_words": 948,
+              "groups": 237,
+              "individual_checks": 384
+            },
+            "5": {
+              "candidate_words": 1075,
+              "groups": 215,
+              "individual_checks": 370
+            },
+            "9": {
+              "candidate_words": 252,
+              "groups": 28,
+              "individual_checks": 63
+            }
+          },
+          "one_gap_candidates": 467,
+          "one_gap_groups": 467,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            },
+            "no_pattern": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            }
+          }
+        }
+      }
+    },
+    "late": {
+      "games": 10,
+      "qualified_candidates": {
+        "across": 9078,
+        "down": 8350
+      },
+      "variants": {
+        "one-gap": {
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 9391,
+              "groups": 9391,
+              "individual_checks": 4498
+            },
+            "2": {
+              "candidate_words": 5982,
+              "groups": 2991,
+              "individual_checks": 2766
+            },
+            "3": {
+              "candidate_words": 1404,
+              "groups": 468,
+              "individual_checks": 609
+            },
+            "4": {
+              "candidate_words": 296,
+              "groups": 74,
+              "individual_checks": 112
+            },
+            "5": {
+              "candidate_words": 355,
+              "groups": 71,
+              "individual_checks": 140
+            }
+          },
+          "one_gap_candidates": 1047,
+          "one_gap_groups": 1047,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            },
+            "no_pattern": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            }
+          }
+        },
+        "packed": {
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 9391,
+              "groups": 9391,
+              "individual_checks": 5357
+            },
+            "2": {
+              "candidate_words": 5982,
+              "groups": 2991,
+              "individual_checks": 2766
+            },
+            "3": {
+              "candidate_words": 1404,
+              "groups": 468,
+              "individual_checks": 609
+            },
+            "4": {
+              "candidate_words": 296,
+              "groups": 74,
+              "individual_checks": 112
+            },
+            "5": {
+              "candidate_words": 355,
+              "groups": 71,
+              "individual_checks": 140
+            }
+          },
+          "one_gap_candidates": 1047,
+          "one_gap_groups": 1047,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            },
+            "no_pattern": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            }
+          }
+        }
+      }
+    },
+    "middle": {
+      "games": 10,
+      "qualified_candidates": {
+        "across": 17457,
+        "down": 17434
+      },
+      "variants": {
+        "one-gap": {
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 14328,
+              "groups": 14328,
+              "individual_checks": 7820
+            },
+            "2": {
+              "candidate_words": 13090,
+              "groups": 6545,
+              "individual_checks": 7216
+            },
+            "3": {
+              "candidate_words": 4710,
+              "groups": 1570,
+              "individual_checks": 2340
+            },
+            "4": {
+              "candidate_words": 2456,
+              "groups": 614,
+              "individual_checks": 1080
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 160
+            },
+            "6": {
+              "candidate_words": 12,
+              "groups": 2,
+              "individual_checks": 6
+            }
+          },
+          "one_gap_candidates": 986,
+          "one_gap_groups": 986,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            },
+            "no_pattern": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            }
+          }
+        },
+        "packed": {
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 14328,
+              "groups": 14328,
+              "individual_checks": 8710
+            },
+            "2": {
+              "candidate_words": 13090,
+              "groups": 6545,
+              "individual_checks": 7216
+            },
+            "3": {
+              "candidate_words": 4710,
+              "groups": 1570,
+              "individual_checks": 2340
+            },
+            "4": {
+              "candidate_words": 2456,
+              "groups": 614,
+              "individual_checks": 1080
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 160
+            },
+            "6": {
+              "candidate_words": 12,
+              "groups": 2,
+              "individual_checks": 6
+            }
+          },
+          "one_gap_candidates": 986,
+          "one_gap_groups": 986,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            },
+            "no_pattern": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@
 #include "window_variants.h"
 
 #include <array>
+#include <iosfwd>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -23,12 +24,20 @@ using WindowVariants = std::vector<const benchmark::WindowVariant *>;
 
 using LookupCounts = std::array<std::array<unsigned, BOARD_SIZE>, BOARD_SIZE>;
 
+struct WindowWorkload;
+
+struct WorkloadOutput {
+    std::ostream &stream;
+    size_t position = 0;
+};
+
 struct PlacementTrace {
     const WordTable &dictionary;
     Board &board;
     const SolverBoardSnapshot &snapshot;
     ViewDecisions decisions{};
     std::array<LookupCounts, 2> lookups{};
+    WindowWorkload *workload = nullptr;
 
     bool down() const { return snapshot.is_down(board); }
     DirectionalCounts solve(const benchmark::WindowVariant &variant, const WordPatternTable &patterns,
@@ -45,7 +54,8 @@ struct PlacementComparison {
 
     ViewDecisions compare_board(const char *name, Board original, std::string letters,
                                 const WindowVariants &variants = {&benchmark::window_variant("packed")},
-                                const std::optional<Decision> &required_play = {}) const;
+                                const std::optional<Decision> &required_play = {},
+                                WorkloadOutput *profile = nullptr) const;
 };
 
 size_t accepted_count(const Decisions &decisions);

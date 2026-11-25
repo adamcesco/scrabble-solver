@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -144,7 +145,7 @@ enum class CacheMode { discover, require_existing, build_if_missing };
 
 // A replay can append the expected play: down (0/1), view row, start, complete word.
 static void qualify_inputs(const char *dictionary_path, const std::filesystem::path &requested, const char *executable,
-                           CacheMode mode, const WindowVariants &variants)
+                           CacheMode mode, const WindowVariants &variants, const char *profile_path)
 {
     WordTable words = WordTable::from_file(dictionary_path);
     assert(words.count > 0);
@@ -162,6 +163,13 @@ static void qualify_inputs(const char *dictionary_path, const std::filesystem::p
             throw std::runtime_error("could not save the qualification pattern cache");
         }
 
+        std::ofstream visits;
+        WorkloadOutput profile{visits};
+        if (profile_path) {
+            visits.exceptions(std::ios::failbit | std::ios::badbit);
+            visits.open(profile_path);
+            visits << "position,variant,down,row,start,length,empty,constrained,pattern_match,group_size,individual_checks\n";
+        }
         std::cout << "across,across_candidates,down,down_candidates\n";
         std::string line;
         while (std::getline(std::cin, line)) {
@@ -185,9 +193,14 @@ static void qualify_inputs(const char *dictionary_path, const std::filesystem::p
                              [](const Row &row) { return row.occupiedMask != 0; })) {
                 throw std::runtime_error("unreadable or empty post-opening board: " + path);
             }
-            auto [across, down] = fixture.compare_board(path.c_str(), original, letters, variants, required_play);
+            auto [across, down] = fixture.compare_board(path.c_str(), original, letters, variants, required_play,
+                                                       profile_path ? &profile : nullptr);
             std::cout << accepted_count(across) << ',' << across.size() << ','
                       << accepted_count(down) << ',' << down.size() << '\n';
+            ++profile.position;
+        }
+        if (profile_path) {
+            visits.close();
         }
     }
     words.destroy();
@@ -204,7 +217,15 @@ int main(int argc, char **argv)
         } else if (option == "--build-cache") {
             mode = CacheMode::build_if_missing;
         }
-        for (int i = mode == CacheMode::discover ? 3 : 4; i < argc; ++i) {
+        int i = mode == CacheMode::discover ? 3 : 4;
+        const char *profile_path = nullptr;
+        if (i < argc && std::string_view(argv[i]) == "--profile") {
+            if (++i == argc) {
+                throw std::invalid_argument("--profile requires a CSV path");
+            }
+            profile_path = argv[i++];
+        }
+        for (; i < argc; ++i) {
             variants.push_back(&benchmark::window_variant(argv[i]));
         }
         if (variants.empty()) {
@@ -216,7 +237,7 @@ int main(int argc, char **argv)
         compare_rack_groups_and_ruled_out_windows(variants);
         one_tile_counts_in_both_directions_and_restores_the_prepared_board(variants);
         if (argc >= 3) {
-            qualify_inputs(argv[1], argv[2], argv[0], mode, variants);
+            qualify_inputs(argv[1], argv[2], argv[0], mode, variants, profile_path);
         } else if (argc != 1) {
             return 1;
         }

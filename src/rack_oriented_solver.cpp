@@ -18,6 +18,9 @@
 #include "placement_trace.h"
 #else
 static inline void trace_placements(uint8_t, uint8_t, const uint32_t *, size_t, bool) {}
+static inline void trace_window(uint8_t, uint8_t, uint8_t, uint8_t, bool) {}
+static inline void trace_group(size_t) {}
+static inline void trace_individual_check() {}
 #endif
 
 static inline int canonical_rack_subset_mask(uint8_t duplicate_follow_mask, uint8_t mask)
@@ -167,6 +170,7 @@ static void visit_matching_anagrams(
         for (uint8_t index = 0; index < rack_subset_count; ++index) {
             const WordPatternAnagramGroup *group = word_patterns.get_anagram(match, rack_subsets[index]);
             if (group != nullptr) {
+                trace_group(group->word_indices.count);
                 visit(*group);
             }
         }
@@ -186,6 +190,7 @@ static void visit_matching_anagrams(
         } else if (rack_key < group_key) {
             ++rack_subset_index;
         } else {
+            trace_group(groups[group_index].word_indices.count);
             visit(groups[group_index]);
             ++group_index;
             ++rack_subset_index;
@@ -256,12 +261,15 @@ size_t count_rack_windows(
                 const WordPattern *match = word_patterns->get(pattern);
                 if (match != nullptr) {
                     by_empty_count[empty_count][counts[empty_count]++] = {start, pattern.length, match};
+                } else {
+                    trace_window(row_index, start, pattern.length, empty_count, false);
                 }
             }
         );
         for (uint8_t empty_count = 1; empty_count <= rack_length; ++empty_count) {
             for (uint8_t index = 0; index < counts[empty_count]; ++index) {
                 const MatchedWindow &window = by_empty_count[empty_count][index];
+                trace_window(row_index, window.start, window.length, empty_count, true);
                 auto visit_groups = [&](auto visit) {
                     visit_matching_anagrams(
                         *word_patterns, *window.match,
@@ -298,6 +306,7 @@ struct PackedCounter {
                 return;
             }
             for (size_t i = 0; i < group.word_indices.count; ++i) {
+                trace_individual_check();
                 bool accepted = masks->accepts(dictionary.words[ids[i]]);
                 count += accepted;
                 trace_placements(row, window.start, ids + i, 1, accepted);
@@ -341,15 +350,21 @@ template <typename Counter>
 benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTable &patterns,
                                      Board &board, const benchmark::Rack &rack)
 {
+#ifndef SCRABBLE_TRACE_PLACEMENTS
     using Clock = std::chrono::steady_clock;
     auto start = Clock::now();
+#endif
     auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
     Counter counter(words, patterns, board);
     auto counts = count_both_views(board, [&] {
         return count_rack_windows(&patterns, &keys, &board, rack.length, counter);
     });
+#ifdef SCRABBLE_TRACE_PLACEMENTS
+    return {counts, 0};
+#else
     auto end = Clock::now();
     return {counts, std::chrono::duration<double, std::micro>(end - start).count()};
+#endif
 }
 #endif
 }

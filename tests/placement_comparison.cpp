@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ostream>
 #include <set>
 #include <stdexcept>
 
@@ -31,6 +32,73 @@ bool SolverBoardSnapshot::is_down(const Board &board) const
 }
 
 static PlacementTrace *active_trace;
+
+struct VisitedGroup {
+    size_t words;
+    size_t individual_checks = 0;
+};
+
+struct VisitedWindow {
+    bool down;
+    uint8_t row, start, length, empty;
+    bool pattern_match;
+    std::vector<VisitedGroup> groups;
+};
+
+struct WindowWorkload {
+    std::vector<VisitedWindow> windows;
+
+    void write(WorkloadOutput &output, const char *variant, Board board) const
+    {
+        bool down = false;
+        for (const auto &w : windows) {
+            if (w.down != down) {
+                board.swap_views();
+                down = w.down;
+            }
+            // Inspect even unmatched windows, after the adapter's lookup trace has ended.
+            unsigned constrained = 0;
+            for (int col = w.start; col < w.start + w.length; ++col) {
+                if (!(board.rows[w.row].occupiedMask & (1u << col)) &&
+                    board.perpendicular_check_set(w.row, col) != PerpendicularCheckTable::all_letters) {
+                    ++constrained;
+                }
+            }
+            auto emit = [&](VisitedGroup group) {
+                output.stream << output.position << ',' << variant << ',' << down << ',' << +w.row << ','
+                              << +w.start << ',' << +w.length << ',' << +w.empty << ',' << constrained << ','
+                              << w.pattern_match << ',' << group.words << ',' << group.individual_checks << '\n';
+            };
+            if (w.groups.empty()) {
+                emit({0});
+            }
+            for (const auto &group : w.groups) {
+                emit(group);
+            }
+        }
+    }
+};
+
+void trace_window(uint8_t row, uint8_t start, uint8_t length, uint8_t empty, bool pattern_match)
+{
+    if (active_trace && active_trace->workload) {
+        active_trace->workload->windows.push_back({active_trace->down(), row, start, length, empty, pattern_match, {}});
+    }
+}
+
+void trace_group(size_t words)
+{
+    if (active_trace && active_trace->workload) {
+        active_trace->workload->windows.back().groups.push_back({words});
+    }
+}
+
+void trace_individual_check()
+{
+    if (active_trace && active_trace->workload) {
+        ++active_trace->workload->windows.back().groups.back().individual_checks;
+    }
+}
 
 DirectionalCounts PlacementTrace::solve(const benchmark::WindowVariant &variant, const WordPatternTable &patterns,
                                         const benchmark::Rack &rack)
@@ -88,7 +156,7 @@ size_t accepted_count(const Decisions &decisions)
 
 ViewDecisions PlacementComparison::compare_board(
     const char *name, Board original, std::string letters, const WindowVariants &variants,
-    const std::optional<Decision> &required_play) const
+    const std::optional<Decision> &required_play, WorkloadOutput *profile) const
 {
     check_legal_runs(name, words, original);
     Board board = original;
@@ -124,6 +192,10 @@ ViewDecisions PlacementComparison::compare_board(
 
     for (const auto *variant : variants) {
         PlacementTrace actual{words, board, snapshot};
+        WindowWorkload workload;
+        if (profile) {
+            actual.workload = &workload;
+        }
         auto counts = actual.solve(*variant, patterns, rack);
         for (bool down : {false, true}) {
             auto &sorted = actual.decisions[down];
@@ -137,6 +209,9 @@ ViewDecisions PlacementComparison::compare_board(
             if (variant == &benchmark::window_variant("packed")) {
                 assert(actual.lookups[down] == packed_lookups[down]);
             }
+        }
+        if (profile) {
+            workload.write(*profile, variant->name, board);
         }
     }
     // Fixtures can inspect the order in which the oracle encountered the candidates.
