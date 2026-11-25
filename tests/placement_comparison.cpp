@@ -83,8 +83,9 @@ struct WindowWorkload {
                 output.stream << output.position << ',' << variant << ',' << down << ',' << +w.row << ','
                               << +w.start << ',' << +w.length << ',' << +w.empty << ',' << constrained << ','
                               << w.pattern_match << ',' << group.words << ',' << group.individual_checks << ','
-                              << w.lookups << ',' << w.cache_hits << ',' << w.masks << ',' << w.ruled_out << ',' << group.skipped << ','
-                              << group.accepted << ',' << w.probes_avoided << ',' << w.merge_comparisons_avoided << '\n';
+                              << w.lookups << ',' << w.cache_hits << ',' << w.masks << ',' << w.ruled_out << ','
+                              << group.skipped << ',' << group.accepted << ',' << w.probes_avoided << ','
+                              << w.merge_comparisons_avoided << '\n';
             };
             if (w.groups.empty()) {
                 emit({0});
@@ -103,47 +104,51 @@ void trace_window(uint8_t row, uint8_t start, uint8_t length, uint8_t empty, boo
     }
 }
 
+static VisitedWindow *current_workload_window()
+{
+    return active_trace && active_trace->workload ? &active_trace->workload->windows.back() : nullptr;
+}
+
 void trace_group(size_t words, bool skipped)
 {
-    if (active_trace && active_trace->workload) {
-        active_trace->workload->windows.back().groups.push_back({words, skipped});
+    if (auto *window = current_workload_window()) {
+        window->groups.push_back({words, skipped});
     }
 }
 
 void trace_individual_check()
 {
-    if (active_trace && active_trace->workload) {
-        ++active_trace->workload->windows.back().groups.back().individual_checks;
+    if (auto *window = current_workload_window()) {
+        ++window->groups.back().individual_checks;
     }
 }
 
 void trace_mask_built(bool ruled_out)
 {
-    if (active_trace && active_trace->workload) {
-        auto &window = active_trace->workload->windows.back();
-        ++window.masks;
-        window.ruled_out = ruled_out;
+    if (auto *window = current_workload_window()) {
+        ++window->masks;
+        window->ruled_out = ruled_out;
     }
 }
 
 void trace_skipped_subset_probe()
 {
-    if (active_trace && active_trace->workload) {
-        ++active_trace->workload->windows.back().probes_avoided;
+    if (auto *window = current_workload_window()) {
+        ++window->probes_avoided;
     }
 }
 
 void trace_skipped_merge_comparison()
 {
-    if (active_trace && active_trace->workload) {
-        ++active_trace->workload->windows.back().merge_comparisons_avoided;
+    if (auto *window = current_workload_window()) {
+        ++window->merge_comparisons_avoided;
     }
 }
 
 void trace_cache_hit()
 {
-    if (active_trace && active_trace->workload) {
-        ++active_trace->workload->windows.back().cache_hits;
+    if (auto *window = current_workload_window()) {
+        ++window->cache_hits;
     }
 }
 
@@ -161,8 +166,8 @@ void trace_square_lookup(uint8_t row, uint8_t col)
 {
     if (active_trace) {
         ++active_trace->lookups[active_trace->down()][row][col];
-        if (active_trace->workload) {
-            ++active_trace->workload->windows.back().lookups;
+        if (auto *window = current_workload_window()) {
+            ++window->lookups;
         }
     }
 }
@@ -170,8 +175,8 @@ void trace_square_lookup(uint8_t row, uint8_t col)
 void trace_placements(uint8_t row, uint8_t start, const uint32_t *words, size_t count, bool accepted)
 {
     if (active_trace) {
-        if (active_trace->workload && accepted) {
-            active_trace->workload->windows.back().groups.back().accepted += count;
+        if (auto *window = current_workload_window(); window && accepted) {
+            window->groups.back().accepted += count;
         }
         const bool down = active_trace->down();
         active_trace->snapshot.check(active_trace->board, down);

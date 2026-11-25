@@ -53,15 +53,16 @@ def summarize(visits, cases, variants, qualified):
         for row in chain((window,), groups):
             size = int(row["group_size"])
             if size:
-                bucket = profile["groups_by_size"][size]
-                bucket["groups"] += 1
-                bucket["candidate_words"] += size
-                bucket["individual_checks"] += int(row["individual_checks"])
                 candidates += size
                 accepted += int(row["accepted"])
                 if row["skipped_group"] == "1":
                     skipped_groups += 1
                     skipped_words += size
+                    continue
+                bucket = profile["groups_by_size"][size]
+                bucket["groups"] += 1
+                bucket["candidate_words"] += size
+                bucket["individual_checks"] += int(row["individual_checks"])
                 if empty == 1:
                     profile["one_gap_groups"] += 1
                     profile["one_gap_candidates"] += size

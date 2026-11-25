@@ -183,7 +183,7 @@ static void visit_matching_anagrams(
 )
 {
     bool stopped = false;
-    auto should_stop = [&](const WordPatternAnagramGroup &group) {
+    auto visit_group_and_check_stop = [&](const WordPatternAnagramGroup &group) {
         trace_group(group.word_indices.count, stopped);
         if (stopped) {
             const uint32_t *ids = word_patterns.word_indices.data() + group.word_indices.start;
@@ -205,7 +205,7 @@ static void visit_matching_anagrams(
                 trace_skipped_subset_probe();
             }
             const WordPatternAnagramGroup *group = word_patterns.get_anagram(*window.match, rack_subsets[index]);
-            if (group != nullptr && should_stop(*group)) {
+            if (group != nullptr && visit_group_and_check_stop(*group)) {
                 return;
             }
         }
@@ -228,7 +228,7 @@ static void visit_matching_anagrams(
         } else if (rack_key < group_key) {
             ++rack_subset_index;
         } else {
-            if (should_stop(groups[group_index])) {
+            if (visit_group_and_check_stop(groups[group_index])) {
                 return;
             }
             ++group_index;

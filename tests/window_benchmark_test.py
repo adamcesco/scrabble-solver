@@ -36,6 +36,12 @@ def profile_board(board, words, rack, variants, *, check_release=False):
         return counts, (root / "visits").read_text()
 
 
+def window_groups(visits, *, row, start, length, down=False):
+    coordinates = (str(int(down)), str(row), str(start), str(length))
+    return [r for r in csv.DictReader(io.StringIO(visits))
+            if (r["down"], r["row"], r["start"], r["length"]) == coordinates]
+
+
 class WindowBenchmarkTest(unittest.TestCase):
     def test_reserved_game_lists_reproduce_and_export_disjoint_cases(self):
         command = ["python3", "-m", "bench.window_counters.window_games"]
@@ -118,12 +124,11 @@ class WindowBenchmarkTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "RT packed across"):
             summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
 
-    def test_eager_masks_for_dictionary_pattern_with_no_rack_group(self):
+    def test_eager_masks_for_word_pattern_with_no_matching_rack_subset(self):
         board = [["."] * 15 for _ in range(15)]
         board[1][0] = "A"
         _, visits = profile_board(board, ["ART"], "ZZ", ["packed", "eager"])
-        target = [r for r in csv.DictReader(io.StringIO(visits))
-                  if (r["down"], r["row"], r["start"], r["length"]) == ("0", "1", "0", "3")]
+        target = window_groups(visits, row=1, start=0, length=3)
         self.assertEqual([(r["variant"], r["pattern_match"], r["group_size"], r["masks"], r["lookups"])
                           for r in target], [("packed", "1", "0", "0", "0"), ("eager", "1", "0", "1", "2")])
 
@@ -131,8 +136,7 @@ class WindowBenchmarkTest(unittest.TestCase):
         board = [["."] * 15 for _ in range(15)]
         board[0][:2], board[1][0] = ["A", "X"], "A"
         _, visits = profile_board(board, ["AX", "AA", "ART", "AST"], "RST", ["packed", "stop-gap"])
-        target = [r for r in csv.DictReader(io.StringIO(visits))
-                  if (r["down"], r["row"], r["start"], r["length"]) == ("0", "1", "0", "3")]
+        target = window_groups(visits, row=1, start=0, length=3)
         self.assertEqual([(r["variant"], r["lookups"], r["group_size"]) for r in target],
                          [("packed", "2", "1"), ("packed", "2", "1"),
                           ("stop-gap", "1", "1"), ("stop-gap", "1", "1")])
@@ -150,15 +154,20 @@ class WindowBenchmarkTest(unittest.TestCase):
                     if not impossible:
                         words.add("XT")  # RS fails, then RT and ST each have a passing word.
                     variants = ["stop-gap", "stop-window"]
-                    _, visits = profile_board(board, words, "RST", variants, check_release=True)
-                    groups = [r for r in csv.DictReader(io.StringIO(visits)) if r["variant"] == "stop-window"
-                              and (r["down"], r["row"], r["start"], r["length"]) == ("0", "1", "0", "3")]
+                    counts, visits = profile_board(board, words, "RST", variants, check_release=True)
+                    groups = [r for r in window_groups(visits, row=1, start=0, length=3)
+                              if r["variant"] == "stop-window"]
                     self.assertEqual([int(r["group_size"]) for r in groups], [1, 2, 2])
                     self.assertEqual([int(r["skipped_group"]) for r in groups], [0, impossible, impossible])
                     self.assertEqual([int(r["accepted"]) for r in groups],
                                      [0, int(not impossible), int(not impossible)])
                     self.assertEqual(int(groups[0]["probes_avoided"]), 2 if binary and impossible else 0)
                     self.assertEqual(int(groups[0]["merge_comparisons_avoided"]), 2 if not binary and impossible else 0)
+                    stage = summarize(io.StringIO(visits), [{"case": "A..", "stage": "early"}], variants, [counts])["early"]
+                    search = stage["variants"]["stop-window"]
+                    visited = sum(bucket["candidate_words"] for bucket in search["groups_by_size"].values())
+                    skipped = search["mask_search"]["all_rejected"]["skipped_words"]
+                    self.assertEqual(visited + skipped, counts["across_candidates"] + counts["down_candidates"])
 
     def test_row_cache_profile_includes_overlaps_and_rows_without_requests(self):
         board = [["."] * 15 for _ in range(15)]
