@@ -6,8 +6,6 @@
 #include "solvers/shared.h"
 #include "word_pattern_table.h"
 
-#include <type_traits>
-
 namespace rack_solver {
 struct MatchedWindow {
     uint8_t start;
@@ -139,22 +137,6 @@ size_t count_rack_windows(
     return count;
 }
 
-template <typename Checks = RowCheckSets, typename MakeCounter>
-DirectionalCounts solve_rack(const WordPatternTable &patterns, Board &board, uint64_t sorted_rack,
-                             uint8_t rack_length, MakeCounter make_counter)
-{
-    const auto keys = rack_subset_keys_for_rack(sorted_rack, rack_length);
-    auto count_view = [&](const auto &counter) {
-        return count_rack_windows<Checks>(&patterns, &keys, &board, rack_length, counter);
-    };
-    if constexpr (std::is_invocable_v<MakeCounter, Board &>) {
-        // A counter that needs the active view must be built after each view is selected.
-        return count_both_views(board, [&] { return count_view(make_counter(board)); });
-    } else {
-        const auto counter = make_counter();
-        return count_both_views(board, [&] { return count_view(counter); });
-    }
-}
 } // namespace rack_solver
 
 #endif

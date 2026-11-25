@@ -50,8 +50,10 @@ benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTa
     using Clock = std::chrono::steady_clock;
     auto start = Clock::now();
 #endif
-    auto counts = solve_rack<Checks>(patterns, board, rack.tiles, rack.length, [&] {
-        return Counter(words, patterns, rack.tiles, rack.length);
+    const auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
+    const Counter counter(words, patterns, rack.tiles, rack.length);
+    auto counts = count_both_views(board, [&] {
+        return count_rack_windows<Checks>(&patterns, &keys, &board, rack.length, counter);
     });
 #ifdef SCRABBLE_TRACE_PLACEMENTS
     return {counts, 0};

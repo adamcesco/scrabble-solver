@@ -5,7 +5,9 @@ DirectionalCounts place_and_restore_both_directions(const WordTable &dictionary,
                                                     const WordIndexStartRowTable &word_start_rows, Board &board,
                                                     uint64_t sorted_rack, uint8_t rack_length)
 {
-    return rack_solver::solve_rack(patterns, board, sorted_rack, rack_length, [&](Board &view) {
-        return rack_solver::PlaceAndRestoreCounter(dictionary, patterns, word_start_rows, view);
+    const auto keys = rack_subset_keys_for_rack(sorted_rack, rack_length);
+    return count_both_views(board, [&] {
+        const rack_solver::PlaceAndRestoreCounter counter(dictionary, patterns, word_start_rows, board);
+        return rack_solver::count_rack_windows(&patterns, &keys, &board, rack_length, counter);
     });
 }
