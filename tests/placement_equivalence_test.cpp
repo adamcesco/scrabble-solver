@@ -340,7 +340,8 @@ int main(int argc, char **argv)
             variants.push_back(&benchmark::window_variant("packed"));
         }
         if (argc == 1) {
-            constexpr const char *batch_and_simd_counters[] = {
+            constexpr const char *counters[] = {
+                "neighbor-cache", "rack-cache", "rack-neighbor", "rack-neighbor-cache", "rack-all-checks",
                 "batch-2", "batch-4", "batch-2-prefetch", "batch-4-prefetch",
 #ifdef __clang__
                 "batch-2-interleave", "batch-4-interleave",
@@ -349,7 +350,7 @@ int main(int argc, char **argv)
                 "bounded-simd",
 #endif
             };
-            for (const char *name : batch_and_simd_counters) {
+            for (const char *name : counters) {
                 variants.push_back(&benchmark::window_variant(name));
             }
         }

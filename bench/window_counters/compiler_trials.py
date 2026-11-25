@@ -23,30 +23,36 @@ VARIANTS = ("packed", "rack")
 CPU = 2
 
 
-def inputs():
+def input_set(dataset, work):
+    games = reserved_cases(dataset)
     digest = sha256(DICTIONARY)
+    if any(game["dictionary_sha256"] != digest for game in games):
+        raise ValueError("dictionary differs from the frozen corpus")
+    directory = work / dataset
+    write_benchmark(directory, games, paired=False)
+    path = directory / "cases.csv"
+    cases, manifest = [], {}
+    for row in read_manifest(path):
+        position = Position.from_row(path, row)
+        cases.append(WindowCase(row["case"], row["stage"], position))
+        manifest[row["case"]] = dict(dataset=dataset, stage=row["stage"], rack=position.rack,
+                                     board_sha256=sha256(position.board))
+    return cases, manifest
+
+
+def inputs():
     cases, manifest = {}, {}
     for dataset in ("development", "pgo"):
-        games = reserved_cases(dataset)
-        if any(game["dictionary_sha256"] != digest for game in games):
-            raise ValueError("dictionary differs from the frozen corpus")
-        directory = WORK / dataset
-        write_benchmark(directory, games, paired=False)
-        path = directory / "cases.csv"
-        cases[dataset] = []
-        for row in read_manifest(path):
-            position = Position.from_row(path, row)
-            cases[dataset].append(WindowCase(row["case"], row["stage"], position))
-            manifest[row["case"]] = dict(dataset=dataset, stage=row["stage"], rack=position.rack,
-                                         board_sha256=sha256(position.board))
+        cases[dataset], members = input_set(dataset, WORK)
+        manifest.update(members)
     names = {case_name(g) for g in json.loads((PILOT / "corpus.json").read_text())["cases"]}
     cases["pilot"] = [c for c in cases["development"] if c.name in names]
     return cases, manifest
 
 
-def qualification(cases, manifest, directory, work=WORK, dictionary=DICTIONARY):
+def qualification(cases, manifest, directory, work=WORK, dictionary=DICTIONARY, *, variants=VARIANTS):
     cache = select_cache(directory / "window_worker", dictionary, work / "patterns")
-    key = identity([manifest, sha256(dictionary), *VARIANTS, sha256(directory / "placement_equivalence_test"),
+    key = identity([manifest, sha256(dictionary), *variants, sha256(directory / "placement_equivalence_test"),
                     sha256(directory / "perpendicular_checks_test")])
     saved = work / f"qualified-{key[:20]}.json"
     if not saved.exists() or not cache.existing:
@@ -54,7 +60,7 @@ def qualification(cases, manifest, directory, work=WORK, dictionary=DICTIONARY):
         print(f"prepare pattern table and qualify {len(pending)} positions", flush=True)
         with TemporaryDirectory(dir=work) as temp:
             selected = cache if cache.existing else SelectedCache(Path(temp) / "patterns", False)
-            counts = qualify_positions(dictionary, selected, (case.position for case in pending), VARIANTS, directory)
+            counts = qualify_positions(dictionary, selected, (case.position for case in pending), variants, directory)
             if not cache.existing:
                 selected.path.replace(cache.path)
         if pending:
@@ -105,6 +111,16 @@ def observations(proc, binaries, variants, cases, reps, counts):
                    left_us=times[0], right_us=times[1])
 
 
+def save_pairs(filename, rows):
+    tmp = filename.with_suffix(".partial")
+    with gzip.open(tmp, "wt", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=("case", "stage", "repetition", "first", "across",
+                                                    "down", "left_us", "right_us"), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    tmp.replace(filename)
+
+
 def train(target, instrumented, host, cache, cases, counts, qualification_id):
     key = identity([instrumented["sha256"], host["sha256"], qualification_id, [c.name for c in cases], VARIANTS])
     directory = WORK / "profiles" / key[:20]
@@ -146,6 +162,24 @@ def comparisons(builds):
             yield (control, variant), (challenger, variant)
 
 
+def time_pairs(output, schedule, pairs, cases, builds, host, cache, counts):
+    with ExitStack() as stack:
+        proc = None
+        for split, reps in schedule.items():
+            for left, right in pairs:
+                left_build, left_counter = left
+                right_build, right_counter = right
+                filename = output / f"{split}_{left_build}.{left_counter}_{right_build}.{right_counter}.csv.gz"
+                if filename.exists():
+                    continue
+                if proc is None:
+                    proc = stack.enter_context(session(host, cache))
+                binaries = (builds[left_build]["binary"], builds[right_build]["binary"])
+                rows = observations(proc, binaries, (left_counter, right_counter), cases[split], reps, counts)
+                save_pairs(filename, rows)
+                print(f"saved {filename.name}", flush=True)
+
+
 def run():
     os.sched_setaffinity(0, {CPU})
     host = build("host", PORTABLE)
@@ -175,27 +209,7 @@ def run():
     if not (output / "manifest.json").exists():
         write_json(output / "manifest.json", dict(metadata, runner_sha256=sha256(Path(__file__))))
     print(f"results {output}", flush=True)
-    with ExitStack() as stack:
-        proc = None
-        for split, reps in metadata["schedule"].items():
-            for left, right in comparisons(builds):
-                left_build, left_counter = left
-                right_build, right_counter = right
-                filename = output / f"{split}_{left_build}.{left_counter}_{right_build}.{right_counter}.csv.gz"
-                if filename.exists():
-                    continue
-                if proc is None:
-                    proc = stack.enter_context(session(host["binary"], cache))
-                binaries = (builds[left_build]["binary"], builds[right_build]["binary"])
-                rows = observations(proc, binaries, (left_counter, right_counter), cases[split], reps, counts)
-                tmp = filename.with_suffix(".partial")
-                with gzip.open(tmp, "wt", newline="") as stream:
-                    writer = csv.DictWriter(stream, fieldnames=("case", "stage", "repetition", "first", "across",
-                                                                "down", "left_us", "right_us"), lineterminator="\n")
-                    writer.writeheader()
-                    writer.writerows(rows)
-                tmp.replace(filename)
-                print(f"saved {filename.name}", flush=True)
+    time_pairs(output, metadata["schedule"], list(comparisons(builds)), cases, builds, host["binary"], cache, counts)
 
 
 if __name__ == "__main__":

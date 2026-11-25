@@ -1,4 +1,4 @@
-"""Build the two registered counters with the exact recorded Clang configuration."""
+"""Build a counter library or its host with the exact recorded Clang configuration."""
 import gzip
 import hashlib
 import json
@@ -43,13 +43,15 @@ def write_json(path, obj):
     tmp.replace(path)
 
 
-def build(name, flags, *, profile=None):
+def build(name, flags, *, profile=None, full_registry=False):
     host = name == "host"
     cxx = shutil.which("clang++-18")
     version = subprocess.check_output([cxx, "--version"], text=True).strip()
     ld = subprocess.check_output(["ld", "--version"], text=True).splitlines()[0]
     common = ["-std=c++17", *flags, "-Iinclude", "-Ibench/window_counters", "-Ibench/measurement_support",
-              "-DSCRABBLE_WINDOW_VARIANTS", "-DSCRABBLE_TUNING_PAIR"]
+              "-DSCRABBLE_WINDOW_VARIANTS"]
+    if not full_registry:
+        common.append("-DSCRABBLE_TUNING_PAIR")
     if profile:
         common += [f"-fprofile-instr-use={profile}", "-Werror=profile-instr-out-of-date",
                    "-Werror=profile-instr-unprofiled"]
