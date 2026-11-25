@@ -904,6 +904,7 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
 {
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
+#ifndef SCRABBLE_TUNING_PAIR
         {"batch-2", measure_solve<PackedCounter::WithWordLoop<BatchedWords<2>>>},
         {"batch-4", measure_solve<PackedCounter::WithWordLoop<BatchedWords<4>>>},
 #ifdef __clang__
@@ -929,7 +930,9 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
         {"scalar-1-2", measure_solve<ScalarCounter::WithGapEvaluation<GapEvaluation::fixed_one_two>>},
         {"singleton-mask", measure_solve<SingletonCounter::WithGapEvaluation<GapEvaluation::singleton_mask>>},
         {"singleton-byte", measure_solve<SingletonCounter::WithGapEvaluation<GapEvaluation::singleton_byte>>},
+#endif
         {"rack", measure_solve<RackCounter<SubsetPolicy::none>>},
+#ifndef SCRABBLE_TUNING_PAIR
         {"subset", measure_solve<RackCounter<SubsetPolicy::alphabet>>},
         {"subset-capacity", measure_solve<RackCounter<SubsetPolicy::capacity>>},
         {"subset-multi", measure_solve<RackCounter<SubsetPolicy::capacity_multi>>},
@@ -937,6 +940,7 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
         {"one-gap", measure_solve<OneGapCounter>},
         {"empty-bits", measure_solve<WindowCounter<GapTraversal::empty_bits>>},
         {"neighbor-bits", measure_solve<WindowCounter<GapTraversal::neighbor_bits>>},
+#endif
     };
     for (const auto &variant : variants) {
         if (variant.name == name) {

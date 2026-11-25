@@ -6,6 +6,10 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef WINDOW_TUNING_HOST
+#include "tuning_loader.h"
+#endif
+
 using benchmark::WindowVariant;
 
 static void measure_pairs(const char *dictionary, const char *cache, const WindowVariant *variants[2])
@@ -20,6 +24,18 @@ static void measure_pairs(const char *dictionary, const char *cache, const Windo
         std::string line;
         while (std::getline(std::cin, line)) {
             std::istringstream fields(line);
+#ifdef WINDOW_TUNING_HOST
+            if (line.rfind("@pair\t", 0) == 0) {
+                fields.ignore(sizeof("@pair\t") - 1);
+                variants[0] = load_tuning_counter(fields);
+                variants[1] = load_tuning_counter(fields);
+                std::fflush(stdout);
+                continue;
+            }
+            if (!variants[0] || !variants[1]) {
+                throw std::invalid_argument("select both builds before sending a position");
+            }
+#endif
             std::string path, letters, first;
             if (!std::getline(fields, path, '\t') || !std::getline(fields, letters, '\t') ||
                 !std::getline(fields, first) || (first != "0" && first != "1")) {
@@ -46,6 +62,9 @@ static void measure_pairs(const char *dictionary, const char *cache, const Windo
                 std::printf("%s,%zu,%zu,%.3f\n", variants[i]->name, solves[i].counts.across,
                             solves[i].counts.down, solves[i].solve_us);
             }
+#ifdef WINDOW_TUNING_HOST
+            std::fflush(stdout);
+#endif
         }
     }
     words.destroy();
@@ -62,6 +81,13 @@ int main(int argc, char **argv)
             std::puts(WINDOW_BUILD_FLAGS);
             return 0;
         }
+#ifdef WINDOW_TUNING_HOST
+        if (argc == 3) {
+            const WindowVariant *variants[2]{};
+            measure_pairs(argv[1], argv[2], variants);
+            return 0;
+        }
+#endif
         if (argc != 5) {
             std::fprintf(stderr, "usage: %s baseline challenger dictionary cache\n", argv[0]);
             return 1;

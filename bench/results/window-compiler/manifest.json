@@ -1,0 +1,1700 @@
+{
+  "affinity": 2,
+  "builds": {
+    "aligned": {
+      "binary": "build/window-compiler/builds/92c22ac7560c16c99dc6/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/92c22ac7560c16c99dc6/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/92c22ac7560c16c99dc6/board.o build/window-compiler/builds/92c22ac7560c16c99dc6/perpendicular_checks.o build/window-compiler/builds/92c22ac7560c16c99dc6/rack_oriented_solver.o build/window-compiler/builds/92c22ac7560c16c99dc6/utils.o build/window-compiler/builds/92c22ac7560c16c99dc6/word_index_start_row_table.o build/window-compiler/builds/92c22ac7560c16c99dc6/word_pattern_table.o build/window-compiler/builds/92c22ac7560c16c99dc6/word_start_row_table.o build/window-compiler/builds/92c22ac7560c16c99dc6/word_table.o build/window-compiler/builds/92c22ac7560c16c99dc6/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/92c22ac7560c16c99dc6/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "ab79624ac27dbe013c687348329ee1dee42469d0f9740100712380f71525a381",
+      "text_bytes": 46389
+    },
+    "native": {
+      "binary": "build/window-compiler/builds/cec9ab2bb27dc8bb8559/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/cec9ab2bb27dc8bb8559/board.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/perpendicular_checks.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/rack_oriented_solver.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/utils.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_index_start_row_table.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_pattern_table.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_start_row_table.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/word_table.o build/window-compiler/builds/cec9ab2bb27dc8bb8559/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/cec9ab2bb27dc8bb8559/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "28275ab9169b3bd440b6ec09834002dc78668e5fbbd935e6d3150dcb689f6420",
+      "text_bytes": 45141
+    },
+    "native-lto": {
+      "binary": "build/window-compiler/builds/aa854c9b5ebdc315da4b/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/aa854c9b5ebdc315da4b/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/aa854c9b5ebdc315da4b/board.o build/window-compiler/builds/aa854c9b5ebdc315da4b/perpendicular_checks.o build/window-compiler/builds/aa854c9b5ebdc315da4b/rack_oriented_solver.o build/window-compiler/builds/aa854c9b5ebdc315da4b/utils.o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_index_start_row_table.o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_pattern_table.o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_start_row_table.o build/window-compiler/builds/aa854c9b5ebdc315da4b/word_table.o build/window-compiler/builds/aa854c9b5ebdc315da4b/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/aa854c9b5ebdc315da4b/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "bebdbdc301f7cb5ab6d60df7ed63bb6a02a450205e050862930e4f8192a12b99",
+      "text_bytes": 10286
+    },
+    "native-o3": {
+      "binary": "build/window-compiler/builds/0feba1d369ad45585f40/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/0feba1d369ad45585f40/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/0feba1d369ad45585f40/board.o build/window-compiler/builds/0feba1d369ad45585f40/perpendicular_checks.o build/window-compiler/builds/0feba1d369ad45585f40/rack_oriented_solver.o build/window-compiler/builds/0feba1d369ad45585f40/utils.o build/window-compiler/builds/0feba1d369ad45585f40/word_index_start_row_table.o build/window-compiler/builds/0feba1d369ad45585f40/word_pattern_table.o build/window-compiler/builds/0feba1d369ad45585f40/word_start_row_table.o build/window-compiler/builds/0feba1d369ad45585f40/word_table.o build/window-compiler/builds/0feba1d369ad45585f40/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/0feba1d369ad45585f40/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "59eefd37884305ab670926cd9b8405ac2db03634c12675c3462cbcd794ad92cc",
+      "text_bytes": 52325
+    },
+    "native-pgo": {
+      "binary": "build/window-compiler/builds/092d62d57f4c054976a9/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/092d62d57f4c054976a9/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/092d62d57f4c054976a9/board.o build/window-compiler/builds/092d62d57f4c054976a9/perpendicular_checks.o build/window-compiler/builds/092d62d57f4c054976a9/rack_oriented_solver.o build/window-compiler/builds/092d62d57f4c054976a9/utils.o build/window-compiler/builds/092d62d57f4c054976a9/word_index_start_row_table.o build/window-compiler/builds/092d62d57f4c054976a9/word_pattern_table.o build/window-compiler/builds/092d62d57f4c054976a9/word_start_row_table.o build/window-compiler/builds/092d62d57f4c054976a9/word_table.o build/window-compiler/builds/092d62d57f4c054976a9/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/092d62d57f4c054976a9/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": "a055f92ae7245d1c51896aa4c086d72081f53eae072c484e69038bb6e4c39079",
+      "sha256": "52d98d5ccd4a6ecbef54709696d06bcfe9fec1e458e7603bcdcae8d5d71af620",
+      "text_bytes": 41068
+    },
+    "portable": {
+      "binary": "build/window-compiler/builds/72a17a09b59cb73a851e/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/72a17a09b59cb73a851e/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/72a17a09b59cb73a851e/board.o build/window-compiler/builds/72a17a09b59cb73a851e/perpendicular_checks.o build/window-compiler/builds/72a17a09b59cb73a851e/rack_oriented_solver.o build/window-compiler/builds/72a17a09b59cb73a851e/utils.o build/window-compiler/builds/72a17a09b59cb73a851e/word_index_start_row_table.o build/window-compiler/builds/72a17a09b59cb73a851e/word_pattern_table.o build/window-compiler/builds/72a17a09b59cb73a851e/word_start_row_table.o build/window-compiler/builds/72a17a09b59cb73a851e/word_table.o build/window-compiler/builds/72a17a09b59cb73a851e/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/72a17a09b59cb73a851e/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "7a92b59173da27c88bc5e5e2aa72db290198b5235d724380ac6761b6952d4059",
+      "text_bytes": 43141
+    },
+    "portable-lto": {
+      "binary": "build/window-compiler/builds/6531ede7eacefe673e19/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/6531ede7eacefe673e19/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -flto -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/6531ede7eacefe673e19/board.o build/window-compiler/builds/6531ede7eacefe673e19/perpendicular_checks.o build/window-compiler/builds/6531ede7eacefe673e19/rack_oriented_solver.o build/window-compiler/builds/6531ede7eacefe673e19/utils.o build/window-compiler/builds/6531ede7eacefe673e19/word_index_start_row_table.o build/window-compiler/builds/6531ede7eacefe673e19/word_pattern_table.o build/window-compiler/builds/6531ede7eacefe673e19/word_start_row_table.o build/window-compiler/builds/6531ede7eacefe673e19/word_table.o build/window-compiler/builds/6531ede7eacefe673e19/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/6531ede7eacefe673e19/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "584e8801928bac5c77e8662217a8dfa8a03f84ddeeab05030344da537c4622fa",
+      "text_bytes": 8094
+    },
+    "portable-o3": {
+      "binary": "build/window-compiler/builds/2537811c68343febcf1d/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/2537811c68343febcf1d/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/2537811c68343febcf1d/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/2537811c68343febcf1d/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/2537811c68343febcf1d/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/2537811c68343febcf1d/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/2537811c68343febcf1d/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/2537811c68343febcf1d/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/2537811c68343febcf1d/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/2537811c68343febcf1d/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/2537811c68343febcf1d/board.o build/window-compiler/builds/2537811c68343febcf1d/perpendicular_checks.o build/window-compiler/builds/2537811c68343febcf1d/rack_oriented_solver.o build/window-compiler/builds/2537811c68343febcf1d/utils.o build/window-compiler/builds/2537811c68343febcf1d/word_index_start_row_table.o build/window-compiler/builds/2537811c68343febcf1d/word_pattern_table.o build/window-compiler/builds/2537811c68343febcf1d/word_start_row_table.o build/window-compiler/builds/2537811c68343febcf1d/word_table.o build/window-compiler/builds/2537811c68343febcf1d/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/2537811c68343febcf1d/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "bf955ab7e142ec4113e49eb5a81c524c46f9a3d0fc9335d3429eeac3ee95d61b",
+      "text_bytes": 50213
+    },
+    "portable-pgo": {
+      "binary": "build/window-compiler/builds/722df86cca3c79b5c8e1/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/722df86cca3c79b5c8e1/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fprofile-instr-use=build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata -Werror=profile-instr-out-of-date -Werror=profile-instr-unprofiled -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/722df86cca3c79b5c8e1/board.o build/window-compiler/builds/722df86cca3c79b5c8e1/perpendicular_checks.o build/window-compiler/builds/722df86cca3c79b5c8e1/rack_oriented_solver.o build/window-compiler/builds/722df86cca3c79b5c8e1/utils.o build/window-compiler/builds/722df86cca3c79b5c8e1/word_index_start_row_table.o build/window-compiler/builds/722df86cca3c79b5c8e1/word_pattern_table.o build/window-compiler/builds/722df86cca3c79b5c8e1/word_start_row_table.o build/window-compiler/builds/722df86cca3c79b5c8e1/word_table.o build/window-compiler/builds/722df86cca3c79b5c8e1/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/722df86cca3c79b5c8e1/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": "1b718286370af954ba80b4c872b8af500ae5da8fb78a9f9a1e29ef7b81d33a59",
+      "sha256": "2de215f472a2ebde92fff11955e225af8fbc7f22bad001a3965060d90be3051b",
+      "text_bytes": 40972
+    },
+    "solver-os": {
+      "binary": "build/window-compiler/builds/1c9eb19aa59a93bc9546/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -Os -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/1c9eb19aa59a93bc9546/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/1c9eb19aa59a93bc9546/board.o build/window-compiler/builds/1c9eb19aa59a93bc9546/perpendicular_checks.o build/window-compiler/builds/1c9eb19aa59a93bc9546/rack_oriented_solver.o build/window-compiler/builds/1c9eb19aa59a93bc9546/utils.o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_index_start_row_table.o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_pattern_table.o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_start_row_table.o build/window-compiler/builds/1c9eb19aa59a93bc9546/word_table.o build/window-compiler/builds/1c9eb19aa59a93bc9546/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/1c9eb19aa59a93bc9546/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "f928ef1961d0fe9c8a36b3839ef8f86f84bd3bd0cb68c6a912c350df4e026f79",
+      "text_bytes": 43445
+    },
+    "tuned": {
+      "binary": "build/window-compiler/builds/fc9e26692ec290cb682a/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/fc9e26692ec290cb682a/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -mtune=skylake -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/fc9e26692ec290cb682a/board.o build/window-compiler/builds/fc9e26692ec290cb682a/perpendicular_checks.o build/window-compiler/builds/fc9e26692ec290cb682a/rack_oriented_solver.o build/window-compiler/builds/fc9e26692ec290cb682a/utils.o build/window-compiler/builds/fc9e26692ec290cb682a/word_index_start_row_table.o build/window-compiler/builds/fc9e26692ec290cb682a/word_pattern_table.o build/window-compiler/builds/fc9e26692ec290cb682a/word_start_row_table.o build/window-compiler/builds/fc9e26692ec290cb682a/word_table.o build/window-compiler/builds/fc9e26692ec290cb682a/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/fc9e26692ec290cb682a/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "a4a0eabd0f3cdcb0a802b33360006c6675632828cd2d86b0fdeb4a1aaa24899e",
+      "text_bytes": 44629
+    }
+  },
+  "counts": {
+    "../replay/sjoholm-del-solar.csv#12": {
+      "across": 165,
+      "across_candidates": 915,
+      "down": 192,
+      "down_candidates": 815
+    },
+    "data/fifty/fifty109.csv#16": {
+      "across": 118,
+      "across_candidates": 812,
+      "down": 89,
+      "down_candidates": 928
+    },
+    "data/fifty/fifty199.csv#15": {
+      "across": 182,
+      "across_candidates": 556,
+      "down": 122,
+      "down_candidates": 682
+    },
+    "data/fifty/fifty262.csv#18": {
+      "across": 33,
+      "across_candidates": 235,
+      "down": 24,
+      "down_candidates": 282
+    },
+    "data/fifty/fifty78.csv#8": {
+      "across": 32,
+      "across_candidates": 628,
+      "down": 84,
+      "down_candidates": 400
+    },
+    "data/fifty/fifty9.csv#9": {
+      "across": 103,
+      "across_candidates": 551,
+      "down": 115,
+      "down_candidates": 444
+    },
+    "data/fifty/fifty90.csv#3": {
+      "across": 184,
+      "across_candidates": 850,
+      "down": 194,
+      "down_candidates": 575
+    },
+    "data/lewis/lewis10012.csv#19": {
+      "across": 158,
+      "across_candidates": 922,
+      "down": 202,
+      "down_candidates": 1192
+    },
+    "data/lewis/lewis10206.csv#12": {
+      "across": 185,
+      "across_candidates": 1568,
+      "down": 182,
+      "down_candidates": 1620
+    },
+    "data/lewis/lewis10280.csv#9": {
+      "across": 87,
+      "across_candidates": 820,
+      "down": 122,
+      "down_candidates": 619
+    },
+    "data/lewis/lewis10540.csv#21": {
+      "across": 147,
+      "across_candidates": 2024,
+      "down": 296,
+      "down_candidates": 831
+    },
+    "data/lewis/lewis10749.csv#14": {
+      "across": 88,
+      "across_candidates": 529,
+      "down": 117,
+      "down_candidates": 407
+    },
+    "data/lewis/lewis10932.csv#7": {
+      "across": 200,
+      "across_candidates": 776,
+      "down": 211,
+      "down_candidates": 698
+    },
+    "data/lewis/lewis12114.csv#21": {
+      "across": 69,
+      "across_candidates": 347,
+      "down": 23,
+      "down_candidates": 389
+    },
+    "data/lewis/lewis12453.csv#2": {
+      "across": 120,
+      "across_candidates": 630,
+      "down": 213,
+      "down_candidates": 489
+    },
+    "data/lewis/lewis12683.csv#4": {
+      "across": 152,
+      "across_candidates": 551,
+      "down": 75,
+      "down_candidates": 609
+    },
+    "data/lewis/lewis12778.csv#28": {
+      "across": 19,
+      "across_candidates": 24,
+      "down": 8,
+      "down_candidates": 22
+    },
+    "data/lewis/lewis13380.csv#12": {
+      "across": 813,
+      "across_candidates": 3049,
+      "down": 406,
+      "down_candidates": 3675
+    },
+    "data/lewis/lewis13729.csv#9": {
+      "across": 255,
+      "across_candidates": 2586,
+      "down": 600,
+      "down_candidates": 1853
+    },
+    "data/lewis/lewis13998.csv#19": {
+      "across": 146,
+      "across_candidates": 838,
+      "down": 163,
+      "down_candidates": 1826
+    },
+    "data/lewis/lewis14064.csv#7": {
+      "across": 369,
+      "across_candidates": 1179,
+      "down": 189,
+      "down_candidates": 1606
+    },
+    "data/lewis/lewis1684.csv#19": {
+      "across": 365,
+      "across_candidates": 1911,
+      "down": 315,
+      "down_candidates": 1757
+    },
+    "data/lewis/lewis1923.csv#5": {
+      "across": 388,
+      "across_candidates": 2213,
+      "down": 499,
+      "down_candidates": 2006
+    },
+    "data/lewis/lewis241.csv#6": {
+      "across": 76,
+      "across_candidates": 576,
+      "down": 129,
+      "down_candidates": 460
+    },
+    "data/lewis/lewis2827.csv#5": {
+      "across": 169,
+      "across_candidates": 1751,
+      "down": 288,
+      "down_candidates": 1384
+    },
+    "data/lewis/lewis4508.csv#4": {
+      "across": 134,
+      "across_candidates": 640,
+      "down": 272,
+      "down_candidates": 550
+    },
+    "data/lewis/lewis4700.csv#24": {
+      "across": 245,
+      "across_candidates": 671,
+      "down": 46,
+      "down_candidates": 790
+    },
+    "data/lewis/lewis507.csv#11": {
+      "across": 189,
+      "across_candidates": 1026,
+      "down": 173,
+      "down_candidates": 1492
+    },
+    "data/lewis/lewis5072.csv#13": {
+      "across": 271,
+      "across_candidates": 1671,
+      "down": 310,
+      "down_candidates": 2373
+    },
+    "data/lewis/lewis5540.csv#24": {
+      "across": 121,
+      "across_candidates": 1074,
+      "down": 369,
+      "down_candidates": 1461
+    },
+    "data/lewis/lewis763.csv#18": {
+      "across": 490,
+      "across_candidates": 1974,
+      "down": 571,
+      "down_candidates": 2051
+    },
+    "data/one/one176.csv#17": {
+      "across": 296,
+      "across_candidates": 1590,
+      "down": 213,
+      "down_candidates": 2080
+    },
+    "data/one/one2848.csv#10": {
+      "across": 264,
+      "across_candidates": 330,
+      "down": 88,
+      "down_candidates": 147
+    },
+    "data/one/one362.csv#6": {
+      "across": 270,
+      "across_candidates": 1459,
+      "down": 382,
+      "down_candidates": 969
+    },
+    "data/one/one4065.csv#13": {
+      "across": 651,
+      "across_candidates": 1655,
+      "down": 504,
+      "down_candidates": 2019
+    },
+    "data/one/one4373.csv#13": {
+      "across": 305,
+      "across_candidates": 1186,
+      "down": 150,
+      "down_candidates": 2558
+    },
+    "data/one/one5869.csv#7": {
+      "across": 355,
+      "across_candidates": 1783,
+      "down": 399,
+      "down_candidates": 1376
+    },
+    "data/one/one6486.csv#31": {
+      "across": 46,
+      "across_candidates": 373,
+      "down": 50,
+      "down_candidates": 356
+    },
+    "data/one/one6623.csv#18": {
+      "across": 40,
+      "across_candidates": 554,
+      "down": 105,
+      "down_candidates": 650
+    },
+    "data/random/random1155.csv#6": {
+      "across": 282,
+      "across_candidates": 1106,
+      "down": 131,
+      "down_candidates": 783
+    },
+    "data/random/random1165.csv#13": {
+      "across": 590,
+      "across_candidates": 2229,
+      "down": 430,
+      "down_candidates": 2784
+    },
+    "data/random/random126.csv#20": {
+      "across": 126,
+      "across_candidates": 692,
+      "down": 78,
+      "down_candidates": 530
+    },
+    "data/random/random1464.csv#10": {
+      "across": 302,
+      "across_candidates": 2169,
+      "down": 185,
+      "down_candidates": 2403
+    },
+    "data/random/random206.csv#20": {
+      "across": 238,
+      "across_candidates": 2265,
+      "down": 239,
+      "down_candidates": 1675
+    },
+    "data/random/random272.csv#17": {
+      "across": 97,
+      "across_candidates": 809,
+      "down": 122,
+      "down_candidates": 442
+    },
+    "data/random/random306.csv#19": {
+      "across": 202,
+      "across_candidates": 737,
+      "down": 145,
+      "down_candidates": 1125
+    },
+    "data/random/random78.csv#4": {
+      "across": 123,
+      "across_candidates": 1255,
+      "down": 178,
+      "down_candidates": 754
+    },
+    "data/traditional/traditional1048.csv#4": {
+      "across": 550,
+      "across_candidates": 2269,
+      "down": 469,
+      "down_candidates": 2709
+    },
+    "data/traditional/traditional10562.csv#13": {
+      "across": 705,
+      "across_candidates": 4258,
+      "down": 423,
+      "down_candidates": 3041
+    },
+    "data/traditional/traditional1484.csv#6": {
+      "across": 102,
+      "across_candidates": 1132,
+      "down": 301,
+      "down_candidates": 734
+    },
+    "data/traditional/traditional1981.csv#8": {
+      "across": 347,
+      "across_candidates": 1265,
+      "down": 180,
+      "down_candidates": 1097
+    },
+    "data/traditional/traditional2123.csv#8": {
+      "across": 305,
+      "across_candidates": 1224,
+      "down": 282,
+      "down_candidates": 909
+    },
+    "data/traditional/traditional2278.csv#22": {
+      "across": 74,
+      "across_candidates": 259,
+      "down": 89,
+      "down_candidates": 224
+    },
+    "data/traditional/traditional2427.csv#8": {
+      "across": 194,
+      "across_candidates": 572,
+      "down": 168,
+      "down_candidates": 548
+    },
+    "data/traditional/traditional2625.csv#21": {
+      "across": 29,
+      "across_candidates": 122,
+      "down": 21,
+      "down_candidates": 178
+    },
+    "data/traditional/traditional2776.csv#9": {
+      "across": 293,
+      "across_candidates": 2056,
+      "down": 406,
+      "down_candidates": 1283
+    },
+    "data/traditional/traditional427.csv#3": {
+      "across": 121,
+      "across_candidates": 453,
+      "down": 143,
+      "down_candidates": 441
+    },
+    "data/traditional/traditional4982.csv#16": {
+      "across": 510,
+      "across_candidates": 2318,
+      "down": 324,
+      "down_candidates": 2401
+    },
+    "data/traditional/traditional5137.csv#13": {
+      "across": 436,
+      "across_candidates": 2217,
+      "down": 543,
+      "down_candidates": 2545
+    },
+    "data/traditional/traditional541.csv#22": {
+      "across": 28,
+      "across_candidates": 193,
+      "down": 32,
+      "down_candidates": 162
+    },
+    "data/traditional/traditional546.csv#12": {
+      "across": 275,
+      "across_candidates": 2079,
+      "down": 189,
+      "down_candidates": 2831
+    },
+    "data/traditional/traditional565.csv#24": {
+      "across": 21,
+      "across_candidates": 45,
+      "down": 11,
+      "down_candidates": 40
+    },
+    "data/traditional/traditional5901.csv#18": {
+      "across": 137,
+      "across_candidates": 951,
+      "down": 87,
+      "down_candidates": 954
+    },
+    "data/traditional/traditional6162.csv#10": {
+      "across": 200,
+      "across_candidates": 1068,
+      "down": 187,
+      "down_candidates": 696
+    },
+    "data/traditional/traditional6373.csv#16": {
+      "across": 413,
+      "across_candidates": 3187,
+      "down": 349,
+      "down_candidates": 4203
+    },
+    "data/traditional/traditional6416.csv#10": {
+      "across": 400,
+      "across_candidates": 1547,
+      "down": 248,
+      "down_candidates": 1158
+    },
+    "data/traditional/traditional6940.csv#4": {
+      "across": 188,
+      "across_candidates": 725,
+      "down": 253,
+      "down_candidates": 789
+    },
+    "data/traditional/traditional7013.csv#15": {
+      "across": 196,
+      "across_candidates": 1395,
+      "down": 281,
+      "down_candidates": 1275
+    },
+    "data/traditional/traditional7583.csv#23": {
+      "across": 93,
+      "across_candidates": 437,
+      "down": 82,
+      "down_candidates": 331
+    },
+    "data/traditional/traditional7660.csv#15": {
+      "across": 625,
+      "across_candidates": 2567,
+      "down": 444,
+      "down_candidates": 1885
+    },
+    "data/traditional/traditional7900.csv#3": {
+      "across": 70,
+      "across_candidates": 652,
+      "down": 214,
+      "down_candidates": 545
+    },
+    "data/traditional/traditional8122.csv#14": {
+      "across": 188,
+      "across_candidates": 1842,
+      "down": 262,
+      "down_candidates": 1891
+    },
+    "data/traditional/traditional8235.csv#20": {
+      "across": 243,
+      "across_candidates": 2645,
+      "down": 508,
+      "down_candidates": 1942
+    },
+    "games/6zTBhes669.csv#25": {
+      "across": 54,
+      "across_candidates": 158,
+      "down": 31,
+      "down_candidates": 212
+    },
+    "games/7bbdiRsCRY.csv#4": {
+      "across": 322,
+      "across_candidates": 729,
+      "down": 207,
+      "down_candidates": 944
+    },
+    "games/CpZHNqsaAe.csv#8": {
+      "across": 31,
+      "across_candidates": 453,
+      "down": 70,
+      "down_candidates": 230
+    },
+    "games/NSFqNG8yP5.csv#23": {
+      "across": 136,
+      "across_candidates": 989,
+      "down": 138,
+      "down_candidates": 1186
+    },
+    "games/RHaUnC67uz.csv#15": {
+      "across": 415,
+      "across_candidates": 1618,
+      "down": 331,
+      "down_candidates": 2043
+    }
+  },
+  "cpu": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+  "dictionary_sha256": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+  "host": {
+    "binary": "build/window-compiler/builds/e950c0e80fee8c174f65/worker",
+    "commands": [
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/board.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/board.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/perpendicular_checks.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/perpendicular_checks.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/rack_oriented_solver.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/utils.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/utils.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/word_index_start_row_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_pattern_table.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/word_pattern_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_start_row_table.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/word_start_row_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_table.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/word_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c bench/window_counters/window_worker.cpp -o build/window-compiler/builds/e950c0e80fee8c174f65/window_worker.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' build/window-compiler/builds/e950c0e80fee8c174f65/board.o build/window-compiler/builds/e950c0e80fee8c174f65/perpendicular_checks.o build/window-compiler/builds/e950c0e80fee8c174f65/rack_oriented_solver.o build/window-compiler/builds/e950c0e80fee8c174f65/utils.o build/window-compiler/builds/e950c0e80fee8c174f65/word_index_start_row_table.o build/window-compiler/builds/e950c0e80fee8c174f65/word_pattern_table.o build/window-compiler/builds/e950c0e80fee8c174f65/word_start_row_table.o build/window-compiler/builds/e950c0e80fee8c174f65/word_table.o build/window-compiler/builds/e950c0e80fee8c174f65/window_worker.o -ldl -o build/window-compiler/builds/e950c0e80fee8c174f65/worker"
+    ],
+    "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+    "inputs": {
+      "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+      "bench/window_counters/tuning_loader.h": "865adb984c90359e735aaea0729c136abcec324c5fc74f8d587494e98908f050",
+      "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+      "bench/window_counters/window_worker.cpp": "ab3c1e3b521170c15ee2f402db0a639cb6195835a6969a70b2d3a78b8a2e2b56",
+      "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+      "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+      "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+      "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+      "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+      "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+      "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+      "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+      "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+      "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+      "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+      "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+      "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+      "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+      "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+      "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+      "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+      "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+      "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+    },
+    "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+    "profile_sha256": null,
+    "sha256": "a4af9b9ae317ab3355fc4fa89d503b7ecb2e5b194cb8510f99df2e008c494b60",
+    "text_bytes": 52983
+  },
+  "inputs": {
+    "../replay/sjoholm-del-solar.csv#12": {
+      "board_sha256": "95ea3896f6e88a8012d92a2d0aeb371f10e19e4365b8dfd61f7c533579965dc5",
+      "dataset": "development",
+      "rack": "IJNOORU",
+      "stage": "middle"
+    },
+    "data/fifty/fifty109.csv#16": {
+      "board_sha256": "e859b2775b915d99cf52d38177b2b7903a31436f5b6d99e3e1e69cd2fda3ce3c",
+      "dataset": "pgo",
+      "rack": "ELOQSUY",
+      "stage": "middle"
+    },
+    "data/fifty/fifty199.csv#15": {
+      "board_sha256": "29f76bf8681291c750f92092bb1696b43315d915acd2f357c068e857a64c9d76",
+      "dataset": "pgo",
+      "rack": "AEIINOU",
+      "stage": "middle"
+    },
+    "data/fifty/fifty262.csv#18": {
+      "board_sha256": "32f303aad4177ffa89766e95ce1428c1f0133b192dcf3e5ea9392968325c8404",
+      "dataset": "development",
+      "rack": "AMNQRRW",
+      "stage": "middle"
+    },
+    "data/fifty/fifty78.csv#8": {
+      "board_sha256": "f5ddeb02bd2e3562caeebff8301134c929f43a11c93080dd17f2715b266e13e3",
+      "dataset": "pgo",
+      "rack": "GKNPRTU",
+      "stage": "early"
+    },
+    "data/fifty/fifty9.csv#9": {
+      "board_sha256": "3a0b8f46fca74962d53f14fe04ab8289da233d24052a7c4cea6b2f075393f745",
+      "dataset": "pgo",
+      "rack": "CEEIOOT",
+      "stage": "early"
+    },
+    "data/fifty/fifty90.csv#3": {
+      "board_sha256": "bca0f2e5e0132e87bda00bbf7d2df225ca14174c94928b5b67c37c159c4be4e7",
+      "dataset": "pgo",
+      "rack": "DEENTUW",
+      "stage": "early"
+    },
+    "data/lewis/lewis10012.csv#19": {
+      "board_sha256": "be1d0f25a1bae3a85f4fff36de94c9251cf037161711b384c61758b82b245112",
+      "dataset": "development",
+      "rack": "AKLOVXY",
+      "stage": "late"
+    },
+    "data/lewis/lewis10206.csv#12": {
+      "board_sha256": "1557edbe005bf0e80db2bc75e379d2d884182601a4ef39b700045a57e8c73ff8",
+      "dataset": "pgo",
+      "rack": "ABGINTV",
+      "stage": "middle"
+    },
+    "data/lewis/lewis10280.csv#9": {
+      "board_sha256": "30169c4dc3337502079806f11f8a68e61afbb0c101e3430e2213ccd5b24f310e",
+      "dataset": "pgo",
+      "rack": "LNNOOSU",
+      "stage": "early"
+    },
+    "data/lewis/lewis10540.csv#21": {
+      "board_sha256": "bb4a0bf93f208f52a07216c552e2e0129b883f6d32764fdb27e53356c1e95d26",
+      "dataset": "pgo",
+      "rack": "IIMORST",
+      "stage": "late"
+    },
+    "data/lewis/lewis10749.csv#14": {
+      "board_sha256": "83b634c1a10ed37dd888233006536693a7d14a973ccc37925ae48260a778c4c2",
+      "dataset": "pgo",
+      "rack": "LLRSTUV",
+      "stage": "middle"
+    },
+    "data/lewis/lewis10932.csv#7": {
+      "board_sha256": "ca425310e44f8b1d35136902cc53f57e4102e0a1956038818b010f417d09d62d",
+      "dataset": "pgo",
+      "rack": "AAFHLNP",
+      "stage": "early"
+    },
+    "data/lewis/lewis12114.csv#21": {
+      "board_sha256": "6c8a9cbdc9ad2e6b42e4e5329259086e33facc4b3eea92202f32a642e7362002",
+      "dataset": "pgo",
+      "rack": "CEFGGLN",
+      "stage": "late"
+    },
+    "data/lewis/lewis12453.csv#2": {
+      "board_sha256": "2bcd11953cbd0e1f1f1ac435af38adbbea628b58fc96e102ce8dd6fd8fb0e25b",
+      "dataset": "development",
+      "rack": "AFHIPRU",
+      "stage": "early"
+    },
+    "data/lewis/lewis12683.csv#4": {
+      "board_sha256": "c897f38e6ac7e71103308d0e4d07443ba5470a39339cc08a228d9a40446807e2",
+      "dataset": "pgo",
+      "rack": "CEEFHLN",
+      "stage": "early"
+    },
+    "data/lewis/lewis12778.csv#28": {
+      "board_sha256": "4536ecf340d47a5c11f6ddb78ceeab0ae242743989c1a7d1633d24dc0fa1a21a",
+      "dataset": "pgo",
+      "rack": "NY",
+      "stage": "late"
+    },
+    "data/lewis/lewis13380.csv#12": {
+      "board_sha256": "70825ae5b0798d747557eed45eafb273ecfbe97bf5ae81a57eb93bd9b692ffb1",
+      "dataset": "pgo",
+      "rack": "AERSTWZ",
+      "stage": "middle"
+    },
+    "data/lewis/lewis13729.csv#9": {
+      "board_sha256": "644cfcb9be07c82e038a72e730832ec985a97c699c782447b185ae2010dd7a88",
+      "dataset": "development",
+      "rack": "ACENRUV",
+      "stage": "middle"
+    },
+    "data/lewis/lewis13998.csv#19": {
+      "board_sha256": "d4d5c84f6376853d841661439f1d115a0ab2404dcb1081438c5448c4d14055d3",
+      "dataset": "pgo",
+      "rack": "AEEILMY",
+      "stage": "late"
+    },
+    "data/lewis/lewis14064.csv#7": {
+      "board_sha256": "e4ba4bec1c388e3e45316795bf4fe81795fdfaf69e6e9c02fbf130f61db263a8",
+      "dataset": "pgo",
+      "rack": "AGNOOPR",
+      "stage": "early"
+    },
+    "data/lewis/lewis1684.csv#19": {
+      "board_sha256": "dc06700518d077f588d2f2aa0888a540b089221578c69692672acee2da10f3cc",
+      "dataset": "development",
+      "rack": "DGINORT",
+      "stage": "late"
+    },
+    "data/lewis/lewis1923.csv#5": {
+      "board_sha256": "43b31d0807dd55c2f36051ba8b0926cf9fd0f8dfa64110573d29558b57558a5d",
+      "dataset": "development",
+      "rack": "AEIIMRT",
+      "stage": "early"
+    },
+    "data/lewis/lewis241.csv#6": {
+      "board_sha256": "56e8abd83994f86de9915b099c04ec1d46787ea3493ab679f36697359ded20f4",
+      "dataset": "pgo",
+      "rack": "AGJMMRU",
+      "stage": "early"
+    },
+    "data/lewis/lewis2827.csv#5": {
+      "board_sha256": "16452cf464c97d2fde30e7e731748cb7c7837d5547d8b8b102e143a6e80ec4b0",
+      "dataset": "development",
+      "rack": "AEEHIST",
+      "stage": "early"
+    },
+    "data/lewis/lewis4508.csv#4": {
+      "board_sha256": "b2eede63bceab7c03fc93e0afb97d85ae449cc5a7c7547cca4f5754b2e7a628e",
+      "dataset": "development",
+      "rack": "DEIIOOS",
+      "stage": "early"
+    },
+    "data/lewis/lewis4700.csv#24": {
+      "board_sha256": "b3e2297eb1edb187b673a0a8bb8f84b1c244f978b49d9c091e2d10d700f18b93",
+      "dataset": "pgo",
+      "rack": "CHIIRTU",
+      "stage": "late"
+    },
+    "data/lewis/lewis507.csv#11": {
+      "board_sha256": "d27e87ddf491a00bfb393c4a677e339f028b8e7f187e270633038c93bf9321a7",
+      "dataset": "pgo",
+      "rack": "DEIPRTX",
+      "stage": "middle"
+    },
+    "data/lewis/lewis5072.csv#13": {
+      "board_sha256": "07e2a5ca0c52947df5c228375300e6de72f6b9c01dcb4a54c3d0dc0ff1988c6d",
+      "dataset": "pgo",
+      "rack": "AIRSSTY",
+      "stage": "middle"
+    },
+    "data/lewis/lewis5540.csv#24": {
+      "board_sha256": "98ac0aa870708a302b3d97a95af8719c5d24770ee7320af2e2865634e2b0fb46",
+      "dataset": "pgo",
+      "rack": "AAEENRS",
+      "stage": "late"
+    },
+    "data/lewis/lewis763.csv#18": {
+      "board_sha256": "1fab6d9c00d8257eabafcbfc96a422617a548f63b1ad90cf84c00b3254c69760",
+      "dataset": "pgo",
+      "rack": "AEILOOS",
+      "stage": "late"
+    },
+    "data/one/one176.csv#17": {
+      "board_sha256": "ec331f800dc8a86d204f208ee761462ef88a7a30ffabc7f5851d8707cb0476c2",
+      "dataset": "pgo",
+      "rack": "AOPRSUV",
+      "stage": "late"
+    },
+    "data/one/one2848.csv#10": {
+      "board_sha256": "d8569e60ecdde4417f240d4061ba4374ea9acd83fae7a0f37f118bcc41754395",
+      "dataset": "development",
+      "rack": "FKNPRTV",
+      "stage": "middle"
+    },
+    "data/one/one362.csv#6": {
+      "board_sha256": "049626f3abeb4f47d1f237722d1e3eb903e7c5424c04e320bbfd54863f64ac66",
+      "dataset": "development",
+      "rack": "ADIRRVY",
+      "stage": "early"
+    },
+    "data/one/one4065.csv#13": {
+      "board_sha256": "e6bb23bd1bd5fba3c0e1f3fbc07aceb3bc01f72f6935b86e86fe1cdf609174a4",
+      "dataset": "pgo",
+      "rack": "AEIIORS",
+      "stage": "middle"
+    },
+    "data/one/one4373.csv#13": {
+      "board_sha256": "178c10356b928d8154cd4621934f18aac312c09338d54e37a6078052846fe4be",
+      "dataset": "development",
+      "rack": "AENRTVW",
+      "stage": "middle"
+    },
+    "data/one/one5869.csv#7": {
+      "board_sha256": "097498c0c85102183597efb9ce2875b50a11ccb351a72a1fac2a796ea5af1031",
+      "dataset": "pgo",
+      "rack": "DEEIORX",
+      "stage": "middle"
+    },
+    "data/one/one6486.csv#31": {
+      "board_sha256": "797feda652953962fb25dd199a7ab11ae49a6dfaaa24cbb9a1daf0675999882f",
+      "dataset": "pgo",
+      "rack": "ERSU",
+      "stage": "late"
+    },
+    "data/one/one6623.csv#18": {
+      "board_sha256": "7fc0eca3f3a2faf50d0b0623732caa35fbb1125d9f53c79b57797468d06a1dc3",
+      "dataset": "pgo",
+      "rack": "EINQRRU",
+      "stage": "late"
+    },
+    "data/random/random1155.csv#6": {
+      "board_sha256": "e4c740e832cae3069576243ca47ea4efeed2b123eed4482359d57c839a8aaafc",
+      "dataset": "development",
+      "rack": "DEIKMTV",
+      "stage": "early"
+    },
+    "data/random/random1165.csv#13": {
+      "board_sha256": "ff4e8d24c851e265876d68170b76cc11d32fd044bc64b3c8bee7ffcb620e65ac",
+      "dataset": "pgo",
+      "rack": "ADGIORU",
+      "stage": "middle"
+    },
+    "data/random/random126.csv#20": {
+      "board_sha256": "3e4c3462480f778fa5c7f59b1aa5aee65ee666613ff3bc35dc69da175adcf9ef",
+      "dataset": "development",
+      "rack": "BEILQVX",
+      "stage": "late"
+    },
+    "data/random/random1464.csv#10": {
+      "board_sha256": "fef8db73c55103a5eba5af74f66e0b496928a32bef62c6b7f189dabc9382f99b",
+      "dataset": "development",
+      "rack": "ANORTUY",
+      "stage": "middle"
+    },
+    "data/random/random206.csv#20": {
+      "board_sha256": "d5015473b489274a11157311a55a0fa29a12dbaf72d891607a7f8f0c110f4cf2",
+      "dataset": "development",
+      "rack": "ADDEFIR",
+      "stage": "late"
+    },
+    "data/random/random272.csv#17": {
+      "board_sha256": "0b96e691a2ebac06dc47b3448b4ee3bcc06e2cdc0780ab8a552c3bfc544c77b8",
+      "dataset": "development",
+      "rack": "FIMOTTT",
+      "stage": "late"
+    },
+    "data/random/random306.csv#19": {
+      "board_sha256": "4443be141a901f8c77f5c1f2125ee1561e57fcdd9102698fdd5a466f8d829d43",
+      "dataset": "pgo",
+      "rack": "AEIOOOT",
+      "stage": "late"
+    },
+    "data/random/random78.csv#4": {
+      "board_sha256": "919d0445bfa068ce5db8c954a3ab8fac7032624399a276bc366ee168dce0ae0a",
+      "dataset": "development",
+      "rack": "DEMOQSW",
+      "stage": "early"
+    },
+    "data/traditional/traditional1048.csv#4": {
+      "board_sha256": "2d58f20b400e222d8fc6389f5c64f84e3a205961401bce84b81c02be13563db8",
+      "dataset": "pgo",
+      "rack": "IKLNOST",
+      "stage": "early"
+    },
+    "data/traditional/traditional10562.csv#13": {
+      "board_sha256": "eb40cde2a577f1261edd417251131cb72483b67813f1fd521c2a9e0ac8a8f486",
+      "dataset": "development",
+      "rack": "ADELMOR",
+      "stage": "middle"
+    },
+    "data/traditional/traditional1484.csv#6": {
+      "board_sha256": "9c711154473a120b52552e16ab8d93d78285067c781668318692eeedef4b1ce8",
+      "dataset": "development",
+      "rack": "EELMNOT",
+      "stage": "early"
+    },
+    "data/traditional/traditional1981.csv#8": {
+      "board_sha256": "28ff45307ac8b3256a9edce62be44f9d0ea9fae9f28141adc56838eff6943201",
+      "dataset": "pgo",
+      "rack": "FGOSTUY",
+      "stage": "early"
+    },
+    "data/traditional/traditional2123.csv#8": {
+      "board_sha256": "9f552d0b5fb2e3584602c035b7fe3e0d6115a0c252e2cdbf924a44e816b805e6",
+      "dataset": "pgo",
+      "rack": "AALOOTU",
+      "stage": "early"
+    },
+    "data/traditional/traditional2278.csv#22": {
+      "board_sha256": "e5aa24c8e2e84425f4df6094a548d272860b0ff6dbaab74a7860b7ddc489c727",
+      "dataset": "development",
+      "rack": "ENS",
+      "stage": "late"
+    },
+    "data/traditional/traditional2427.csv#8": {
+      "board_sha256": "ba2932da1148774db6baab38414c244f7bf91fea7c250b4854ed2ee0882573c8",
+      "dataset": "pgo",
+      "rack": "EEEEIPS",
+      "stage": "early"
+    },
+    "data/traditional/traditional2625.csv#21": {
+      "board_sha256": "64e0f4a85ffd39fa1452a65195e944f03e794f46c46423ead0f6d2d787800d40",
+      "dataset": "development",
+      "rack": "FFIN",
+      "stage": "late"
+    },
+    "data/traditional/traditional2776.csv#9": {
+      "board_sha256": "b3053cbe004388b23df9d082696a7384536e3353f693bacc9c53f3470338ea96",
+      "dataset": "pgo",
+      "rack": "AAEMNSV",
+      "stage": "middle"
+    },
+    "data/traditional/traditional427.csv#3": {
+      "board_sha256": "150bca31ceaecc7a21a2154ff50f69da1051976c832b96738823c2c9b8c1f43c",
+      "dataset": "pgo",
+      "rack": "EFOQRRV",
+      "stage": "early"
+    },
+    "data/traditional/traditional4982.csv#16": {
+      "board_sha256": "a68912994a7017ffcf4893d6f3155ecca2a5fcbe2816e1d62a949f49c1cae72b",
+      "dataset": "development",
+      "rack": "EFILNRT",
+      "stage": "middle"
+    },
+    "data/traditional/traditional5137.csv#13": {
+      "board_sha256": "b88f1699c946f2dbca7bf1669586f406622e303a3b059fc440919fc2403c6ad5",
+      "dataset": "pgo",
+      "rack": "AEIPRRT",
+      "stage": "middle"
+    },
+    "data/traditional/traditional541.csv#22": {
+      "board_sha256": "1179616f561e0010dff0dda8ad3e85529488ad1bc9271c44fa86c62e95a5fe39",
+      "dataset": "pgo",
+      "rack": "AIL",
+      "stage": "late"
+    },
+    "data/traditional/traditional546.csv#12": {
+      "board_sha256": "cc9a1a289bd4d270f60d1bb143ac0620b27eb4504e84122e7a04f194523856e9",
+      "dataset": "pgo",
+      "rack": "AGIOPRT",
+      "stage": "middle"
+    },
+    "data/traditional/traditional565.csv#24": {
+      "board_sha256": "e4438550f44336addd02279ef9e21382e56b2f983b8c1bf5bd02423a4cdcb8ce",
+      "dataset": "pgo",
+      "rack": "IN",
+      "stage": "late"
+    },
+    "data/traditional/traditional5901.csv#18": {
+      "board_sha256": "beaeceda03f14eb653b3b1c428c175957bcdf4f8db430939701b57ea5325543a",
+      "dataset": "development",
+      "rack": "CDNOOTT",
+      "stage": "late"
+    },
+    "data/traditional/traditional6162.csv#10": {
+      "board_sha256": "bf3aac5b27e8f5ece9be8e7071ed1768342b06980335b2a9a555d31c70a34c69",
+      "dataset": "pgo",
+      "rack": "AABGHIR",
+      "stage": "early"
+    },
+    "data/traditional/traditional6373.csv#16": {
+      "board_sha256": "42286df25790f8d72a7e41216e95007ee67e2b2f16fd89605eca12c0a8f74b09",
+      "dataset": "pgo",
+      "rack": "DEINRST",
+      "stage": "middle"
+    },
+    "data/traditional/traditional6416.csv#10": {
+      "board_sha256": "30f88f0f2c0f5f2274c5112f8285d56d64456186edfa26fa747e1a063b112a6c",
+      "dataset": "pgo",
+      "rack": "BEFMNRS",
+      "stage": "middle"
+    },
+    "data/traditional/traditional6940.csv#4": {
+      "board_sha256": "ac8bcfe516491263c1b42220ae4eb6836eb6fe8a6501ec9019fb2e96c4d34eab",
+      "dataset": "pgo",
+      "rack": "LNNRSTU",
+      "stage": "early"
+    },
+    "data/traditional/traditional7013.csv#15": {
+      "board_sha256": "3a0432eec0b97ce57f14fb9a7a9ca754aaa590bdf77ca80e7aa4b1d6ad3ac2a2",
+      "dataset": "pgo",
+      "rack": "ABDEEIY",
+      "stage": "middle"
+    },
+    "data/traditional/traditional7583.csv#23": {
+      "board_sha256": "fa09fdd8d3a628f08a2eaf8dfb1249362a1d1409e528582b61cdedd1b498f954",
+      "dataset": "pgo",
+      "rack": "DENS",
+      "stage": "late"
+    },
+    "data/traditional/traditional7660.csv#15": {
+      "board_sha256": "d9e58aeaa64596a240900f0cc6fe2909a192181c51ca431b4680350ebc8830e7",
+      "dataset": "pgo",
+      "rack": "AINNOST",
+      "stage": "late"
+    },
+    "data/traditional/traditional7900.csv#3": {
+      "board_sha256": "49c75aefc5a6277bf4dd1eec0b8f721deb9c3f8378cea81cf28321ff78523c0f",
+      "dataset": "pgo",
+      "rack": "DHIMNRT",
+      "stage": "early"
+    },
+    "data/traditional/traditional8122.csv#14": {
+      "board_sha256": "dbc2a823cb2d131b31181eaf4e20ce1a3ab0b4fc76e2d196b7e581bbe7e5fe65",
+      "dataset": "development",
+      "rack": "DEGIIRS",
+      "stage": "middle"
+    },
+    "data/traditional/traditional8235.csv#20": {
+      "board_sha256": "38991d97ccf4474f3ce535483e1947e1102b75c6dd8659df95bd8ba3a2ee98c9",
+      "dataset": "pgo",
+      "rack": "EEHNRST",
+      "stage": "late"
+    },
+    "games/6zTBhes669.csv#25": {
+      "board_sha256": "4f23c5ce5b26664524881b56faa9709861ea1c5067d4f728f10dc51846e17224",
+      "dataset": "development",
+      "rack": "EJLO",
+      "stage": "late"
+    },
+    "games/7bbdiRsCRY.csv#4": {
+      "board_sha256": "c566f0439ccc16c5e03e8d249e0898ce84a4f74ac82f8bb79650523da72a925e",
+      "dataset": "development",
+      "rack": "EIJKORX",
+      "stage": "early"
+    },
+    "games/CpZHNqsaAe.csv#8": {
+      "board_sha256": "597f4b47af51c1ebcbb98f276cf07008ac8a2cd8b61d2b8b137ceb95a3a78527",
+      "dataset": "development",
+      "rack": "EFGNQUX",
+      "stage": "early"
+    },
+    "games/NSFqNG8yP5.csv#23": {
+      "board_sha256": "a704e1b60b0825837bc1fb6771308e141c245ef0db931f5295f19ed29d84eacc",
+      "dataset": "development",
+      "rack": "BHILNSU",
+      "stage": "late"
+    },
+    "games/RHaUnC67uz.csv#15": {
+      "board_sha256": "0f6b8895c04611fdb67768a6a483b70a6a96ca74af1207785fccf47cba5e3dd6",
+      "dataset": "development",
+      "rack": "DEFIIOS",
+      "stage": "middle"
+    }
+  },
+  "kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "microcode": "0xffffffff",
+  "qualification_id": "f0e6c7f0a52e3c6417d6c97f0639e29a3fba93324f05942a23ded5daf25876d5",
+  "runner_sha256": "b40260d0c313985658055d1ee27eb01e6281d9de939980c25f01ce50103b6a21",
+  "schedule": {
+    "development": 40,
+    "pilot": 4
+  },
+  "training": {
+    "native": {
+      "build": {
+        "binary": "build/window-compiler/builds/3fb147b0480475bf35a8/counter.so",
+        "commands": [
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/board.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/perpendicular_checks.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/rack_oriented_solver.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/utils.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/word_index_start_row_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/word_pattern_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/word_start_row_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/word_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/3fb147b0480475bf35a8/tuning_library.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=skylake -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/3fb147b0480475bf35a8/board.o build/window-compiler/builds/3fb147b0480475bf35a8/perpendicular_checks.o build/window-compiler/builds/3fb147b0480475bf35a8/rack_oriented_solver.o build/window-compiler/builds/3fb147b0480475bf35a8/utils.o build/window-compiler/builds/3fb147b0480475bf35a8/word_index_start_row_table.o build/window-compiler/builds/3fb147b0480475bf35a8/word_pattern_table.o build/window-compiler/builds/3fb147b0480475bf35a8/word_start_row_table.o build/window-compiler/builds/3fb147b0480475bf35a8/word_table.o build/window-compiler/builds/3fb147b0480475bf35a8/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/3fb147b0480475bf35a8/counter.so"
+        ],
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "inputs": {
+          "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+          "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+          "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+          "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+          "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+          "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+          "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+          "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+          "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+          "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+          "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+          "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+          "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+          "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+          "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+          "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+          "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+          "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+          "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+          "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+          "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+          "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+        },
+        "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+        "profile_sha256": null,
+        "sha256": "b07e04a177f0d49f7d62b03025d87309bb0da12d6a4bc49e278e418d7cd33a83",
+        "text_bytes": 105746
+      },
+      "counters": [
+        "packed",
+        "rack"
+      ],
+      "games": [
+        "data/fifty/fifty90.csv#3",
+        "data/lewis/lewis13380.csv#12",
+        "data/lewis/lewis12778.csv#28",
+        "data/traditional/traditional2427.csv#8",
+        "data/lewis/lewis10749.csv#14",
+        "data/traditional/traditional541.csv#22",
+        "data/lewis/lewis241.csv#6",
+        "data/lewis/lewis507.csv#11",
+        "data/traditional/traditional565.csv#24",
+        "data/traditional/traditional1981.csv#8",
+        "data/one/one5869.csv#7",
+        "data/lewis/lewis763.csv#18",
+        "data/traditional/traditional6940.csv#4",
+        "data/random/random1165.csv#13",
+        "data/traditional/traditional7660.csv#15",
+        "data/traditional/traditional427.csv#3",
+        "data/traditional/traditional6416.csv#10",
+        "data/lewis/lewis13998.csv#19",
+        "data/lewis/lewis14064.csv#7",
+        "data/fifty/fifty109.csv#16",
+        "data/lewis/lewis10540.csv#21",
+        "data/traditional/traditional7900.csv#3",
+        "data/traditional/traditional6373.csv#16",
+        "data/lewis/lewis12114.csv#21",
+        "data/fifty/fifty9.csv#9",
+        "data/fifty/fifty199.csv#15",
+        "data/traditional/traditional7583.csv#23",
+        "data/traditional/traditional2123.csv#8",
+        "data/traditional/traditional5137.csv#13",
+        "data/traditional/traditional8235.csv#20",
+        "data/traditional/traditional6162.csv#10",
+        "data/traditional/traditional546.csv#12",
+        "data/one/one6623.csv#18",
+        "data/lewis/lewis12683.csv#4",
+        "data/lewis/lewis10206.csv#12",
+        "data/random/random306.csv#19",
+        "data/traditional/traditional1048.csv#4",
+        "data/traditional/traditional2776.csv#9",
+        "data/one/one6486.csv#31",
+        "data/fifty/fifty78.csv#8",
+        "data/traditional/traditional7013.csv#15",
+        "data/lewis/lewis4700.csv#24",
+        "data/lewis/lewis10280.csv#9",
+        "data/one/one4065.csv#13",
+        "data/lewis/lewis5540.csv#24",
+        "data/lewis/lewis10932.csv#7",
+        "data/lewis/lewis5072.csv#13",
+        "data/one/one176.csv#17"
+      ],
+      "instrumented": "b07e04a177f0d49f7d62b03025d87309bb0da12d6a4bc49e278e418d7cd33a83",
+      "merge": "llvm-profdata-18 merge -o build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profdata build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profraw",
+      "profile_counters": "Counters:\n  rack_oriented_solver.cpp:_ZN12_GLOBAL__N_113measure_solveINS_11RackCounterILNS_12SubsetPolicyE0EEENS_12RowCheckSetsEEEN9benchmark11WindowSolveERK9WordTableRK16WordPatternTableR5BoardRKNS5_4RackE:\n    Hash: 0x0000000000000018\n    Counters: 1\n    Function count: 144\n    Block counts: []\n  rack_oriented_solver.cpp:_ZN12_GLOBAL__N_113measure_solveINS_13WindowCounterILNS_12GapTraversalE0ELNS_10MaskPolicyE0ELNS_14WindowCountingE0ENS_14GapDescriptorsELNS_13GapEvaluationE0ELNS_8GapOrderE0ENS_10GroupWordsEEENS_12RowCheckSetsEEEN9benchmark11WindowSolveERK9WordTableRK16WordPatternTableR5BoardRKNSB_4RackE:\n    Hash: 0x0000000000000018\n    Counters: 1\n    Function count: 144\n    Block counts: []\nInstrumentation level: Front-end\nFunctions shown: 2\nTotal functions: 1349\nMaximum function count: 12989235\nMaximum internal block count: 11732100\n",
+      "profile_sha256": "a055f92ae7245d1c51896aa4c086d72081f53eae072c484e69038bb6e4c39079",
+      "raw_file": "build/window-compiler/profiles/7c097fadf9e7ab8a6982/training.profraw",
+      "raw_sha256": "f1f89ea92aa6521322a98ca47f371a6ca538c62647af508ee6d73e66656b6810",
+      "solves_per_counter": 144
+    },
+    "portable": {
+      "build": {
+        "binary": "build/window-compiler/builds/491a9d85d5b082331939/counter.so",
+        "commands": [
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/491a9d85d5b082331939/board.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/491a9d85d5b082331939/perpendicular_checks.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/491a9d85d5b082331939/rack_oriented_solver.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/491a9d85d5b082331939/utils.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/491a9d85d5b082331939/word_index_start_row_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/491a9d85d5b082331939/word_pattern_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/491a9d85d5b082331939/word_start_row_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/491a9d85d5b082331939/word_table.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/491a9d85d5b082331939/tuning_library.o",
+          "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -fprofile-instr-generate -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/491a9d85d5b082331939/board.o build/window-compiler/builds/491a9d85d5b082331939/perpendicular_checks.o build/window-compiler/builds/491a9d85d5b082331939/rack_oriented_solver.o build/window-compiler/builds/491a9d85d5b082331939/utils.o build/window-compiler/builds/491a9d85d5b082331939/word_index_start_row_table.o build/window-compiler/builds/491a9d85d5b082331939/word_pattern_table.o build/window-compiler/builds/491a9d85d5b082331939/word_start_row_table.o build/window-compiler/builds/491a9d85d5b082331939/word_table.o build/window-compiler/builds/491a9d85d5b082331939/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/491a9d85d5b082331939/counter.so"
+        ],
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "inputs": {
+          "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+          "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+          "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+          "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+          "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+          "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+          "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+          "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+          "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+          "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+          "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+          "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+          "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+          "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+          "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+          "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+          "src/rack_oriented_solver.cpp": "7bab1777e9e8397fef5ce744fa2e588b76ca18875e751b6196579c4a7587d8f8",
+          "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+          "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+          "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+          "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+          "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+        },
+        "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+        "profile_sha256": null,
+        "sha256": "ddceec4f5a3944edf7e5225f43bd545375161dd1f84e956c99eb93fd765eab26",
+        "text_bytes": 104882
+      },
+      "counters": [
+        "packed",
+        "rack"
+      ],
+      "games": [
+        "data/fifty/fifty90.csv#3",
+        "data/lewis/lewis13380.csv#12",
+        "data/lewis/lewis12778.csv#28",
+        "data/traditional/traditional2427.csv#8",
+        "data/lewis/lewis10749.csv#14",
+        "data/traditional/traditional541.csv#22",
+        "data/lewis/lewis241.csv#6",
+        "data/lewis/lewis507.csv#11",
+        "data/traditional/traditional565.csv#24",
+        "data/traditional/traditional1981.csv#8",
+        "data/one/one5869.csv#7",
+        "data/lewis/lewis763.csv#18",
+        "data/traditional/traditional6940.csv#4",
+        "data/random/random1165.csv#13",
+        "data/traditional/traditional7660.csv#15",
+        "data/traditional/traditional427.csv#3",
+        "data/traditional/traditional6416.csv#10",
+        "data/lewis/lewis13998.csv#19",
+        "data/lewis/lewis14064.csv#7",
+        "data/fifty/fifty109.csv#16",
+        "data/lewis/lewis10540.csv#21",
+        "data/traditional/traditional7900.csv#3",
+        "data/traditional/traditional6373.csv#16",
+        "data/lewis/lewis12114.csv#21",
+        "data/fifty/fifty9.csv#9",
+        "data/fifty/fifty199.csv#15",
+        "data/traditional/traditional7583.csv#23",
+        "data/traditional/traditional2123.csv#8",
+        "data/traditional/traditional5137.csv#13",
+        "data/traditional/traditional8235.csv#20",
+        "data/traditional/traditional6162.csv#10",
+        "data/traditional/traditional546.csv#12",
+        "data/one/one6623.csv#18",
+        "data/lewis/lewis12683.csv#4",
+        "data/lewis/lewis10206.csv#12",
+        "data/random/random306.csv#19",
+        "data/traditional/traditional1048.csv#4",
+        "data/traditional/traditional2776.csv#9",
+        "data/one/one6486.csv#31",
+        "data/fifty/fifty78.csv#8",
+        "data/traditional/traditional7013.csv#15",
+        "data/lewis/lewis4700.csv#24",
+        "data/lewis/lewis10280.csv#9",
+        "data/one/one4065.csv#13",
+        "data/lewis/lewis5540.csv#24",
+        "data/lewis/lewis10932.csv#7",
+        "data/lewis/lewis5072.csv#13",
+        "data/one/one176.csv#17"
+      ],
+      "instrumented": "ddceec4f5a3944edf7e5225f43bd545375161dd1f84e956c99eb93fd765eab26",
+      "merge": "llvm-profdata-18 merge -o build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profdata build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profraw",
+      "profile_counters": "Counters:\n  rack_oriented_solver.cpp:_ZN12_GLOBAL__N_113measure_solveINS_11RackCounterILNS_12SubsetPolicyE0EEENS_12RowCheckSetsEEEN9benchmark11WindowSolveERK9WordTableRK16WordPatternTableR5BoardRKNS5_4RackE:\n    Hash: 0x0000000000000018\n    Counters: 1\n    Function count: 144\n    Block counts: []\n  rack_oriented_solver.cpp:_ZN12_GLOBAL__N_113measure_solveINS_13WindowCounterILNS_12GapTraversalE0ELNS_10MaskPolicyE0ELNS_14WindowCountingE0ENS_14GapDescriptorsELNS_13GapEvaluationE0ELNS_8GapOrderE0ENS_10GroupWordsEEENS_12RowCheckSetsEEEN9benchmark11WindowSolveERK9WordTableRK16WordPatternTableR5BoardRKNSB_4RackE:\n    Hash: 0x0000000000000018\n    Counters: 1\n    Function count: 144\n    Block counts: []\nInstrumentation level: Front-end\nFunctions shown: 2\nTotal functions: 1349\nMaximum function count: 12989235\nMaximum internal block count: 11732100\n",
+      "profile_sha256": "1b718286370af954ba80b4c872b8af500ae5da8fb78a9f9a1e29ef7b81d33a59",
+      "raw_file": "build/window-compiler/profiles/31e3fa6e0e78a180c092/training.profraw",
+      "raw_sha256": "bf27e1b28079d2318f87faaa1693a6110faba3a409e89a7c72c7b8e2a99a686e",
+      "solves_per_counter": 144
+    }
+  }
+}
