@@ -24,8 +24,10 @@ static inline void trace_skipped_subset_probe() {}
 static inline void trace_skipped_merge_comparison() {}
 static inline void trace_individual_check() {}
 static inline void trace_mask_built(bool) {}
+#ifdef SCRABBLE_WINDOW_VARIANTS
 static inline void trace_rack_gap_removed(bool) {}
 static inline void trace_subset(unsigned, const char *) {}
+#endif
 #endif
 
 static inline int canonical_rack_subset_mask(uint8_t duplicate_follow_mask, uint8_t mask)
