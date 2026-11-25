@@ -173,6 +173,62 @@ done
 python3 -m bench.window_counters.window_profile > build/window-workload.json
 ```
 
+### Pruning with the rack and matching rack subsets
+
+Whole-rack pruning saved **25.65 µs per solve** against `stop-window` (95% CI 19.10 to 32.35) and **76.06 µs** against `packed`. Testing every matched subset’s alphabet saved 1.27 µs against `rack`, a tie at this precision. Adding the repeated-constraint capacity check cost 5.06 µs against subset simplification alone. Together, the two checks on every group cost 5.35 µs against `rack` (95% CI 1.83 to 8.75). Applying both subset checks only to multiword groups saved **5.00 µs** against `rack` (95% CI 1.46 to 10.25). That last saving was 14.51 µs on the six pilot games and 2.62 µs on the other 24 development games.
+
+All four counters start from the lazy `stop-window` search. `rack` builds the distinct-letter alphabet once per solve. At each gap it intersects the perpendicular-check set with that alphabet. An empty intersection ends the window search. A gap that admits every rack letter can be removed. When that leaves zero checks, the whole group counts without reading its words. The release disassembly places the alphabet construction after the first clock read and rack-subset generation, before either board view.
+
+`subset` repeats the intersection with the matched subset's alphabet on the remaining gaps. `subset-capacity` also counts tile occurrences when several gaps have the same eligible letters. A group with too few eligible tiles contributes zero and the search continues. `subset-multi` applies both subset checks only to groups of two or more words, so its direct comparison with `subset-capacity` measures the cost of enabling them on singletons.
+
+| Control → challenger | Control µs/solve | Challenger µs/solve | Paired saving µs/solve (95% CI) | Raw pairs |
+| --- | ---: | ---: | ---: | --- |
+| `packed` → `rack` | 397.50 | 321.44 | +76.06 (+62.26 to +89.45) | [CSV](results/window-packed-rack.csv.gz) |
+| `stop-window` → `rack` | 350.71 | 325.07 | +25.65 (+19.10 to +32.35) | [CSV](results/window-stop-window-rack.csv.gz) |
+| `packed` → `subset` | 398.22 | 321.13 | +77.09 (+63.27 to +90.82) | [CSV](results/window-packed-subset.csv.gz) |
+| `rack` → `subset` | 324.14 | 322.88 | +1.27 (−0.77 to +3.20) | [CSV](results/window-rack-subset.csv.gz) |
+| `packed` → `subset-capacity` | 408.31 | 334.45 | +73.86 (+59.89 to +88.01) | [CSV](results/window-packed-subset-capacity.csv.gz) |
+| `subset` → `subset-capacity` | 317.70 | 322.76 | −5.06 (−6.69 to −3.41) | [CSV](results/window-subset-subset-capacity.csv.gz) |
+| `rack` → `subset-capacity` | 321.70 | 327.05 | −5.35 (−8.75 to −1.83) | [CSV](results/window-rack-subset-capacity.csv.gz) |
+| `packed` → `subset-multi` | 422.16 | 333.87 | +88.29 (+72.90 to +103.18) | [CSV](results/window-packed-subset-multi.csv.gz) |
+| `rack` → `subset-multi` | 321.52 | 316.53 | +5.00 (+1.46 to +10.25) | [CSV](results/window-rack-subset-multi.csv.gz) |
+| `subset-multi` → `subset-capacity` | 320.76 | 325.13 | −4.37 (−6.88 to −1.86) | [CSV](results/window-subset-multi-subset-capacity.csv.gz) |
+
+Each row uses 1,200 full-dictionary pairs on the 30 development games, including 13 racks with repeated letters. Clang 18.1.3 compiled the release worker for portable x86-64 at `-O2`. The pairs ran on logical CPU 2 of the i7-6700K, with two warm-ups per counter and 20 measured pairs per game in each order. The interval resamples paired game means within stage, sorted by case name, with 20,000 draws and seed 15. Early, middle and late games have equal stage weight. Positive savings favor the challenger.
+
+The untimed qualifier matched all 72,530 candidate decisions against place-and-restore for every counter, including rejected groups skipped by release. Each timed observation returned the qualified across and down counts. The table counts a word read when the solver has to fetch a candidate to check its gap letters. The last column measures avoided reads against the 40,724 in both `packed` and `stop-window`. [Diagnostics by stage and group size](results/window-workload.json)
+
+| Counter | Windows ruled out | Groups rejected by window | Groups rejected by subset (disjoint / capacity) | Satisfied gaps dropped (window / group) | Word reads | Reads avoided |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `stop-window` | 3,246 | 20,294 | 0 / 0 | 0 / 0 | 40,724 | 0 |
+| `rack` | 4,450 | 27,420 | 0 / 0 | 12,209 / 0 | 21,624 | 19,100 |
+| `subset` | 4,450 | 27,420 | 4,974 / 0 | 12,209 / 1,466 | 14,071 | 26,653 |
+| `subset-capacity` | 4,450 | 27,420 | 4,974 / 1,812 | 12,209 / 1,466 | 11,382 | 29,342 |
+| `subset-multi` | 4,450 | 27,420 | 1,653 / 680 | 12,209 / 417 | 16,277 | 24,447 |
+
+Whole-rack checks ruled out 1,204 additional windows containing 10,716 words. They also accepted 8,384 words in bulk. Of the 12,209 gaps dropped during window construction, 19 had a perpendicular-check set narrower than the full alphabet. Window removals count a gap once per mask built. Subset removals count a gap once per group checked. Both include gaps dropped before a later check fails. Groups rejected by the window include the first matched group and every skipped match.
+
+Subset checks ran on 14,506 groups. Of those, 9,080 were singletons. On singletons the subset alphabet rejected 3,321, tile capacity rejected another 1,132, and 442 passed every remaining gap in bulk. That spared 4,895 reads and still left 4,185 singletons requiring a word check. Enabling the subset checks on those singletons cost 4.37 µs per complete solve (95% CI 1.86 to 6.88). The comparison includes the branch that selects singletons.
+
+The traversal fixtures put two identical crossings in one window. With the rack RRSTTT, the RRS group has no eligible tile and RST has only one T for two gaps. The later RTT group accepts ATTR and rejects ATRT, and TTT passes in bulk. Both the binary probes and the sorted merge produced these outcomes in the trace and the qualified directional totals in release.
+
+To reproduce the comparisons and the diagnostic profile from the repository root, run
+
+```sh
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+window_tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
+python3 -m bench.window_counters.window_games --export development build/window-development
+for pair in 'stop-window rack' 'packed rack' 'rack subset' 'subset subset-capacity' \
+            'subset-multi subset-capacity' 'packed subset' 'packed subset-capacity' \
+            'packed subset-multi' 'rack subset-multi' 'rack subset-capacity'; do
+    set -- $pair
+    taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$window_tools" \
+        --variants "$1" "$2" --cases build/window-development/cases.csv \
+        --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > "build/window-$1-$2.csv" || break
+done
+python3 -m bench.window_counters.window_profile > build/window-workload.json
+```
+
 ### Profile the development workload and export reserved games
 
 Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator. For each game, counter and direction, the words in visited groups plus the words in any skipped groups must account for all of the validator’s candidate records.
