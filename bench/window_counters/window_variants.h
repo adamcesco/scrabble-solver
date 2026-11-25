@@ -4,6 +4,8 @@
 #include "benchmark_solver.h"
 
 namespace benchmark {
+enum class SubsetRejection { none, disjoint, capacity };
+
 struct WindowSolve {
     DirectionalCounts counts;
     double solve_us;

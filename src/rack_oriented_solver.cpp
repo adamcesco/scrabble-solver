@@ -26,7 +26,7 @@ static inline void trace_individual_check() {}
 static inline void trace_mask_built(bool) {}
 #ifdef SCRABBLE_WINDOW_VARIANTS
 static inline void trace_rack_gap_removed(bool) {}
-static inline void trace_subset(unsigned, const char *) {}
+static inline void trace_subset(unsigned, benchmark::SubsetRejection) {}
 #endif
 #endif
 
@@ -549,7 +549,7 @@ static size_t count_subset_words(const GroupWords &words, const GapChecks &windo
         const auto &gap = window.gaps[i];
         const uint32_t eligible = gap.letters & alphabet;
         if (!eligible) {
-            trace_subset(removed, "disjoint");
+            trace_subset(removed, benchmark::SubsetRejection::disjoint);
             return words.decide(false);
         }
         if (eligible == alphabet) {
@@ -560,11 +560,11 @@ static size_t count_subset_words(const GroupWords &words, const GapChecks &windo
     }
     if constexpr (policy != SubsetPolicy::alphabet) {
         if (!has_tile_capacity(subset, key, tile_count)) {
-            trace_subset(removed, "capacity");
+            trace_subset(removed, benchmark::SubsetRejection::capacity);
             return words.decide(false);
         }
     }
-    trace_subset(removed, "");
+    trace_subset(removed, benchmark::SubsetRejection::none);
     return subset.gap_count ? words.check_words(subset) : words.decide(true);
 }
 
@@ -572,10 +572,13 @@ template <SubsetPolicy policy>
 struct RackCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
-    uint32_t rack_letters = 0;
+    uint32_t rack_letters;
+
+    RackCounter(const WordTable &dictionary, const WordPatternTable &patterns, uint32_t letters)
+        : dictionary(dictionary), patterns(patterns), rack_letters(letters) {}
 
     RackCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &rack)
-        : dictionary(dictionary), patterns(patterns)
+        : RackCounter(dictionary, patterns, 0)
     {
         for (uint8_t i = 0; i < rack.length; ++i) {
             rack_letters |= 1u << (get_byte_64(rack.tiles, i) - 'A');
@@ -613,6 +616,11 @@ struct RackCounter {
     }
 };
 
+struct AllLettersCounter : RackCounter<SubsetPolicy::none> {
+    AllLettersCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &)
+        : RackCounter(dictionary, patterns, PerpendicularCheckTable::all_letters) {}
+};
+
 template <typename Counter, typename Checks = RowCheckSets>
 benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTable &patterns,
                                      Board &board, const benchmark::Rack &rack)
@@ -644,6 +652,7 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
         {"eager", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::eager>>},
         {"stop-gap", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_gap>>},
         {"stop-window", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_window>>},
+        {"all-letters", measure_solve<AllLettersCounter>},
         {"rack", measure_solve<RackCounter<SubsetPolicy::none>>},
         {"subset", measure_solve<RackCounter<SubsetPolicy::alphabet>>},
         {"subset-capacity", measure_solve<RackCounter<SubsetPolicy::capacity>>},

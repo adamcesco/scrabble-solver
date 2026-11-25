@@ -40,7 +40,7 @@ struct VisitedGroup {
     size_t individual_checks = 0;
     bool subset_checked = false;
     unsigned subset_gaps_removed = 0;
-    const char *subset_rejection = "";
+    benchmark::SubsetRejection subset_rejection = benchmark::SubsetRejection::none;
 };
 
 struct VisitedWindow {
@@ -63,7 +63,7 @@ void WorkloadOutput::write_header() const
     stream << "position,variant,down,row,start,length,empty,constrained,pattern_match,"
               "group_size,individual_checks,lookups,cache_hits,masks,ruled_out,skipped_group,accepted,"
               "probes_avoided,merge_comparisons_avoided,rack_gaps_removed,rack_restricted_removed,"
-              "subset_checked,subset_gaps_removed,subset_rejection\n";
+              "subset_checked,subset_gaps_removed,subset_disjoint,subset_insufficient_capacity\n";
 }
 
 struct WindowWorkload {
@@ -93,7 +93,9 @@ struct WindowWorkload {
                               << group.skipped << ',' << group.accepted << ',' << w.probes_avoided << ','
                               << w.merge_comparisons_avoided << ',' << w.rack_gaps_removed << ','
                               << w.rack_restricted_removed << ',' << group.subset_checked << ','
-                              << group.subset_gaps_removed << ',' << group.subset_rejection << '\n';
+                              << group.subset_gaps_removed << ','
+                              << (group.subset_rejection == benchmark::SubsetRejection::disjoint) << ','
+                              << (group.subset_rejection == benchmark::SubsetRejection::capacity) << '\n';
             };
             if (w.groups.empty()) {
                 emit({0});
@@ -154,7 +156,7 @@ void trace_rack_gap_removed(bool restricted)
     }
 }
 
-void trace_subset(unsigned gaps_removed, const char *rejection)
+void trace_subset(unsigned gaps_removed, benchmark::SubsetRejection rejection)
 {
     if (auto *window = current_workload_window()) {
         auto &group = window->groups.back();

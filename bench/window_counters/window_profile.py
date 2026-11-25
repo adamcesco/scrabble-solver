@@ -15,7 +15,7 @@ from bench.measurement_support.benchmark_inputs import ROOT, Position, qualify_p
 from bench.window_counters.window_benchmark import window_build
 from bench.window_counters.window_games import reserved_cases
 
-RACK_POLICIES = ("rack", "subset", "subset-capacity", "subset-multi")
+RACK_POLICIES = ("all-letters", "rack", "subset", "subset-capacity", "subset-multi")
 MASK_POLICIES = ("packed", "eager", "stop-gap", "stop-window", *RACK_POLICIES)
 
 
@@ -67,8 +67,8 @@ def summarize(visits, cases, variants, qualified):
                 if name in RACK_POLICIES:
                     bucket.update(subset_checks=int(row["subset_checked"]),
                                   subset_gaps_removed=int(row["subset_gaps_removed"]),
-                                  disjoint_rejections=row["subset_rejection"] == "disjoint",
-                                  capacity_rejections=row["subset_rejection"] == "capacity")
+                                  disjoint_rejections=int(row["subset_disjoint"]),
+                                  capacity_rejections=int(row["subset_insufficient_capacity"]))
                 if empty == 1:
                     profile["one_gap_groups"] += 1
                     profile["one_gap_candidates"] += size

@@ -177,8 +177,12 @@ class WindowBenchmarkTest(unittest.TestCase):
                 words = {"AA", "AX", "ARR", "ART", "ATR", "XZ"}
                 if possible:
                     words.update(("XR", "XT"))
-                _, visits = profile_board(board, words, "RRT", ["stop-window", "rack"], check_release=True)
-                groups = [r for r in window_groups(visits, row=1, start=0, length=3) if r["variant"] == "rack"]
+                _, visits = profile_board(board, words, "RRT", ["all-letters", "rack"], check_release=True)
+                target = window_groups(visits, row=1, start=0, length=3)
+                control = [r for r in target if r["variant"] == "all-letters"]
+                self.assertEqual([int(r["individual_checks"]) for r in control], [1, 2])
+                self.assertTrue(all(r["rack_gaps_removed"] == "1" and r["ruled_out"] == "0" for r in control))
+                groups = [r for r in target if r["variant"] == "rack"]
                 self.assertEqual([int(r["group_size"]) for r in groups], [1, 2])
                 self.assertEqual([int(r["accepted"]) for r in groups], [1, 2] if possible else [0, 0])
                 self.assertEqual([int(r["skipped_group"]) for r in groups], [0, int(not possible)])
@@ -205,8 +209,9 @@ class WindowBenchmarkTest(unittest.TestCase):
                     self.assertEqual([int(r["accepted"]) for r in groups], [0, 0, 1, 1])
                     self.assertEqual([int(r["individual_checks"]) for r in groups],
                                      [0, int(variant == "subset"), 2, 0])
-                    self.assertEqual([r["subset_rejection"] for r in groups],
-                                     ["disjoint", "capacity" if variant == "subset-capacity" else "", "", ""])
+                    self.assertEqual([int(r["subset_disjoint"]) for r in groups], [1, 0, 0, 0])
+                    self.assertEqual([int(r["subset_insufficient_capacity"]) for r in groups],
+                                     [0, int(variant == "subset-capacity"), 0, 0])
                     self.assertEqual([int(r["subset_gaps_removed"]) for r in groups], [0, 0, 0, 2])
                     self.assertTrue(all(r["skipped_group"] == "0" for r in groups))
 
