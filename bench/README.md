@@ -239,28 +239,28 @@ python3 -m bench.window_counters.window_profile > build/window-workload.json
 
 ### Constrained gaps and bulk counting
 
-Dropping unrestricted gaps while checking every candidate saved **8.25 µs/solve** against `stop-window` (95% CI 5.48 to 11.07). Counting a wholly unrestricted group in bulk saved a further **3.66 µs/solve** against `constrained-only` (95% CI 1.20 to 6.36). On the six pilot games the two savings were 4.08 and 4.88 µs/solve. On the 24 other development games they were 9.30 and 3.35 µs/solve.
+Dropping unrestricted gaps while checking every candidate saved **8.74 µs/solve** against `stop-window` (95% CI 5.51 to 12.07). Bulk counting tied `constrained-only`. Its paired saving was **-0.29 µs/solve** (95% CI -2.79 to +2.22). On the six pilot games the paired savings were +8.88 and -5.52 µs/solve, respectively. On the other 24 development games they were +8.71 and +1.01 µs/solve.
 
 | Paired comparison | Control µs/solve | Challenger µs/solve | Paired saving µs/solve (95% CI) | Raw pairs |
 | --- | ---: | ---: | ---: | --- |
-| `stop-window` → `constrained-only` | 349.82 | 341.56 | +8.25 (+5.48 to +11.07) | [CSV](results/window-constrained-gaps/stop-window-constrained-only.csv.gz) |
-| `constrained-only` → `all-letters` | 337.57 | 333.91 | +3.66 (+1.20 to +6.36) | [CSV](results/window-constrained-gaps/constrained-only-all-letters.csv.gz) |
-| `packed` → `constrained-only` | 400.68 | 342.65 | +58.03 (+47.50 to +68.17) | [CSV](results/window-constrained-gaps/packed-constrained-only.csv.gz) |
-| `packed` → `all-letters` | 398.66 | 339.05 | +59.61 (+48.04 to +70.60) | [CSV](results/window-constrained-gaps/packed-all-letters.csv.gz) |
-| `packed` → `stop-window` | 396.21 | 347.52 | +48.68 (+39.09 to +58.00) | [CSV](results/window-constrained-gaps/packed-stop-window.csv.gz) |
+| `stop-window` → `constrained-only` | 365.21 | 356.47 | +8.74 (+5.51 to +12.07) | [CSV](results/window-constrained-gaps/stop-window-constrained-only.csv.gz) |
+| `constrained-only` → `all-letters` | 337.13 | 337.42 | -0.29 (-2.79 to +2.22) | [CSV](results/window-constrained-gaps/constrained-only-all-letters.csv.gz) |
+| `packed` → `constrained-only` | 406.05 | 350.77 | +55.28 (+44.81 to +65.51) | [CSV](results/window-constrained-gaps/packed-constrained-only.csv.gz) |
+| `packed` → `all-letters` | 399.32 | 345.78 | +53.54 (+43.26 to +63.68) | [CSV](results/window-constrained-gaps/packed-all-letters.csv.gz) |
+| `packed` → `stop-window` | 394.86 | 346.41 | +48.45 (+38.47 to +58.15) | [CSV](results/window-constrained-gaps/packed-stop-window.csv.gz) |
 
 All five comparisons used the same Clang 18.1.3 worker at `-O2 -march=x86-64`, the full dictionary and logical CPU 2 on the i7-6700K. Each pair ran 40 times per game, 20 in each order, on the 30 development games. The interval resamples paired game means within each stage (20,000 draws, seed 15) and weights early, middle and late equally. Positive savings favor the challenger.
 
-| Counter | Descriptors retained | Descriptors per built window | Individual candidate checks | Checks skipped out of 72,530 candidates |
+| Counter | Descriptors retained | Descriptors per built window | Individual candidate checks | Word-ID/pointer fetches skipped vs. `stop-window` |
 | --- | ---: | ---: | ---: | ---: |
-| `packed` | 28,639 | 3.12 | 40,724 | 31,806 |
-| `stop-window` | 21,049 | 2.29 | 40,724 | 31,806 |
-| `constrained-only` | 8,034 | 0.87 | 40,724 | 31,806 |
-| `all-letters` | 8,034 | 0.87 | 32,351 | 40,179 |
+| `packed` | 28,639 | 3.12 | 40,724 | 0 |
+| `stop-window` | 21,049 | 2.29 | 40,724 | 0 |
+| `constrained-only` | 8,034 | 0.87 | 40,724 | 8,373 |
+| `all-letters` | 8,034 | 0.87 | 32,351 | 8,373 |
 
-The denominator is the 9,184 windows that built a mask. The original empty-square count selects the rack subsets even when every descriptor drops out. All three stopping counters made 24,295 square lookups and rejected the same 3,246 impossible windows. Each stopped before storing the first empty perpendicular-check set and skipped the remaining matching groups. The totals include descriptors written before that stop. The fixed array still has room for seven descriptors. The qualifier matched all candidate decisions, including multiplicity, in both directions. Every release observation returned its qualified counts. [Diagnostics by stage](results/window-workload.json)
+The denominator is the 9,184 windows that built a mask. The original empty-square count selects the rack subsets even when every descriptor drops out. All three stopping counters made 24,295 square lookups and rejected the same 3,246 impossible windows. Each stopped before storing the first empty perpendicular-check set and skipped the remaining matching groups. The totals include descriptors written before that stop. The fixed array still has room for seven descriptors. The qualifier matched all 72,530 candidate decisions, including multiplicity, in both directions. Every release observation returned its qualified counts. [Diagnostics by stage](results/window-workload.json)
 
-The linked worker shows where the candidate word reads disappear. With all gaps unrestricted, `stop-window` loads each word ID and dictionary pointer because its descriptor count is positive. The full-alphabet storage path intersects each check set with A–Z and omits it if all letters pass. In `constrained-only`, Clang tests the retained count inside the candidate loop before loading the ID or pointer. Dropping the descriptors therefore skips those loads for 8,373 candidates while still iterating over each one. `all-letters` skips the entire loop for the same 7,487 groups, including 6,693 singletons. Bulk counting removes a further 8,373 iterations and zero additional word-ID or dictionary-pointer loads in this build.
+The linked worker shows where the candidate word reads disappear. With all gaps unrestricted, `stop-window` loads each word ID and dictionary pointer because its descriptor count is positive. The three counters share a scan that tests the lookup result directly. The retention test in the two filtered counters compares it with the constant A–Z mask. The historical rack comparison above used the runtime alphabet control from `9cd995d`. In `constrained-only`, Clang tests the retained count inside the candidate loop before loading the ID or pointer. Dropping the descriptors therefore skips those loads for 8,373 candidates while still iterating over each one. `all-letters` skips the entire loop for the same 7,487 groups, including 6,693 singletons. Bulk counting removes a further 8,373 iterations and zero additional word-ID or dictionary-pointer loads in this build.
 
 To rerun the five comparisons and the separate diagnostic profile from the repository root, use
 

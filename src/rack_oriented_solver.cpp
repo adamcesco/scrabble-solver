@@ -324,7 +324,7 @@ struct AllLetters {
     uint32_t eligible(uint32_t allowed) const { return allowed; }
 };
 
-template <bool stop_at_impossible, bool constrained_only = false>
+template <bool stop_at_impossible, bool constrained_only>
 struct WindowMasks : GapChecks {
     bool ruled_out = false;
 
@@ -438,7 +438,8 @@ struct WindowCounter {
     {
         size_t count = 0;
         constexpr bool stop_at_impossible = policy == MaskPolicy::stop_gap || policy == MaskPolicy::stop_window;
-        std::optional<WindowMasks<stop_at_impossible, counting != WindowCounting::all_gaps_per_word>> masks;
+        constexpr bool constrained_only = counting != WindowCounting::all_gaps_per_word;
+        std::optional<WindowMasks<stop_at_impossible, constrained_only>> masks;
         auto build_masks = [&] {
             if constexpr (traversal == GapTraversal::scan) {
                 masks.emplace(window, checks);
@@ -584,7 +585,7 @@ struct RackCounter {
                       uint8_t empty_count, VisitGroups visit_groups) const
     {
         size_t count = 0;
-        std::optional<WindowMasks<true, true>> masks;
+        std::optional<WindowMasks</*stop_at_impossible=*/true, /*constrained_only=*/true>> masks;
         visit_groups([&](const WordPatternAnagramGroup &group) {
             if (!masks) {
                 masks.emplace(window, checks, alphabet);
