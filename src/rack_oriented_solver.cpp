@@ -23,7 +23,7 @@ static inline void trace_group(size_t, bool) {}
 static inline void trace_skipped_subset_probe() {}
 static inline void trace_skipped_merge_comparison() {}
 static inline void trace_individual_check() {}
-static inline void trace_mask_built(bool) {}
+static inline void trace_mask_built(bool, unsigned) {}
 #ifdef SCRABBLE_WINDOW_VARIANTS
 static inline void trace_rack_gap_removed(bool) {}
 static inline void trace_subset(unsigned, benchmark::SubsetRejection) {}
@@ -330,10 +330,12 @@ struct WindowMasks : GapChecks {
         for (uint8_t offset = 0; offset < window.length; ++offset) {
             uint8_t col = window.start + offset;
             if (!(checks.occupied() & bit_at_u16(col))) {
-                add_gap(offset, checks.get(col));
-                if (stop_at_impossible && ruled_out) {
+                const uint32_t letters = checks.get(col);
+                if (stop_at_impossible && !letters) {
+                    ruled_out = true;
                     break;
                 }
+                add_gap(offset, letters);
             }
         }
     }
@@ -430,7 +432,7 @@ struct WindowCounter {
             } else {
                 masks.emplace(checks, window, neighbors);
             }
-            trace_mask_built(masks->ruled_out);
+            trace_mask_built(masks->ruled_out, masks->gap_count);
         };
         if constexpr (policy == MaskPolicy::eager) {
             build_masks();
@@ -507,7 +509,7 @@ struct RackWindowChecks : GapChecks {
                 gaps[gap_count++] = {offset, eligible};
             }
         }
-        trace_mask_built(ruled_out);
+        trace_mask_built(ruled_out, gap_count);
     }
 };
 
@@ -568,7 +570,7 @@ static size_t count_subset_words(const GroupWords &words, const GapChecks &windo
     return subset.gap_count ? words.check_words(subset) : words.decide(true);
 }
 
-template <SubsetPolicy policy>
+template <SubsetPolicy policy, bool bulk_unrestricted = true>
 struct RackCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
@@ -601,7 +603,7 @@ struct RackCounter {
                 words.decide(false);
                 return GroupSearch::stop_window;
             }
-            if (!masks->gap_count) {
+            if (bulk_unrestricted && !masks->gap_count) {
                 count += words.decide(true);
             } else if constexpr (policy == SubsetPolicy::none) {
                 count += words.check_words(*masks);
@@ -616,9 +618,10 @@ struct RackCounter {
     }
 };
 
-struct AllLettersCounter : RackCounter<SubsetPolicy::none> {
+template <bool bulk_unrestricted>
+struct AllLettersCounter : RackCounter<SubsetPolicy::none, bulk_unrestricted> {
     AllLettersCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &)
-        : RackCounter(dictionary, patterns, PerpendicularCheckTable::all_letters) {}
+        : RackCounter<SubsetPolicy::none, bulk_unrestricted>(dictionary, patterns, PerpendicularCheckTable::all_letters) {}
 };
 
 template <typename Counter, typename Checks = RowCheckSets>
@@ -652,7 +655,8 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
         {"eager", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::eager>>},
         {"stop-gap", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_gap>>},
         {"stop-window", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_window>>},
-        {"all-letters", measure_solve<AllLettersCounter>},
+        {"constrained-only", measure_solve<AllLettersCounter<false>>},
+        {"all-letters", measure_solve<AllLettersCounter<true>>},
         {"rack", measure_solve<RackCounter<SubsetPolicy::none>>},
         {"subset", measure_solve<RackCounter<SubsetPolicy::alphabet>>},
         {"subset-capacity", measure_solve<RackCounter<SubsetPolicy::capacity>>},

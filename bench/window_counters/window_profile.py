@@ -16,7 +16,7 @@ from bench.window_counters.window_benchmark import window_build
 from bench.window_counters.window_games import reserved_cases
 
 RACK_POLICIES = ("all-letters", "rack", "subset", "subset-capacity", "subset-multi")
-MASK_POLICIES = ("packed", "eager", "stop-gap", "stop-window", *RACK_POLICIES)
+MASK_POLICIES = ("packed", "eager", "stop-gap", "stop-window", "constrained-only", *RACK_POLICIES)
 
 
 def window_histograms():
@@ -81,7 +81,7 @@ def summarize(visits, cases, variants, qualified):
             outcome = "no_matching_group" if not candidates else ("accepted" if accepted else "all_rejected")
             masks = int(window["masks"])
             profile["mask_search"][outcome].update(
-                windows=1, masks=masks, ruled_out=int(window["ruled_out"]),
+                windows=1, masks=masks, retained_gaps=int(window["retained_gaps"]), ruled_out=int(window["ruled_out"]),
                 lookups=lookups, lookups_skipped=masks * empty - lookups,
                 probes_avoided=int(window["probes_avoided"]),
                 merge_comparisons_avoided=int(window["merge_comparisons_avoided"]),

@@ -51,6 +51,7 @@ struct VisitedWindow {
     unsigned lookups = 0;
     unsigned cache_hits = 0;
     unsigned masks = 0;
+    unsigned retained_gaps = 0;
     bool ruled_out = false;
     unsigned probes_avoided = 0;
     unsigned merge_comparisons_avoided = 0;
@@ -61,7 +62,7 @@ struct VisitedWindow {
 void WorkloadOutput::write_header() const
 {
     stream << "position,variant,down,row,start,length,empty,constrained,pattern_match,"
-              "group_size,individual_checks,lookups,cache_hits,masks,ruled_out,skipped_group,accepted,"
+              "group_size,individual_checks,lookups,cache_hits,masks,retained_gaps,ruled_out,skipped_group,accepted,"
               "probes_avoided,merge_comparisons_avoided,rack_gaps_removed,rack_restricted_removed,"
               "subset_checked,subset_gaps_removed,subset_disjoint,subset_insufficient_capacity\n";
 }
@@ -89,7 +90,8 @@ struct WindowWorkload {
                 output.stream << output.position << ',' << variant << ',' << down << ',' << +w.row << ','
                               << +w.start << ',' << +w.length << ',' << +w.empty << ',' << constrained << ','
                               << w.pattern_match << ',' << group.words << ',' << group.individual_checks << ','
-                              << w.lookups << ',' << w.cache_hits << ',' << w.masks << ',' << w.ruled_out << ','
+                              << w.lookups << ',' << w.cache_hits << ',' << w.masks << ',' << w.retained_gaps << ','
+                              << w.ruled_out << ','
                               << group.skipped << ',' << group.accepted << ',' << w.probes_avoided << ','
                               << w.merge_comparisons_avoided << ',' << w.rack_gaps_removed << ','
                               << w.rack_restricted_removed << ',' << group.subset_checked << ','
@@ -133,10 +135,11 @@ void trace_individual_check()
     }
 }
 
-void trace_mask_built(bool ruled_out)
+void trace_mask_built(bool ruled_out, unsigned retained_gaps)
 {
     if (auto *window = current_workload_window()) {
         ++window->masks;
+        window->retained_gaps = retained_gaps;
         window->ruled_out = ruled_out;
     }
 }

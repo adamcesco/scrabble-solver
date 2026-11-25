@@ -169,6 +169,41 @@ class WindowBenchmarkTest(unittest.TestCase):
                     skipped = search["mask_search"]["all_rejected"]["skipped_words"]
                     self.assertEqual(visited + skipped, counts["across_candidates"] + counts["down_candidates"])
 
+    def test_unrestricted_window_keeps_its_two_tile_group_after_dropping_both_gaps(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[1][0] = "A"
+        for control, challenger in (("stop-window", "constrained-only"), ("constrained-only", "all-letters")):
+            with self.subTest(pair=(control, challenger)):
+                _, visits = profile_board(board, ["ART", "ATR"], "RT", [control, challenger], check_release=True)
+                groups = window_groups(visits, row=1, start=0, length=3)
+                self.assertEqual([(r["variant"], r["empty"], r["retained_gaps"], r["accepted"], r["individual_checks"])
+                                  for r in groups],
+                                 [(name, "2", "2" if name == "stop-window" else "0", "2",
+                                   "0" if name == "all-letters" else "2")
+                                  for name in (control, challenger)])
+
+    def test_mixed_and_impossible_windows_with_an_unrestricted_first_gap(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[1][0], board[0][2] = "A", "X"
+        variants = ("stop-window", "constrained-only", "all-letters")
+        for possible in (False, True):
+            with self.subTest(possible=possible):
+                words = ["ARTS", "ATRS", "ARTU", "ATRU"]
+                if possible:
+                    words.append("XT")  # Only T fits the middle gap of A...
+                _, visits = profile_board(board, words, "RSTU", variants)
+                target = window_groups(visits, row=1, start=0, length=4)
+                for variant in variants:
+                    groups = [r for r in target if r["variant"] == variant]
+                    self.assertEqual([int(r["lookups"]) for r in groups], [3 if possible else 2] * 2)
+                    retained = (3 if possible else 1) if variant == "stop-window" else int(possible)
+                    self.assertEqual([int(r["retained_gaps"]) for r in groups],
+                                     [retained] * 2)
+                    self.assertEqual([int(r["ruled_out"]) for r in groups], [int(not possible)] * 2)
+                    self.assertEqual([int(r["skipped_group"]) for r in groups], [0, int(not possible)])
+                    self.assertEqual([int(r["individual_checks"]) for r in groups], [2 * int(possible)] * 2)
+                    self.assertEqual([int(r["accepted"]) for r in groups], [int(possible)] * 2)
+
     def test_whole_rack_drops_satisfied_gaps_and_stops_at_disjoint_check_set(self):
         board = [["."] * 15 for _ in range(15)]
         board[0][:2], board[1][0] = ["A", "X"], "A"

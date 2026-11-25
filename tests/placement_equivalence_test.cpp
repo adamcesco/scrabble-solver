@@ -89,6 +89,31 @@ static void compare_rack_groups_and_ruled_out_windows(const WindowVariants &vari
     words.destroy();
 }
 
+static void compare_duplicate_group_entries(const WindowVariants &variants)
+{
+    WordTable words = load_dictionary("ARS\nART\nATR\n");
+    {
+        PlacementComparison fixture{words};
+        // Dictionary loading deduplicates spellings. Give A..'s RT group two copies of ART's ID.
+        const auto *pattern = fixture.patterns.get({'A', 1, 3});
+        assert(pattern);
+        const auto *group = fixture.patterns.get_anagram(*pattern, benchmark::Rack("RT").tiles);
+        assert(group && group->word_indices.count == 2);
+        auto &ids = fixture.patterns.word_indices;
+        const auto start = group->word_indices.start;
+        ids[start + 1] = ids[start];
+        for (bool impossible : {false, true}) {
+            Board board = board_at(0, 0, {impossible ? "..X" : "...", "A.."});
+            const auto decisions = fixture.compare_board("duplicate RT entries", board, "RST", variants);
+            auto actual = middle_window(decisions[0]);
+            std::sort(actual.begin(), actual.end());
+            const WindowDecisions expected{{"ARS", !impossible}, {"ART", !impossible}, {"ART", !impossible}};
+            assert(actual == expected);
+        }
+    }
+    words.destroy();
+}
+
 static void one_tile_counts_in_both_directions_and_restores_the_prepared_board(const WindowVariants &variants)
 {
     WordTable words = load_dictionary("AS\nST\n");
@@ -290,6 +315,7 @@ int main(int argc, char **argv)
         compare_rt_orders(true, variants);
         compare_rt_orders(false, variants);
         compare_rack_groups_and_ruled_out_windows(variants);
+        compare_duplicate_group_entries(variants);
         one_tile_counts_in_both_directions_and_restores_the_prepared_board(variants);
         if (argc >= 3) {
             qualify_inputs(argv[1], argv[2], argv[0], mode, variants, profile_path);
