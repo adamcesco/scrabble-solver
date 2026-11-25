@@ -1,0 +1,1515 @@
+{
+  "affinity": 2,
+  "builds": {
+    "portable": {
+      "binary": "build/window-compiler/builds/e6f402ec411a144d3c8a/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/e6f402ec411a144d3c8a/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/e6f402ec411a144d3c8a/board.o build/window-compiler/builds/e6f402ec411a144d3c8a/perpendicular_checks.o build/window-compiler/builds/e6f402ec411a144d3c8a/rack_oriented_solver.o build/window-compiler/builds/e6f402ec411a144d3c8a/utils.o build/window-compiler/builds/e6f402ec411a144d3c8a/word_index_start_row_table.o build/window-compiler/builds/e6f402ec411a144d3c8a/word_pattern_table.o build/window-compiler/builds/e6f402ec411a144d3c8a/word_start_row_table.o build/window-compiler/builds/e6f402ec411a144d3c8a/word_table.o build/window-compiler/builds/e6f402ec411a144d3c8a/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/e6f402ec411a144d3c8a/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "15c835bb8fb1d1dc821cf622404ef62c4c40b5b633b07bbba13b7ddaf6084299",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "463830295710d7ed17a6b05081aa82e30ad43aae389f82aa01606eb48134ec8e",
+      "text_bytes": 134005
+    },
+    "skylake": {
+      "binary": "build/window-compiler/builds/79aad3806d412154f2db/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/79aad3806d412154f2db/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/79aad3806d412154f2db/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/79aad3806d412154f2db/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/79aad3806d412154f2db/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/79aad3806d412154f2db/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/79aad3806d412154f2db/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/79aad3806d412154f2db/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/79aad3806d412154f2db/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/79aad3806d412154f2db/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/79aad3806d412154f2db/board.o build/window-compiler/builds/79aad3806d412154f2db/perpendicular_checks.o build/window-compiler/builds/79aad3806d412154f2db/rack_oriented_solver.o build/window-compiler/builds/79aad3806d412154f2db/utils.o build/window-compiler/builds/79aad3806d412154f2db/word_index_start_row_table.o build/window-compiler/builds/79aad3806d412154f2db/word_pattern_table.o build/window-compiler/builds/79aad3806d412154f2db/word_start_row_table.o build/window-compiler/builds/79aad3806d412154f2db/word_table.o build/window-compiler/builds/79aad3806d412154f2db/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/79aad3806d412154f2db/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "15c835bb8fb1d1dc821cf622404ef62c4c40b5b633b07bbba13b7ddaf6084299",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "d88a37374806d42c48c6604b4fc2caa06651c9c73846cca1fa0420342b663093",
+      "text_bytes": 161653
+    }
+  },
+  "case_order": {
+    "held-out": [
+      "data/one/one5235.csv#13",
+      "data/one/one269.csv#22",
+      "data/one/one756.csv#7",
+      "data/lewis/lewis4671.csv#13",
+      "data/traditional/traditional4550.csv#19",
+      "data/traditional/traditional5554.csv#2",
+      "data/traditional/traditional7203.csv#15",
+      "data/lewis/lewis11979.csv#16",
+      "data/lewis/lewis11010.csv#12",
+      "data/lewis/lewis867.csv#9",
+      "data/traditional/traditional14850.csv#17",
+      "data/lewis/lewis12631.csv#8",
+      "data/traditional/traditional7926.csv#12",
+      "data/lewis/lewis14223.csv#23",
+      "data/traditional/traditional7410.csv#7",
+      "data/lewis/lewis11092.csv#19",
+      "data/traditional/traditional3097.csv#19",
+      "data/lewis/lewis1675.csv#4",
+      "data/lewis/lewis5460.csv#17",
+      "data/one/one2212.csv#23",
+      "data/traditional/traditional4373.csv#5",
+      "data/one/one1908.csv#16",
+      "data/traditional/traditional7876.csv#20",
+      "data/traditional/traditional7627.csv#6",
+      "data/traditional/traditional5205.csv#17",
+      "data/fifty/fifty26.csv#23",
+      "data/lewis/lewis12306.csv#6",
+      "data/traditional/traditional4969.csv#15",
+      "data/one/one5625.csv#16",
+      "data/traditional/traditional5530.csv#6",
+      "data/fifty/fifty292.csv#13",
+      "data/random/random941.csv#24",
+      "data/traditional/traditional15117.csv#4",
+      "data/traditional/traditional14941.csv#15",
+      "data/lewis/lewis2179.csv#19",
+      "data/traditional/traditional8180.csv#3",
+      "data/traditional/traditional7640.csv#14",
+      "data/lewis/lewis582.csv#20",
+      "data/traditional/traditional6728.csv#8",
+      "data/one/one2538.csv#14",
+      "data/lewis/lewis12145.csv#17",
+      "data/lewis/lewis1994.csv#4",
+      "data/traditional/traditional53.csv#14",
+      "data/lewis/lewis6021.csv#20",
+      "data/traditional/traditional2042.csv#2",
+      "data/one/one3458.csv#13",
+      "data/traditional/traditional6553.csv#23",
+      "data/lewis/lewis13723.csv#4",
+      "data/lewis/lewis11227.csv#12",
+      "data/traditional/traditional4790.csv#21",
+      "data/lewis/lewis5740.csv#4",
+      "data/traditional/traditional7572.csv#16",
+      "data/lewis/lewis12600.csv#22",
+      "data/random/random1438.csv#5",
+      "data/lewis/lewis6302.csv#13",
+      "data/random/random100.csv#19",
+      "data/one/one1282.csv#2",
+      "data/traditional/traditional5229.csv#11",
+      "data/random/random700.csv#24",
+      "data/one/one856.csv#5",
+      "data/lewis/lewis11789.csv#11",
+      "data/one/one2104.csv#17",
+      "data/traditional/traditional5710.csv#3",
+      "data/traditional/traditional7613.csv#10",
+      "data/traditional/traditional4414.csv#20",
+      "data/lewis/lewis4595.csv#11",
+      "data/lewis/lewis5422.csv#14",
+      "data/one/one4544.csv#19",
+      "data/traditional/traditional6878.csv#10",
+      "data/traditional/traditional1214.csv#6",
+      "data/traditional/traditional4856.csv#23",
+      "data/lewis/lewis13094.csv#8",
+      "data/traditional/traditional235.csv#12",
+      "data/traditional/traditional6023.csv#19",
+      "data/traditional/traditional7080.csv#5",
+      "data/lewis/lewis6180.csv#14",
+      "data/traditional/traditional8542.csv#21",
+      "data/lewis/lewis12489.csv#3",
+      "data/traditional/traditional1766.csv#12",
+      "data/lewis/lewis43.csv#25",
+      "data/lewis/lewis1786.csv#7",
+      "data/lewis/lewis11630.csv#7",
+      "data/lewis/lewis5425.csv#20",
+      "data/one/one6444.csv#9",
+      "data/one/one4140.csv#11",
+      "data/lewis/lewis10845.csv#21",
+      "data/traditional/traditional1917.csv#6",
+      "data/lewis/lewis545.csv#13",
+      "data/traditional/traditional1065.csv#20",
+      "data/lewis/lewis12452.csv#7",
+      "data/one/one5469.csv#18",
+      "data/lewis/lewis10387.csv#22",
+      "data/traditional/traditional1619.csv#7",
+      "data/traditional/traditional923.csv#13",
+      "data/lewis/lewis13563.csv#22",
+      "data/traditional/traditional6774.csv#3"
+    ]
+  },
+  "counts": {
+    "data/fifty/fifty26.csv#23": {
+      "across": 143,
+      "across_candidates": 654,
+      "down": 146,
+      "down_candidates": 714
+    },
+    "data/fifty/fifty292.csv#13": {
+      "across": 99,
+      "across_candidates": 980,
+      "down": 226,
+      "down_candidates": 948
+    },
+    "data/lewis/lewis10387.csv#22": {
+      "across": 218,
+      "across_candidates": 2182,
+      "down": 290,
+      "down_candidates": 2006
+    },
+    "data/lewis/lewis10845.csv#21": {
+      "across": 55,
+      "across_candidates": 678,
+      "down": 57,
+      "down_candidates": 484
+    },
+    "data/lewis/lewis11010.csv#12": {
+      "across": 134,
+      "across_candidates": 643,
+      "down": 145,
+      "down_candidates": 737
+    },
+    "data/lewis/lewis11092.csv#19": {
+      "across": 112,
+      "across_candidates": 368,
+      "down": 68,
+      "down_candidates": 526
+    },
+    "data/lewis/lewis11227.csv#12": {
+      "across": 483,
+      "across_candidates": 1379,
+      "down": 200,
+      "down_candidates": 2248
+    },
+    "data/lewis/lewis11630.csv#7": {
+      "across": 382,
+      "across_candidates": 1288,
+      "down": 212,
+      "down_candidates": 1057
+    },
+    "data/lewis/lewis11789.csv#11": {
+      "across": 170,
+      "across_candidates": 1631,
+      "down": 319,
+      "down_candidates": 2765
+    },
+    "data/lewis/lewis11979.csv#16": {
+      "across": 92,
+      "across_candidates": 1394,
+      "down": 164,
+      "down_candidates": 967
+    },
+    "data/lewis/lewis12145.csv#17": {
+      "across": 261,
+      "across_candidates": 2007,
+      "down": 415,
+      "down_candidates": 1323
+    },
+    "data/lewis/lewis12306.csv#6": {
+      "across": 146,
+      "across_candidates": 2646,
+      "down": 453,
+      "down_candidates": 1796
+    },
+    "data/lewis/lewis12452.csv#7": {
+      "across": 127,
+      "across_candidates": 748,
+      "down": 273,
+      "down_candidates": 864
+    },
+    "data/lewis/lewis12489.csv#3": {
+      "across": 154,
+      "across_candidates": 870,
+      "down": 346,
+      "down_candidates": 870
+    },
+    "data/lewis/lewis12600.csv#22": {
+      "across": 101,
+      "across_candidates": 1015,
+      "down": 136,
+      "down_candidates": 417
+    },
+    "data/lewis/lewis12631.csv#8": {
+      "across": 119,
+      "across_candidates": 152,
+      "down": 57,
+      "down_candidates": 136
+    },
+    "data/lewis/lewis13094.csv#8": {
+      "across": 227,
+      "across_candidates": 1682,
+      "down": 151,
+      "down_candidates": 1225
+    },
+    "data/lewis/lewis13563.csv#22": {
+      "across": 83,
+      "across_candidates": 548,
+      "down": 69,
+      "down_candidates": 482
+    },
+    "data/lewis/lewis13723.csv#4": {
+      "across": 228,
+      "across_candidates": 910,
+      "down": 332,
+      "down_candidates": 806
+    },
+    "data/lewis/lewis14223.csv#23": {
+      "across": 65,
+      "across_candidates": 410,
+      "down": 116,
+      "down_candidates": 568
+    },
+    "data/lewis/lewis1675.csv#4": {
+      "across": 336,
+      "across_candidates": 1783,
+      "down": 469,
+      "down_candidates": 1951
+    },
+    "data/lewis/lewis1786.csv#7": {
+      "across": 140,
+      "across_candidates": 440,
+      "down": 61,
+      "down_candidates": 361
+    },
+    "data/lewis/lewis1994.csv#4": {
+      "across": 94,
+      "across_candidates": 622,
+      "down": 165,
+      "down_candidates": 591
+    },
+    "data/lewis/lewis2179.csv#19": {
+      "across": 49,
+      "across_candidates": 520,
+      "down": 100,
+      "down_candidates": 413
+    },
+    "data/lewis/lewis43.csv#25": {
+      "across": 22,
+      "across_candidates": 187,
+      "down": 19,
+      "down_candidates": 96
+    },
+    "data/lewis/lewis4595.csv#11": {
+      "across": 269,
+      "across_candidates": 1779,
+      "down": 382,
+      "down_candidates": 1957
+    },
+    "data/lewis/lewis4671.csv#13": {
+      "across": 249,
+      "across_candidates": 1070,
+      "down": 203,
+      "down_candidates": 1100
+    },
+    "data/lewis/lewis5422.csv#14": {
+      "across": 406,
+      "across_candidates": 3272,
+      "down": 594,
+      "down_candidates": 2081
+    },
+    "data/lewis/lewis5425.csv#20": {
+      "across": 83,
+      "across_candidates": 782,
+      "down": 70,
+      "down_candidates": 840
+    },
+    "data/lewis/lewis545.csv#13": {
+      "across": 225,
+      "across_candidates": 884,
+      "down": 158,
+      "down_candidates": 1143
+    },
+    "data/lewis/lewis5460.csv#17": {
+      "across": 543,
+      "across_candidates": 2468,
+      "down": 148,
+      "down_candidates": 3157
+    },
+    "data/lewis/lewis5740.csv#4": {
+      "across": 1009,
+      "across_candidates": 2664,
+      "down": 605,
+      "down_candidates": 2824
+    },
+    "data/lewis/lewis582.csv#20": {
+      "across": 107,
+      "across_candidates": 722,
+      "down": 97,
+      "down_candidates": 514
+    },
+    "data/lewis/lewis6021.csv#20": {
+      "across": 56,
+      "across_candidates": 380,
+      "down": 68,
+      "down_candidates": 239
+    },
+    "data/lewis/lewis6180.csv#14": {
+      "across": 107,
+      "across_candidates": 896,
+      "down": 125,
+      "down_candidates": 1113
+    },
+    "data/lewis/lewis6302.csv#13": {
+      "across": 269,
+      "across_candidates": 1913,
+      "down": 288,
+      "down_candidates": 2066
+    },
+    "data/lewis/lewis867.csv#9": {
+      "across": 447,
+      "across_candidates": 2014,
+      "down": 265,
+      "down_candidates": 2019
+    },
+    "data/one/one1282.csv#2": {
+      "across": 119,
+      "across_candidates": 617,
+      "down": 244,
+      "down_candidates": 574
+    },
+    "data/one/one1908.csv#16": {
+      "across": 222,
+      "across_candidates": 1226,
+      "down": 334,
+      "down_candidates": 1055
+    },
+    "data/one/one2104.csv#17": {
+      "across": 114,
+      "across_candidates": 1481,
+      "down": 147,
+      "down_candidates": 848
+    },
+    "data/one/one2212.csv#23": {
+      "across": 46,
+      "across_candidates": 138,
+      "down": 41,
+      "down_candidates": 135
+    },
+    "data/one/one2538.csv#14": {
+      "across": 254,
+      "across_candidates": 808,
+      "down": 160,
+      "down_candidates": 1126
+    },
+    "data/one/one269.csv#22": {
+      "across": 209,
+      "across_candidates": 1612,
+      "down": 501,
+      "down_candidates": 1424
+    },
+    "data/one/one3458.csv#13": {
+      "across": 267,
+      "across_candidates": 1445,
+      "down": 161,
+      "down_candidates": 1346
+    },
+    "data/one/one4140.csv#11": {
+      "across": 166,
+      "across_candidates": 624,
+      "down": 117,
+      "down_candidates": 682
+    },
+    "data/one/one4544.csv#19": {
+      "across": 63,
+      "across_candidates": 771,
+      "down": 56,
+      "down_candidates": 750
+    },
+    "data/one/one5235.csv#13": {
+      "across": 110,
+      "across_candidates": 1161,
+      "down": 151,
+      "down_candidates": 739
+    },
+    "data/one/one5469.csv#18": {
+      "across": 275,
+      "across_candidates": 1119,
+      "down": 164,
+      "down_candidates": 877
+    },
+    "data/one/one5625.csv#16": {
+      "across": 105,
+      "across_candidates": 874,
+      "down": 201,
+      "down_candidates": 600
+    },
+    "data/one/one6444.csv#9": {
+      "across": 391,
+      "across_candidates": 1796,
+      "down": 184,
+      "down_candidates": 1853
+    },
+    "data/one/one756.csv#7": {
+      "across": 810,
+      "across_candidates": 2139,
+      "down": 685,
+      "down_candidates": 3258
+    },
+    "data/one/one856.csv#5": {
+      "across": 283,
+      "across_candidates": 834,
+      "down": 127,
+      "down_candidates": 939
+    },
+    "data/random/random100.csv#19": {
+      "across": 443,
+      "across_candidates": 3274,
+      "down": 262,
+      "down_candidates": 2729
+    },
+    "data/random/random1438.csv#5": {
+      "across": 324,
+      "across_candidates": 1169,
+      "down": 140,
+      "down_candidates": 1314
+    },
+    "data/random/random700.csv#24": {
+      "across": 2,
+      "across_candidates": 3,
+      "down": 0,
+      "down_candidates": 0
+    },
+    "data/random/random941.csv#24": {
+      "across": 66,
+      "across_candidates": 489,
+      "down": 131,
+      "down_candidates": 617
+    },
+    "data/traditional/traditional1065.csv#20": {
+      "across": 108,
+      "across_candidates": 1146,
+      "down": 132,
+      "down_candidates": 852
+    },
+    "data/traditional/traditional1214.csv#6": {
+      "across": 304,
+      "across_candidates": 1883,
+      "down": 337,
+      "down_candidates": 1409
+    },
+    "data/traditional/traditional14850.csv#17": {
+      "across": 113,
+      "across_candidates": 1294,
+      "down": 80,
+      "down_candidates": 1192
+    },
+    "data/traditional/traditional14941.csv#15": {
+      "across": 168,
+      "across_candidates": 1857,
+      "down": 161,
+      "down_candidates": 1199
+    },
+    "data/traditional/traditional15117.csv#4": {
+      "across": 328,
+      "across_candidates": 1050,
+      "down": 277,
+      "down_candidates": 1170
+    },
+    "data/traditional/traditional1619.csv#7": {
+      "across": 189,
+      "across_candidates": 674,
+      "down": 188,
+      "down_candidates": 657
+    },
+    "data/traditional/traditional1766.csv#12": {
+      "across": 81,
+      "across_candidates": 533,
+      "down": 69,
+      "down_candidates": 556
+    },
+    "data/traditional/traditional1917.csv#6": {
+      "across": 89,
+      "across_candidates": 1011,
+      "down": 384,
+      "down_candidates": 890
+    },
+    "data/traditional/traditional2042.csv#2": {
+      "across": 58,
+      "across_candidates": 486,
+      "down": 41,
+      "down_candidates": 327
+    },
+    "data/traditional/traditional235.csv#12": {
+      "across": 569,
+      "across_candidates": 3010,
+      "down": 502,
+      "down_candidates": 2832
+    },
+    "data/traditional/traditional3097.csv#19": {
+      "across": 280,
+      "across_candidates": 2125,
+      "down": 263,
+      "down_candidates": 2007
+    },
+    "data/traditional/traditional4373.csv#5": {
+      "across": 120,
+      "across_candidates": 452,
+      "down": 58,
+      "down_candidates": 472
+    },
+    "data/traditional/traditional4414.csv#20": {
+      "across": 125,
+      "across_candidates": 964,
+      "down": 153,
+      "down_candidates": 999
+    },
+    "data/traditional/traditional4550.csv#19": {
+      "across": 128,
+      "across_candidates": 665,
+      "down": 119,
+      "down_candidates": 686
+    },
+    "data/traditional/traditional4790.csv#21": {
+      "across": 120,
+      "across_candidates": 584,
+      "down": 83,
+      "down_candidates": 517
+    },
+    "data/traditional/traditional4856.csv#23": {
+      "across": 108,
+      "across_candidates": 808,
+      "down": 119,
+      "down_candidates": 648
+    },
+    "data/traditional/traditional4969.csv#15": {
+      "across": 169,
+      "across_candidates": 1253,
+      "down": 253,
+      "down_candidates": 1009
+    },
+    "data/traditional/traditional5205.csv#17": {
+      "across": 33,
+      "across_candidates": 872,
+      "down": 32,
+      "down_candidates": 733
+    },
+    "data/traditional/traditional5229.csv#11": {
+      "across": 26,
+      "across_candidates": 465,
+      "down": 65,
+      "down_candidates": 308
+    },
+    "data/traditional/traditional53.csv#14": {
+      "across": 360,
+      "across_candidates": 1293,
+      "down": 403,
+      "down_candidates": 1203
+    },
+    "data/traditional/traditional5530.csv#6": {
+      "across": 148,
+      "across_candidates": 1310,
+      "down": 297,
+      "down_candidates": 1314
+    },
+    "data/traditional/traditional5554.csv#2": {
+      "across": 38,
+      "across_candidates": 183,
+      "down": 70,
+      "down_candidates": 140
+    },
+    "data/traditional/traditional5710.csv#3": {
+      "across": 164,
+      "across_candidates": 1245,
+      "down": 157,
+      "down_candidates": 678
+    },
+    "data/traditional/traditional6023.csv#19": {
+      "across": 128,
+      "across_candidates": 937,
+      "down": 102,
+      "down_candidates": 1183
+    },
+    "data/traditional/traditional6553.csv#23": {
+      "across": 298,
+      "across_candidates": 2544,
+      "down": 232,
+      "down_candidates": 2100
+    },
+    "data/traditional/traditional6728.csv#8": {
+      "across": 400,
+      "across_candidates": 2083,
+      "down": 295,
+      "down_candidates": 1455
+    },
+    "data/traditional/traditional6774.csv#3": {
+      "across": 569,
+      "across_candidates": 2188,
+      "down": 684,
+      "down_candidates": 2586
+    },
+    "data/traditional/traditional6878.csv#10": {
+      "across": 273,
+      "across_candidates": 1178,
+      "down": 214,
+      "down_candidates": 1086
+    },
+    "data/traditional/traditional7080.csv#5": {
+      "across": 149,
+      "across_candidates": 773,
+      "down": 180,
+      "down_candidates": 585
+    },
+    "data/traditional/traditional7203.csv#15": {
+      "across": 315,
+      "across_candidates": 677,
+      "down": 75,
+      "down_candidates": 1000
+    },
+    "data/traditional/traditional7410.csv#7": {
+      "across": 658,
+      "across_candidates": 2581,
+      "down": 224,
+      "down_candidates": 3219
+    },
+    "data/traditional/traditional7572.csv#16": {
+      "across": 373,
+      "across_candidates": 1903,
+      "down": 228,
+      "down_candidates": 1586
+    },
+    "data/traditional/traditional7613.csv#10": {
+      "across": 255,
+      "across_candidates": 1169,
+      "down": 165,
+      "down_candidates": 1118
+    },
+    "data/traditional/traditional7627.csv#6": {
+      "across": 211,
+      "across_candidates": 1082,
+      "down": 249,
+      "down_candidates": 1131
+    },
+    "data/traditional/traditional7640.csv#14": {
+      "across": 46,
+      "across_candidates": 280,
+      "down": 52,
+      "down_candidates": 330
+    },
+    "data/traditional/traditional7876.csv#20": {
+      "across": 44,
+      "across_candidates": 344,
+      "down": 98,
+      "down_candidates": 263
+    },
+    "data/traditional/traditional7926.csv#12": {
+      "across": 198,
+      "across_candidates": 930,
+      "down": 107,
+      "down_candidates": 829
+    },
+    "data/traditional/traditional8180.csv#3": {
+      "across": 149,
+      "across_candidates": 977,
+      "down": 291,
+      "down_candidates": 976
+    },
+    "data/traditional/traditional8542.csv#21": {
+      "across": 425,
+      "across_candidates": 2963,
+      "down": 365,
+      "down_candidates": 2618
+    },
+    "data/traditional/traditional923.csv#13": {
+      "across": 776,
+      "across_candidates": 4166,
+      "down": 720,
+      "down_candidates": 3423
+    }
+  },
+  "cpu": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+  "host": {
+    "binary": "build/window-compiler/builds/64fcef0149369ece91bb/worker",
+    "commands": [
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/board.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/board.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/perpendicular_checks.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/perpendicular_checks.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/rack_oriented_solver.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/utils.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/utils.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/word_index_start_row_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_pattern_table.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/word_pattern_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_start_row_table.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/word_start_row_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_table.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/word_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c bench/window_counters/window_worker.cpp -o build/window-compiler/builds/64fcef0149369ece91bb/window_worker.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' build/window-compiler/builds/64fcef0149369ece91bb/board.o build/window-compiler/builds/64fcef0149369ece91bb/perpendicular_checks.o build/window-compiler/builds/64fcef0149369ece91bb/rack_oriented_solver.o build/window-compiler/builds/64fcef0149369ece91bb/utils.o build/window-compiler/builds/64fcef0149369ece91bb/word_index_start_row_table.o build/window-compiler/builds/64fcef0149369ece91bb/word_pattern_table.o build/window-compiler/builds/64fcef0149369ece91bb/word_start_row_table.o build/window-compiler/builds/64fcef0149369ece91bb/word_table.o build/window-compiler/builds/64fcef0149369ece91bb/window_worker.o -ldl -o build/window-compiler/builds/64fcef0149369ece91bb/worker"
+    ],
+    "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+    "inputs": {
+      "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+      "bench/window_counters/tuning_loader.h": "865adb984c90359e735aaea0729c136abcec324c5fc74f8d587494e98908f050",
+      "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+      "bench/window_counters/window_worker.cpp": "ab3c1e3b521170c15ee2f402db0a639cb6195835a6969a70b2d3a78b8a2e2b56",
+      "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+      "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+      "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+      "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+      "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+      "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+      "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+      "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+      "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+      "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+      "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+      "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+      "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+      "src/rack_oriented_solver.cpp": "15c835bb8fb1d1dc821cf622404ef62c4c40b5b633b07bbba13b7ddaf6084299",
+      "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+      "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+      "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+      "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+      "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+    },
+    "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+    "profile_sha256": null,
+    "sha256": "57c0918df0fa61f25a2c2de20cfe018defaa0c86e7cde0e92e063faf903f66b9",
+    "text_bytes": 52983
+  },
+  "input_sha256": {
+    "bench/fixtures/mass/corpus.json.gz": "e656e6bfbd0f63407544ba32776d40eae206881514ca5d3183569db341fad3f6",
+    "bench/fixtures/pilot/corpus.json": "f38e0b2d6b7dfe310e32d416879ab4736f817a1ec1a2e9a86dcb4f89b56461fe",
+    "bench/fixtures/window-game-sets.csv": "7d3bba8f3bba43472ad9d9eb6626f1aeb41138e32ab18b752be8be2ebcb5c0e4",
+    "data/dictionaries/sample_dictionary.txt": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd"
+  },
+  "inputs": {
+    "data/fifty/fifty26.csv#23": {
+      "board_sha256": "43854f0d7357c27d16c6be703e5c40f2519406ac70e706d1bc61515d87311dd0",
+      "dataset": "held-out",
+      "rack": "ABFIKTV",
+      "stage": "late"
+    },
+    "data/fifty/fifty292.csv#13": {
+      "board_sha256": "98243053c294012b938a4c4adbd0176a4b3da3677c3d5756aa9729993a0f8e25",
+      "dataset": "held-out",
+      "rack": "DEJMQSU",
+      "stage": "middle"
+    },
+    "data/lewis/lewis10387.csv#22": {
+      "board_sha256": "453c6ecb49c5d02b2283f01fe9eb2bfbaff122bb00fad8d7f2e7cc381293ef03",
+      "dataset": "held-out",
+      "rack": "CEILNRS",
+      "stage": "late"
+    },
+    "data/lewis/lewis10845.csv#21": {
+      "board_sha256": "2e2b311578c7375dacd0d8208c411b96d79ba8752128dbf3f0e7983b01add2c0",
+      "dataset": "held-out",
+      "rack": "AINOR",
+      "stage": "late"
+    },
+    "data/lewis/lewis11010.csv#12": {
+      "board_sha256": "d4260c32521e43ac42ed6d82517b65460bbb3c945c4deb95242f6c174cf892a1",
+      "dataset": "held-out",
+      "rack": "AAAIILN",
+      "stage": "early"
+    },
+    "data/lewis/lewis11092.csv#19": {
+      "board_sha256": "bd5021756a046ebdc76922c5f6c9fc98f6b8e9303f090d62ff0d81de48dc6bba",
+      "dataset": "held-out",
+      "rack": "DEEEERU",
+      "stage": "middle"
+    },
+    "data/lewis/lewis11227.csv#12": {
+      "board_sha256": "8728329e4dc7324a0f60089ae7453e2a13f7a35e234b292a4ed94a1522b6998b",
+      "dataset": "held-out",
+      "rack": "DEORRSZ",
+      "stage": "middle"
+    },
+    "data/lewis/lewis11630.csv#7": {
+      "board_sha256": "0d322de0a73bd9689f9911dde73f87b750a261d7faaf16660b1166bf753de6ed",
+      "dataset": "held-out",
+      "rack": "BDEGHIP",
+      "stage": "middle"
+    },
+    "data/lewis/lewis11789.csv#11": {
+      "board_sha256": "02fba6b87e6219f5469eb4768008cef2406cdc5017041a50a4d88fab022582cd",
+      "dataset": "held-out",
+      "rack": "EHMPRSU",
+      "stage": "middle"
+    },
+    "data/lewis/lewis11979.csv#16": {
+      "board_sha256": "dd42a7b2ef1dadcb9f964867b0bb52ed5f495a5fc8b6ba7b6b3606f443b9071f",
+      "dataset": "held-out",
+      "rack": "EILPPUY",
+      "stage": "late"
+    },
+    "data/lewis/lewis12145.csv#17": {
+      "board_sha256": "d16ec4acd335eb0a75edeb6bf0e52564296cc98df3e60c4af4bfa7847c8b83e7",
+      "dataset": "held-out",
+      "rack": "BDEORRY",
+      "stage": "late"
+    },
+    "data/lewis/lewis12306.csv#6": {
+      "board_sha256": "174ab6ed136d72a6a75624e6ac422e6a57f75e5b108a003d3f8ab95fdd7dd571",
+      "dataset": "held-out",
+      "rack": "EHIRSST",
+      "stage": "early"
+    },
+    "data/lewis/lewis12452.csv#7": {
+      "board_sha256": "16548e658a85a6d4661702777982e03a64b4cdb16ce62764bc11abf791242b3c",
+      "dataset": "held-out",
+      "rack": "CEEEHNT",
+      "stage": "early"
+    },
+    "data/lewis/lewis12489.csv#3": {
+      "board_sha256": "5fb2690839537594c6654c8ff9a043f3635422c4e9482c79f5a7ed08b67e5472",
+      "dataset": "held-out",
+      "rack": "DEIQRUV",
+      "stage": "early"
+    },
+    "data/lewis/lewis12600.csv#22": {
+      "board_sha256": "4699d8daf49a3debb1b004a3c2c6dd203ab891a3bbf77396297f6214cd03e4bf",
+      "dataset": "held-out",
+      "rack": "IIMNPSY",
+      "stage": "late"
+    },
+    "data/lewis/lewis12631.csv#8": {
+      "board_sha256": "960e5cf91782b40b4f619525497aed35ae3e69731c63c714d26d327c198523f1",
+      "dataset": "held-out",
+      "rack": "FGLNNTY",
+      "stage": "early"
+    },
+    "data/lewis/lewis13094.csv#8": {
+      "board_sha256": "8434f983ff8fb1d350d509a7fcbbd92f265d29bd7fe5469947508bb82a494eae",
+      "dataset": "held-out",
+      "rack": "ACEIRTU",
+      "stage": "early"
+    },
+    "data/lewis/lewis13563.csv#22": {
+      "board_sha256": "fd840d370c40e150e8b1ef0dbc2f5ed06d3e18c0c3b3d880cf0344184b927958",
+      "dataset": "held-out",
+      "rack": "CEKLNY",
+      "stage": "late"
+    },
+    "data/lewis/lewis13723.csv#4": {
+      "board_sha256": "20a9f7ae53b3870b8329b0de96a07a01b497bc798e4efceeb4737ebb8d2ab669",
+      "dataset": "held-out",
+      "rack": "EEINOUW",
+      "stage": "early"
+    },
+    "data/lewis/lewis14223.csv#23": {
+      "board_sha256": "4f216175c7b05a41d88a6069bee5718e1f565a39a41e7f3349c547ba33845c1a",
+      "dataset": "held-out",
+      "rack": "BGIIRSS",
+      "stage": "late"
+    },
+    "data/lewis/lewis1675.csv#4": {
+      "board_sha256": "8b61deea87d83d894ff5ba50ab22730a694bc6a5c94b4cf0154d41cc78fa5bc4",
+      "dataset": "held-out",
+      "rack": "EIOPSTU",
+      "stage": "early"
+    },
+    "data/lewis/lewis1786.csv#7": {
+      "board_sha256": "34782865cba61bb93717c7bf1c3cbe4f5479d4297675d4a8a7c7fa963bd33a59",
+      "dataset": "held-out",
+      "rack": "AHIIOSU",
+      "stage": "early"
+    },
+    "data/lewis/lewis1994.csv#4": {
+      "board_sha256": "155115d09db7b25be6eee06e2c8c4be60e9e61ea88fe3c9f6c934a82c372afd5",
+      "dataset": "held-out",
+      "rack": "ACDIITY",
+      "stage": "early"
+    },
+    "data/lewis/lewis2179.csv#19": {
+      "board_sha256": "6b72463e80876e16bece5e00dc6d6570dd5b018e7ea49193f2f3d553eafad53b",
+      "dataset": "held-out",
+      "rack": "EENQTUZ",
+      "stage": "late"
+    },
+    "data/lewis/lewis43.csv#25": {
+      "board_sha256": "22e8a7a9d21dc43ae9f4d13d0a00bcfc483af503032ef8bcd1a43bdd26162e6f",
+      "dataset": "held-out",
+      "rack": "ENO",
+      "stage": "late"
+    },
+    "data/lewis/lewis4595.csv#11": {
+      "board_sha256": "a8636f2c9d567fb2ff29324fda617e1a1dab84a05d2fb820e6d4cb36b90c5cf2",
+      "dataset": "held-out",
+      "rack": "ADDGIMR",
+      "stage": "early"
+    },
+    "data/lewis/lewis4671.csv#13": {
+      "board_sha256": "598e93c4ac0fe3b3f64c8571e2327870f735aa3b18ad2a5a7f977dceeadcaa08",
+      "dataset": "held-out",
+      "rack": "HIINRST",
+      "stage": "middle"
+    },
+    "data/lewis/lewis5422.csv#14": {
+      "board_sha256": "88cede373cebf5f4e64529d385a55997a31d6e9da391ffe45130c48855947e50",
+      "dataset": "held-out",
+      "rack": "BINOPRT",
+      "stage": "middle"
+    },
+    "data/lewis/lewis5425.csv#20": {
+      "board_sha256": "12bea43d5bb646ea5073dbabac2c48d50cfe147a27c1647b535fb4b82c9d296c",
+      "dataset": "held-out",
+      "rack": "INNPTUU",
+      "stage": "late"
+    },
+    "data/lewis/lewis545.csv#13": {
+      "board_sha256": "6e87bf62d7f12655aee4ff87d671c5b56c367582a99c37114ca2e7f29770c6e6",
+      "dataset": "held-out",
+      "rack": "EFGHIIT",
+      "stage": "middle"
+    },
+    "data/lewis/lewis5460.csv#17": {
+      "board_sha256": "45b3813769593a7b451cd5679127a997868a470d916376f3ad54a81dd9c8df12",
+      "dataset": "held-out",
+      "rack": "AEENRST",
+      "stage": "middle"
+    },
+    "data/lewis/lewis5740.csv#4": {
+      "board_sha256": "91b760d9c5a12ceaab57822a8f67aa6fd6a0908c632331f73ea89bf0fc35a426",
+      "dataset": "held-out",
+      "rack": "AEINSTT",
+      "stage": "early"
+    },
+    "data/lewis/lewis582.csv#20": {
+      "board_sha256": "03ab376afe1a5aa78fd8ec18f972cd19ca1facadc3477119b95e4e663a7dd22b",
+      "dataset": "held-out",
+      "rack": "BCDILNT",
+      "stage": "late"
+    },
+    "data/lewis/lewis6021.csv#20": {
+      "board_sha256": "8744d94ccb1a4ca33ecb28f32a5514749ba877e5fd5f9ebad139703f8dfd01a9",
+      "dataset": "held-out",
+      "rack": "CEMUV",
+      "stage": "late"
+    },
+    "data/lewis/lewis6180.csv#14": {
+      "board_sha256": "ae9800dd2f4def791db1e6381867973be621c8a48d541de26212d15b71cd0417",
+      "dataset": "held-out",
+      "rack": "ABDILOV",
+      "stage": "middle"
+    },
+    "data/lewis/lewis6302.csv#13": {
+      "board_sha256": "72a69cc26cbc00be68aa9251be16db6c83a6fdf3125b79f7d58c721c6231dafd",
+      "dataset": "held-out",
+      "rack": "AFINSTX",
+      "stage": "middle"
+    },
+    "data/lewis/lewis867.csv#9": {
+      "board_sha256": "a9c3089c3bdf8ed1646f2cb1931af08a59e153be93c7e9f3b075cd0d1c0b7f0e",
+      "dataset": "held-out",
+      "rack": "CDEGILT",
+      "stage": "middle"
+    },
+    "data/one/one1282.csv#2": {
+      "board_sha256": "29e12370cc2b5bbd74e0ab409dc9a8caa02c28f9f7cfab2daa34c4bd14b1c60d",
+      "dataset": "held-out",
+      "rack": "EIJLOSS",
+      "stage": "early"
+    },
+    "data/one/one1908.csv#16": {
+      "board_sha256": "f05fa9e6738df176432f44afbfbf46271454e3aa9ece052e9c9cdb84ee805d5e",
+      "dataset": "held-out",
+      "rack": "ADEEQSZ",
+      "stage": "middle"
+    },
+    "data/one/one2104.csv#17": {
+      "board_sha256": "3f336984ebc7666a0cd08dc33c5b2fcc2fa03462457f84733909b5688b938a0e",
+      "dataset": "held-out",
+      "rack": "AEIJRTU",
+      "stage": "late"
+    },
+    "data/one/one2212.csv#23": {
+      "board_sha256": "46dcb6106cc9bfde8fc1cf52fc0a93a1e45c793fbd52f2cf2237bab5acc1ea99",
+      "dataset": "held-out",
+      "rack": "EJO",
+      "stage": "late"
+    },
+    "data/one/one2538.csv#14": {
+      "board_sha256": "f945ba3536536ff738634e85351e7c674815f0ffb2cb747cc9f4dd7f9876a6bf",
+      "dataset": "held-out",
+      "rack": "EEPQSTU",
+      "stage": "middle"
+    },
+    "data/one/one269.csv#22": {
+      "board_sha256": "df92570fa6dbd9dac7bd0d23466d9f7db32e3f23609d705475424c34a2317ced",
+      "dataset": "held-out",
+      "rack": "AEJKOSS",
+      "stage": "late"
+    },
+    "data/one/one3458.csv#13": {
+      "board_sha256": "2186a20fbf3bdaf62ec5325f0d9b581f9a16349beca66cbfc41b989561aaeabc",
+      "dataset": "held-out",
+      "rack": "ABEIRSZ",
+      "stage": "middle"
+    },
+    "data/one/one4140.csv#11": {
+      "board_sha256": "e2606b8db52d5de000b18b3cb1680c295ca5db8a77eed06103b6101ffe8b89f1",
+      "dataset": "held-out",
+      "rack": "AAEEORZ",
+      "stage": "middle"
+    },
+    "data/one/one4544.csv#19": {
+      "board_sha256": "170540b34e9ba2f0c1c0ee6004df35b4593e80492cdb627e67da3832d741de49",
+      "dataset": "held-out",
+      "rack": "BEGILRZ",
+      "stage": "late"
+    },
+    "data/one/one5235.csv#13": {
+      "board_sha256": "acc6357b8254364cef832bffdecc9f13fe5bcd123cfe7d51a7899a6be93a1f37",
+      "dataset": "held-out",
+      "rack": "AAEFGIN",
+      "stage": "middle"
+    },
+    "data/one/one5469.csv#18": {
+      "board_sha256": "15f8514f2ed051a191907fc78b595ea3ef0b36761ba53a1c48dce7ac0c8b3e99",
+      "dataset": "held-out",
+      "rack": "AILLQTU",
+      "stage": "middle"
+    },
+    "data/one/one5625.csv#16": {
+      "board_sha256": "7b606f7a6e6833793021fbeb3121793124a9144643e8c4ef93594b4840b4ac8a",
+      "dataset": "held-out",
+      "rack": "CEIIMNZ",
+      "stage": "late"
+    },
+    "data/one/one6444.csv#9": {
+      "board_sha256": "4ffb75ba1e17b20fb39950519e0b56b2ac8dc383c68c47aac9e97fd33ec56c14",
+      "dataset": "held-out",
+      "rack": "EEHIKRS",
+      "stage": "early"
+    },
+    "data/one/one756.csv#7": {
+      "board_sha256": "e24209c7c62eb0b2ccbf467deb2c691750beddb3aa7ad86be94ba9f2ac65e2c6",
+      "dataset": "held-out",
+      "rack": "ADEMNOQ",
+      "stage": "early"
+    },
+    "data/one/one856.csv#5": {
+      "board_sha256": "275986ca09a5dbc1d8ff942a163312baf9e4d7fa670b01f8b62aa3f3f7635d9d",
+      "dataset": "held-out",
+      "rack": "AEEIOTY",
+      "stage": "early"
+    },
+    "data/random/random100.csv#19": {
+      "board_sha256": "e90238a52b93002e0762938debf79dbea854243f6f3179d23dcb9fd6534b3b7e",
+      "dataset": "held-out",
+      "rack": "AEENOST",
+      "stage": "late"
+    },
+    "data/random/random1438.csv#5": {
+      "board_sha256": "9b0fb2ee6da61d0b2ffa0338ed9fd19028251a5d5189b5ab74705beb388cc32d",
+      "dataset": "held-out",
+      "rack": "EFIRTYZ",
+      "stage": "early"
+    },
+    "data/random/random700.csv#24": {
+      "board_sha256": "16d07d163e92270426b5b90fdc0ac6531d7859e11baa49316720a3d2f6420a45",
+      "dataset": "held-out",
+      "rack": "Q",
+      "stage": "late"
+    },
+    "data/random/random941.csv#24": {
+      "board_sha256": "b77fbac976f4d10c9c59df60e936e3a2492f51a16c92d94121abcd63624c5e35",
+      "dataset": "held-out",
+      "rack": "AEIOVXZ",
+      "stage": "late"
+    },
+    "data/traditional/traditional1065.csv#20": {
+      "board_sha256": "9cdffa9643f147ee8f4610fa4bae7d9d8302227d8b58c81079ffc7bdd2b02c0d",
+      "dataset": "held-out",
+      "rack": "ABERRW",
+      "stage": "late"
+    },
+    "data/traditional/traditional1214.csv#6": {
+      "board_sha256": "f0f075f8fb95b01b87e86d697f43cfa309fe4dfc644b51f67257740aba2539a2",
+      "dataset": "held-out",
+      "rack": "BDEHORU",
+      "stage": "middle"
+    },
+    "data/traditional/traditional14850.csv#17": {
+      "board_sha256": "926e8863aba5f2830bc5db74b529a8c6c3250ee0829456e901ee302b9998a9c2",
+      "dataset": "held-out",
+      "rack": "CEIILRT",
+      "stage": "late"
+    },
+    "data/traditional/traditional14941.csv#15": {
+      "board_sha256": "ee9644ded699e5c45f3bdf11f740e2353a5e2cfdb96f586859d33edc1ed24589",
+      "dataset": "held-out",
+      "rack": "EGIILNS",
+      "stage": "middle"
+    },
+    "data/traditional/traditional15117.csv#4": {
+      "board_sha256": "6aab039c127374a08e02847af81288658a51c874c873332ab9c60ee1879ca811",
+      "dataset": "held-out",
+      "rack": "AEGHHRU",
+      "stage": "early"
+    },
+    "data/traditional/traditional1619.csv#7": {
+      "board_sha256": "4fa43531d84666343cfb7896acd80823bd9562a711e92320c9c078e4067feaf4",
+      "dataset": "held-out",
+      "rack": "DEIMOOZ",
+      "stage": "early"
+    },
+    "data/traditional/traditional1766.csv#12": {
+      "board_sha256": "6ca22a0798869761b3002514691532f701dda3c5550275c457ccd7a6874b276c",
+      "dataset": "held-out",
+      "rack": "EILORRR",
+      "stage": "middle"
+    },
+    "data/traditional/traditional1917.csv#6": {
+      "board_sha256": "c9ebce43403c9dce50236185cab369fc9d9c754b0f73e00f0f3e33818b966bcb",
+      "dataset": "held-out",
+      "rack": "GLMNNOS",
+      "stage": "early"
+    },
+    "data/traditional/traditional2042.csv#2": {
+      "board_sha256": "0a1cf4294a3824b125bd6c75133eee3c44010388dc533bd52b7a550f27f67b03",
+      "dataset": "held-out",
+      "rack": "EFHOPUW",
+      "stage": "early"
+    },
+    "data/traditional/traditional235.csv#12": {
+      "board_sha256": "55dc2528e82e11f1bd03b521f6775a1cc46f17dbaf3325086a67f5600e13e671",
+      "dataset": "held-out",
+      "rack": "AEILNPR",
+      "stage": "middle"
+    },
+    "data/traditional/traditional3097.csv#19": {
+      "board_sha256": "1fbee0bb297f82ac3fa9c21be7c4c6863b9316531884a5c02f1bfd77a223e887",
+      "dataset": "held-out",
+      "rack": "IKNORSS",
+      "stage": "late"
+    },
+    "data/traditional/traditional4373.csv#5": {
+      "board_sha256": "33f1053e811c73b5c83e2c91e41da5098b6f41e51bad79a444ab8c8b9e25efc6",
+      "dataset": "held-out",
+      "rack": "BIIMPSV",
+      "stage": "early"
+    },
+    "data/traditional/traditional4414.csv#20": {
+      "board_sha256": "c84bae90fe88ecdaa6318b98d470390fc8547415e05cf953764347d28013216c",
+      "dataset": "held-out",
+      "rack": "EEEGPRT",
+      "stage": "late"
+    },
+    "data/traditional/traditional4550.csv#19": {
+      "board_sha256": "33e17d610c4fa6d3c15eef05da9ad39f3a6a3c99d0cf4db7aea46202c62228a4",
+      "dataset": "held-out",
+      "rack": "AAGIOPZ",
+      "stage": "late"
+    },
+    "data/traditional/traditional4790.csv#21": {
+      "board_sha256": "81eaba2faf839548a78a164bc23d26a86905c96c8d1a0af23ab866dcd7fee80e",
+      "dataset": "held-out",
+      "rack": "EEIIOTW",
+      "stage": "late"
+    },
+    "data/traditional/traditional4856.csv#23": {
+      "board_sha256": "6a1f2bcfaaa8ba31956ac8c758fb8bc76c8a28b1e1cee3ee6780081051421dbf",
+      "dataset": "held-out",
+      "rack": "AGNRRU",
+      "stage": "late"
+    },
+    "data/traditional/traditional4969.csv#15": {
+      "board_sha256": "e4e4644a28588d274d462caae516ace4660b82984b5e780e0671b6077ae042c6",
+      "dataset": "held-out",
+      "rack": "HINOOOS",
+      "stage": "middle"
+    },
+    "data/traditional/traditional5205.csv#17": {
+      "board_sha256": "50f4b1e26bfb57115b19985098c1b88406bfcb20bc9dba6708528b09749a7c8a",
+      "dataset": "held-out",
+      "rack": "BDELSTW",
+      "stage": "middle"
+    },
+    "data/traditional/traditional5229.csv#11": {
+      "board_sha256": "c7cda6d3ef18473f0c1f3df4664caea2fc2a04f8fa8244e3c3c8f7266e27b350",
+      "dataset": "held-out",
+      "rack": "ACHHRVY",
+      "stage": "middle"
+    },
+    "data/traditional/traditional53.csv#14": {
+      "board_sha256": "696a79dd9cd9835ad86936749bd697ceb7f61b562073a38ac724e9bb66c3d544",
+      "dataset": "held-out",
+      "rack": "AEEIOTY",
+      "stage": "middle"
+    },
+    "data/traditional/traditional5530.csv#6": {
+      "board_sha256": "c13c880b5315f48c62385f764b32c6bb9b37b671c399de73ef9203ba7c42bd52",
+      "dataset": "held-out",
+      "rack": "AAEIRSY",
+      "stage": "early"
+    },
+    "data/traditional/traditional5554.csv#2": {
+      "board_sha256": "d8d9fb511244d72a8619eaf6b46f041e42ce6b46c7efaa80bd8ec37a7e832b51",
+      "dataset": "held-out",
+      "rack": "EFGIIUX",
+      "stage": "early"
+    },
+    "data/traditional/traditional5710.csv#3": {
+      "board_sha256": "c5301d6e5f56c2a6baf1fa882bcb78e29b75df0454375336809ecd35ce170d49",
+      "dataset": "held-out",
+      "rack": "EEFGILT",
+      "stage": "early"
+    },
+    "data/traditional/traditional6023.csv#19": {
+      "board_sha256": "7fbbd88d469b0361986c3774ddef97167bfb9381419ef24509aa9ec2653660c4",
+      "dataset": "held-out",
+      "rack": "DEIILNN",
+      "stage": "late"
+    },
+    "data/traditional/traditional6553.csv#23": {
+      "board_sha256": "d3b014f72f7bfb8f413989fd9d1a47247e2a522ddc3b2ee25dc6ad511610f0c2",
+      "dataset": "held-out",
+      "rack": "AELNOTU",
+      "stage": "late"
+    },
+    "data/traditional/traditional6728.csv#8": {
+      "board_sha256": "67f4d0166787294dc9b029f3c2b049c712f821363f60b642a4b72f849ba0fe8e",
+      "dataset": "held-out",
+      "rack": "AENNRSV",
+      "stage": "early"
+    },
+    "data/traditional/traditional6774.csv#3": {
+      "board_sha256": "da762bfc4210c0b71c7f51d845fc8444992eb6c2fbf9c6c71df5811ba5f435e3",
+      "dataset": "held-out",
+      "rack": "AFIMRST",
+      "stage": "early"
+    },
+    "data/traditional/traditional6878.csv#10": {
+      "board_sha256": "7017fca3aae6661e1e44c385ae352b0e221b6a2ef4e9a125c580c5427fea9ca1",
+      "dataset": "held-out",
+      "rack": "ABEEEMT",
+      "stage": "early"
+    },
+    "data/traditional/traditional7080.csv#5": {
+      "board_sha256": "4bcbbeceeba0d43d327ca5c29b56ffeff1425519e9f2fe400233f49987400604",
+      "dataset": "held-out",
+      "rack": "AABEJNX",
+      "stage": "early"
+    },
+    "data/traditional/traditional7203.csv#15": {
+      "board_sha256": "bd787e64fd768ac93ca3ff06166de1436d9914b647ebafc286e33eb2bc9eb3b7",
+      "dataset": "held-out",
+      "rack": "CEELLRV",
+      "stage": "middle"
+    },
+    "data/traditional/traditional7410.csv#7": {
+      "board_sha256": "66ce05c3e8b5e98262496607b3e143847e6dcdead265ba13f820e827804567f0",
+      "dataset": "held-out",
+      "rack": "AEFGPRT",
+      "stage": "early"
+    },
+    "data/traditional/traditional7572.csv#16": {
+      "board_sha256": "d407ee36ea92e21a099c829f9d775e042679078ced6038228e035ae8f035dc34",
+      "dataset": "held-out",
+      "rack": "ABEEHIR",
+      "stage": "middle"
+    },
+    "data/traditional/traditional7613.csv#10": {
+      "board_sha256": "cb8ff2b59e9d2b89dd833744ce9fe95c0608e7e5f0729ff50a80602a0f17ffde",
+      "dataset": "held-out",
+      "rack": "AANRSUZ",
+      "stage": "middle"
+    },
+    "data/traditional/traditional7627.csv#6": {
+      "board_sha256": "31bcb4729f26d4fbc4cc82117cee1ebf8fa9e023a65ec74a6146a89acb9d8af0",
+      "dataset": "held-out",
+      "rack": "AEGINOO",
+      "stage": "early"
+    },
+    "data/traditional/traditional7640.csv#14": {
+      "board_sha256": "0ab93506e6887b8f0e3edca08f75bbb6082165c53bdcc89a1d9315f74d3a3ddc",
+      "dataset": "held-out",
+      "rack": "AIIIJMU",
+      "stage": "middle"
+    },
+    "data/traditional/traditional7876.csv#20": {
+      "board_sha256": "4ef5eabc2c6f19e792df1f8acba715a0748498f645cb2898cc1aeb920198071b",
+      "dataset": "held-out",
+      "rack": "IPPRTVX",
+      "stage": "late"
+    },
+    "data/traditional/traditional7926.csv#12": {
+      "board_sha256": "d149ca04cc8041a0fb1a1f9369b2c45c42d0298de811123d8aab3e9a58721913",
+      "dataset": "held-out",
+      "rack": "EEILNVY",
+      "stage": "middle"
+    },
+    "data/traditional/traditional8180.csv#3": {
+      "board_sha256": "391549f438d314d9c05049e749eac9eae2de8582e491f9dd2236f3dd641c06c6",
+      "dataset": "held-out",
+      "rack": "DDNRSTU",
+      "stage": "early"
+    },
+    "data/traditional/traditional8542.csv#21": {
+      "board_sha256": "261c709aa3bc720c6df79abd57b143cfe8cf0c09a78e4940b38a2e564a54b09e",
+      "dataset": "held-out",
+      "rack": "ADHINSW",
+      "stage": "late"
+    },
+    "data/traditional/traditional923.csv#13": {
+      "board_sha256": "2d4426dad587510a8b51781d57095116751de79474baff5339aed305abccd31d",
+      "dataset": "held-out",
+      "rack": "CDEISTU",
+      "stage": "middle"
+    }
+  },
+  "kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "pairs": [
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack-neighbor"
+      ],
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-all-checks"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ]
+  ],
+  "protocol_sha256": {
+    "bench/corpus/replay_game.py": "24375c99a3285885a9d50290c4c3b7dfa424b844711c495aadff04c5e0c5d600",
+    "bench/corpus/sample_turns.py": "01b4296ddf5672c6c28533aec5943faf99c87179d829ae7340dcf4136e377db1",
+    "bench/measurement_support/benchmark_inputs.py": "f665b90a0b0156530060ba2952d264250c36955c555278790781b4b031b925af",
+    "bench/measurement_support/paired_timings.py": "0964ad6b6ff613c072b02487b6898d7d866322e20ffbdc452c31601d0ee28a6c",
+    "bench/window_counters/compiler_trials.py": "2f17f8a9da4be8ae6bdf3b340ba5446acd4fbe8dd1e32c2e3ed5f333019c0d0f",
+    "bench/window_counters/finalist_report.py": "90a71c569294ba3de4ebde9e3e825b29c311c64d9eccf224517679b54e855507",
+    "bench/window_counters/finalist_trials.py": "30f919dfa14d69496e9e176745b432b8292e1a8f73df5f3687c7d4f16229720d",
+    "bench/window_counters/tuning_builds.py": "49f3ad42d4c90ddb2feda4b7b8777c8a64c862a8aee9ec888e5fb40294e28e6b",
+    "bench/window_counters/tuning_report.py": "c3dad08b29c5bd29fea5e9ab013e23110266307e35f9d2edf9ba80a50d008847",
+    "bench/window_counters/window_benchmark.py": "7edc834cd40380b6c60bc7dcc106312e1511fa22dbe0d3b46ab4b7973d59214e",
+    "bench/window_counters/window_games.py": "15a813a10b818a25c48b9305737eceea7578c299b0a2910468a7f2ffe1a434e9"
+  },
+  "qualification_ids": {
+    "portable": "a8697ddf201088cc4f327a618ff394d8731946c109f76e2a86dc27b528532b13",
+    "skylake": "90d591dd75e39a946359514d8086084ac946966ae68293b5acf65a72cc64a1c1"
+  },
+  "schedule": {
+    "held-out": 40
+  },
+  "study": "held-out"
+}

@@ -1,5 +1,7 @@
 # Window-counter finalists
 
+**Held-out results.** On 96 reserved games, `rack-neighbor-cache` and `rack-neighbor` tied for the portable lead. The aligned Skylake build of `rack-neighbor` beat its cached counterpart by 4.77 µs/solve (95% CI 3.15 to 6.35). [All nine held-out comparisons, observations and rerun commands](held-out/README.md)
+
 **Portable C++17 advances three counters.** `rack-neighbor-cache`, `rack-all-checks` and `rack-neighbor` tied in all three direct development comparisons. Adding the row cache to `rack-neighbor` cost 2.04 µs/solve (95% CI −1.56 to +6.29). The direct comparison of the cache and all-checks finalists included one 13 ms observation on each side in different games. Its interval for cache minus all-checks was −32.60 to +28.95 µs. All observations enter the estimate. [Portable comparisons](development.md#portable)
 
 **The i7-6700K advances `rack-neighbor` and `rack-neighbor-cache`.** In the initial direct Skylake comparison, `rack-neighbor` averaged 317.90 µs/solve and the cached version averaged 325.26. Adding the cache cost 7.37 µs/solve (95% CI 3.89 to 11.22). Against its matched packed baseline, `rack-neighbor` saved 93.65 µs/solve (78.35 to 109.07). A second aligned comparison tied, with a cache saving of 2.80 µs/solve (−10.49 to +24.80). Both advance under the preselected rule. Both targets include `packed` in the held-out comparison. [Skylake comparisons](development.md#skylake) · [Frozen inputs and counters](freeze.json)
