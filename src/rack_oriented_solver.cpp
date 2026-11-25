@@ -12,6 +12,9 @@
 #include "window_variants.h"
 #include <chrono>
 #include <string>
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
 #endif
 
 #ifdef SCRABBLE_TRACE_PLACEMENTS
@@ -344,15 +347,22 @@ struct GapChecks {
     void append(uint8_t offset, uint32_t letters) { gaps.set(gap_count++, offset, letters); }
 
     template <GapEvaluation evaluation>
+    bool check_gap(const char *word, uint8_t i, bool accepted_so_far) const
+    {
+        const uint32_t letters = gaps.letters_at(i);
+        const bool passes = (evaluation == GapEvaluation::skip_unrestricted &&
+                             letters == PerpendicularCheckTable::all_letters) ||
+                            (letters & (1u << (word[gaps.offset_at(i)] - 'A')));
+        trace_gap_check(i, accepted_so_far && !passes);
+        return passes;
+    }
+
+    template <GapEvaluation evaluation>
     bool accepts(const char *word, uint8_t count) const
     {
         bool accepted = true;
         for (uint8_t i = 0; i < count; ++i) {
-            const uint32_t letters = gaps.letters_at(i);
-            const bool passes = (evaluation == GapEvaluation::skip_unrestricted &&
-                                 letters == PerpendicularCheckTable::all_letters) ||
-                                (letters & (1u << (word[gaps.offset_at(i)] - 'A')));
-            trace_gap_check(i, accepted && !passes);
+            const bool passes = check_gap<evaluation>(word, i, accepted);
             if constexpr (evaluation == GapEvaluation::accumulate) {
                 accepted &= passes;
             } else if (!passes) {
@@ -396,6 +406,9 @@ struct GroupWords {
     size_t size;
     uint8_t row, start;
 
+    GroupWords(const WordTable &dictionary, const uint32_t *ids, size_t size, uint8_t row, uint8_t start)
+        : dictionary(dictionary), ids(ids), size(size), row(row), start(start) {}
+
     size_t decide(bool accepted) const
     {
         trace_placements(row, start, ids, size, accepted);
@@ -403,14 +416,20 @@ struct GroupWords {
     }
 
     template <typename Accept>
-    size_t count_if(Accept accepts) const
+    bool check_word(size_t i, const char *word, Accept accepts) const
+    {
+        trace_individual_check();
+        const bool accepted = accepts(word);
+        trace_placements(row, start, ids + i, 1, accepted);
+        return accepted;
+    }
+
+    template <typename Accept>
+    size_t count_if(Accept accepts, size_t first = 0) const
     {
         size_t count = 0;
-        for (size_t i = 0; i < size; ++i) {
-            trace_individual_check();
-            const bool accepted = accepts(dictionary.words[ids[i]]);
-            count += accepted;
-            trace_placements(row, start, ids + i, 1, accepted);
+        for (size_t i = first; i < size; ++i) {
+            count += check_word(i, dictionary.words[ids[i]], accepts);
         }
         return count;
     }
@@ -450,6 +469,93 @@ struct GroupWords {
         return check_gaps<evaluation>(checks);
     }
 };
+
+#ifdef SCRABBLE_WINDOW_VARIANTS
+#ifdef __AVX2__
+struct SimdWords : GroupWords {
+    using GroupWords::GroupWords;
+
+    template <GapEvaluation evaluation, typename Layout>
+    size_t check_words(const GapChecks<Layout> &checks) const
+    {
+        static_assert(evaluation == GapEvaluation::accumulate && MAX_RACK_TILES < 8);
+        if (checks.gap_count < 4) {
+            return GroupWords::check_words<evaluation>(checks);
+        }
+        const auto &gaps = checks.gaps;
+        const __m128i masks = _mm_setr_epi32(gaps.letters_at(0), gaps.letters_at(1),
+                                             gaps.letters_at(2), gaps.letters_at(3));
+        return count_if([&](const char *word) {
+            // Each lane reads one byte, even when its gap is the word's final character.
+            const __m128i characters = _mm_setr_epi32(word[gaps.offset_at(0)], word[gaps.offset_at(1)],
+                                                      word[gaps.offset_at(2)], word[gaps.offset_at(3)]);
+            // Shift the permitted-letter bit to the sign bit of its lane.
+            const __m128i shifts = _mm_sub_epi32(_mm_set1_epi32('A' + 31), characters);
+            const int passing = _mm_movemask_ps(_mm_castsi128_ps(_mm_sllv_epi32(masks, shifts)));
+#ifdef SCRABBLE_TRACE_PLACEMENTS
+            bool preceding_lanes_pass = true;
+            for (uint8_t i = 0; i < 4; ++i) {
+                const bool passes = passing & (1 << i);
+                trace_gap_check(i, preceding_lanes_pass && !passes);
+                preceding_lanes_pass &= passes;
+            }
+#endif
+            bool accepted = passing == 15;
+            for (uint8_t i = 4; i < MAX_RACK_TILES && i < checks.gap_count; ++i) {
+                accepted &= checks.template check_gap<evaluation>(word, i, accepted);
+            }
+            return accepted;
+        });
+    }
+};
+#endif
+
+enum class BatchHint { none, interleave, prefetch };
+
+template <size_t width, BatchHint hint = BatchHint::none>
+struct BatchedWords : GroupWords {
+    using GroupWords::GroupWords;
+
+    template <GapEvaluation evaluation, typename Layout>
+    size_t check_words(const GapChecks<Layout> &checks) const
+    {
+        auto accepts = [&](const char *word) {
+            return checks.template accepts<evaluation>(word, checks.gap_count);
+        };
+        auto check_batch = [&](size_t i) {
+            const char *words[width];
+            for (size_t j = 0; j < width; ++j) {
+                words[j] = dictionary.words[ids[i + j]];
+            }
+            if constexpr (hint == BatchHint::prefetch) {
+                if (i + width < size) {
+                    __builtin_prefetch(dictionary.words[ids[i + width]]);
+                }
+            }
+            size_t count = 0;
+            for (size_t j = 0; j < width; ++j) {
+                count += check_word(i + j, words[j], accepts);
+            }
+            return count;
+        };
+        const size_t end = size - size % width;
+        size_t count = 0;
+        if constexpr (hint == BatchHint::interleave) {
+#ifdef __clang__
+#pragma clang loop interleave_count(2)
+#endif
+            for (size_t i = 0; i < end; i += width) {
+                count += check_batch(i);
+            }
+        } else {
+            for (size_t i = 0; i < end; i += width) {
+                count += check_batch(i);
+            }
+        }
+        return count + count_if(accepts, end);
+    }
+};
+#endif
 
 struct AllLetters {
     uint32_t eligible(uint32_t allowed) const { return allowed; }
@@ -552,7 +658,8 @@ enum class WindowCounting { all_gaps_per_word, constrained_per_word, bulk_unrest
 
 template <GapTraversal traversal, MaskPolicy policy = MaskPolicy::lazy,
           WindowCounting counting = WindowCounting::all_gaps_per_word, typename Layout = GapDescriptors,
-          GapEvaluation evaluation = GapEvaluation::skip_unrestricted, GapOrder order = GapOrder::offset>
+          GapEvaluation evaluation = GapEvaluation::skip_unrestricted, GapOrder order = GapOrder::offset,
+          typename Words = GroupWords>
 struct WindowCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
@@ -562,10 +669,13 @@ struct WindowCounter {
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
     template <typename OtherLayout>
-    using WithGapLayout = WindowCounter<traversal, policy, counting, OtherLayout, evaluation, order>;
+    using WithGapLayout = WindowCounter<traversal, policy, counting, OtherLayout, evaluation, order, Words>;
 
     template <GapEvaluation other, GapOrder other_order = order>
-    using WithGapEvaluation = WindowCounter<traversal, policy, counting, Layout, other, other_order>;
+    using WithGapEvaluation = WindowCounter<traversal, policy, counting, Layout, other, other_order, Words>;
+
+    template <typename OtherWords>
+    using WithWordLoop = WindowCounter<traversal, policy, counting, Layout, evaluation, order, OtherWords>;
 
     WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &)
         : WindowCounter(dictionary, patterns) {}
@@ -605,14 +715,14 @@ struct WindowCounter {
             if (policy != MaskPolicy::eager && !masks) {
                 build_masks();
             }
-            const GroupWords words{dictionary, patterns.word_indices.data() + group.word_indices.start,
-                                   group.word_indices.count, checks.row, window.start};
+            const Words words{dictionary, patterns.word_indices.data() + group.word_indices.start,
+                              group.word_indices.count, checks.row, window.start};
             if (masks->ruled_out) {
                 words.decide(false);
                 return policy == MaskPolicy::stop_window ? GroupSearch::stop_window : GroupSearch::keep_going;
             }
             const bool bulk = counting == WindowCounting::bulk_unrestricted && !masks->gap_count;
-            count += bulk ? words.decide(true) : words.check_words<evaluation>(*masks);
+            count += bulk ? words.decide(true) : words.template check_words<evaluation>(*masks);
             return GroupSearch::keep_going;
         });
         return count;
@@ -794,8 +904,19 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
 {
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
+        {"batch-2", measure_solve<PackedCounter::WithWordLoop<BatchedWords<2>>>},
+        {"batch-4", measure_solve<PackedCounter::WithWordLoop<BatchedWords<4>>>},
+#ifdef __clang__
+        {"batch-2-interleave", measure_solve<PackedCounter::WithWordLoop<BatchedWords<2, BatchHint::interleave>>>},
+        {"batch-4-interleave", measure_solve<PackedCounter::WithWordLoop<BatchedWords<4, BatchHint::interleave>>>},
+#endif
+        {"batch-2-prefetch", measure_solve<PackedCounter::WithWordLoop<BatchedWords<2, BatchHint::prefetch>>>},
+        {"batch-4-prefetch", measure_solve<PackedCounter::WithWordLoop<BatchedWords<4, BatchHint::prefetch>>>},
         {"early-exit", measure_solve<PackedCounter::WithGapEvaluation<GapEvaluation::early_exit>>},
         {"all-checks", measure_solve<PackedCounter::WithGapEvaluation<GapEvaluation::accumulate>>},
+#ifdef __AVX2__
+        {"bounded-simd", measure_solve<PackedCounter::WithGapEvaluation<GapEvaluation::accumulate>::WithWordLoop<SimdWords>>},
+#endif
         {"selective-first", measure_solve<PackedCounter::WithGapEvaluation<GapEvaluation::early_exit, GapOrder::selectivity>>},
         {"gap-u32", measure_solve<PackedCounter::WithGapLayout<Uint32Gaps>>},
         {"gap-arrays", measure_solve<PackedCounter::WithGapLayout<GapArrays>>},

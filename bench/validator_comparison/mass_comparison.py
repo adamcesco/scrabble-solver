@@ -4,32 +4,16 @@ import csv
 import gzip
 import json
 import math
-import random
 from collections import Counter, defaultdict
 from itertools import chain
 from pathlib import Path
-from statistics import fmean, quantiles, variance
-from typing import NamedTuple
+from statistics import fmean, variance
 
 from bench.corpus.sample_turns import BENCH, PILOT, STAGES, write_benchmark
+from bench.measurement_support.paired_timings import Pair, stage_mean, summarize
 
 MASS = BENCH / "fixtures/mass/corpus.json.gz"
 WORKLOADS = ("first_board", "new_board", "new_rack")
-DRAWS = 20000
-SEED = 15
-
-
-class Pair(NamedTuple):
-    original: float
-    packed: float
-
-    @property
-    def saving(self):
-        return self.original - self.packed
-
-
-def stage_mean(groups, field):
-    return fmean(fmean(getattr(pair, field) for pair in group) for group in groups)
 
 
 def precision_target(original_ms):
@@ -41,26 +25,6 @@ def games_per_stage(groups):
     variances = [variance(pair.saving for pair in group) for group in groups]
     target = precision_target(stage_mean(groups, "original"))
     return max(2, math.ceil(1.96 ** 2 * sum(variances) / (len(groups) * target) ** 2))
-
-
-class Estimate(NamedTuple):
-    original: float
-    packed: float
-    saving: float
-    low: float
-    high: float
-
-
-def summarize(groups):
-    rng = random.Random(SEED)
-    # A difference encodes both observations from the same game. Draw the
-    # original number of games in each stage, then equally weight stage means.
-    savings = [[pair.saving for pair in group] for group in groups]
-    draws = [fmean(fmean(rng.choices(stage, k=len(stage))) for stage in savings)
-             for _ in range(DRAWS)]
-    percentiles = quantiles(draws, n=1000, method="inclusive")
-    return Estimate(stage_mean(groups, "original"), stage_mean(groups, "packed"),
-                    stage_mean(groups, "saving"), percentiles[24], percentiles[974])
 
 
 def recovery(first_saving, reuse_saving, interval):

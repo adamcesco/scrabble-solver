@@ -43,6 +43,18 @@ def window_groups(visits, *, row, start, length, down=False):
 
 
 class WindowBenchmarkTest(unittest.TestCase):
+    def test_candidate_batches_keep_partial_groups_and_their_final_letters(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[1][0], board[0][3] = "A", "X"
+        # Five RST permutations and one RSU word. Only a final T fits below X.
+        words = ["XT", "ARST", "ARTS", "ASRT", "ASTR", "ATRS", "ARSU"]
+        variants = ("batch-2", "batch-4")
+        _, visits = profile_board(board, words, "RSTU", variants, check_release=True)
+        for variant in variants:
+            groups = [r for r in window_groups(visits, row=1, start=0, length=4) if r["variant"] == variant]
+            self.assertEqual(sorted((int(r["individual_checks"]), int(r["accepted"])) for r in groups),
+                             [(1, 0), (5, 2)])
+
     def test_reserved_game_lists_reproduce_and_export_disjoint_cases(self):
         command = ["python3", "-m", "bench.window_counters.window_games"]
         manifest = Path("bench/fixtures/window-game-sets.csv")

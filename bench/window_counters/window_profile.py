@@ -41,6 +41,8 @@ def variant_profile(name, gap_checks):
         if name in SINGLETON_VARIANTS:
             paths.update(singleton_windows=0, singleton_candidates=0)
         profile["scalar_paths"] = paths
+    if name == "bounded-simd":
+        profile["checked_words_by_gap_count"] = Counter()
     if gap_checks:
         profile["gap_evaluation"] = dict(candidates=0, checked_candidates=0, gap_checks=0, first_failures=Counter())
     return profile
@@ -123,6 +125,8 @@ def summarize(visits, cases, variants, qualified, *, gap_checks=False):
             kind = "matching_groups"
             lookup_counts["matched_windows"] += 1
             lookup_counts["matched_windows_without_lookups"] += lookups == 0
+            if name == "bounded-simd" and checked:
+                profile["checked_words_by_gap_count"][int(window["retained_gaps"])] += checked
             if name in SCALAR_VARIANTS:
                 paths = profile["scalar_paths"]
                 constrained = int(window["constrained"])

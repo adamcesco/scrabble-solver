@@ -154,6 +154,35 @@ static void compare_gap_keys_at_the_board_edge(const WindowVariants &variants)
     words.destroy();
 }
 
+static void compare_each_gap_in_short_words(const WindowVariants &variants)
+{
+    for (size_t length = 2; length <= MAX_RACK_TILES; ++length) {
+        std::string letters(length, 'A');
+        letters.back() = 'Z';
+        std::string dictionary = "QA\n";
+        std::vector<std::string> candidates;
+        do {
+            candidates.push_back(letters);
+            dictionary += letters + "\n";
+        } while (std::next_permutation(letters.begin(), letters.end()));
+        WordTable words = load_dictionary(dictionary.c_str());
+        {
+            PlacementComparison fixture{words};
+            const int start = BOARD_SIZE - length;
+            for (size_t gap = 0; gap < length; ++gap) {
+                // Only QA is a word. Move the crossing through every SIMD lane and scalar tail.
+                Board board = board_at(0, start + gap, {"Q"});
+                auto decisions = fixture.compare_board("right-edge anagrams", board, letters, variants);
+                for (const auto &word : candidates) {
+                    const Decision expected{false, 1, start, word, word[gap] == 'A'};
+                    assert(std::count(decisions[0].begin(), decisions[0].end(), expected) == 1);
+                }
+            }
+        }
+        words.destroy();
+    }
+}
+
 static void reuse_check_sets_across_overlapping_windows()
 {
     WordTable words = load_dictionary("AX\nAT\nCAT\nTO\n");
@@ -310,7 +339,22 @@ int main(int argc, char **argv)
         if (variants.empty()) {
             variants.push_back(&benchmark::window_variant("packed"));
         }
+        if (argc == 1) {
+            constexpr const char *batch_and_simd_counters[] = {
+                "batch-2", "batch-4", "batch-2-prefetch", "batch-4-prefetch",
+#ifdef __clang__
+                "batch-2-interleave", "batch-4-interleave",
+#endif
+#ifdef __AVX2__
+                "bounded-simd",
+#endif
+            };
+            for (const char *name : batch_and_simd_counters) {
+                variants.push_back(&benchmark::window_variant(name));
+            }
+        }
         compare_gap_keys_at_the_board_edge(variants);
+        compare_each_gap_in_short_words(variants);
         reuse_check_sets_across_overlapping_windows();
         compare_rt_orders(true, variants);
         compare_rt_orders(false, variants);
