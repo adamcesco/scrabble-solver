@@ -169,6 +169,64 @@ class WindowBenchmarkTest(unittest.TestCase):
                     skipped = search["mask_search"]["all_rejected"]["skipped_words"]
                     self.assertEqual(visited + skipped, counts["across_candidates"] + counts["down_candidates"])
 
+    def test_whole_rack_drops_satisfied_gaps_and_stops_at_disjoint_check_set(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[0][:2], board[1][0] = ["A", "X"], "A"
+        for possible in (False, True):
+            with self.subTest(possible=possible):
+                words = {"AA", "AX", "ARR", "ART", "ATR", "XZ"}
+                if possible:
+                    words.update(("XR", "XT"))
+                _, visits = profile_board(board, words, "RRT", ["stop-window", "rack"], check_release=True)
+                groups = [r for r in window_groups(visits, row=1, start=0, length=3) if r["variant"] == "rack"]
+                self.assertEqual([int(r["group_size"]) for r in groups], [1, 2])
+                self.assertEqual([int(r["accepted"]) for r in groups], [1, 2] if possible else [0, 0])
+                self.assertEqual([int(r["skipped_group"]) for r in groups], [0, int(not possible)])
+                self.assertTrue(all(r["individual_checks"] == "0" for r in groups))
+                self.assertEqual(int(groups[0]["rack_gaps_removed"]), 2 if possible else 0)
+                self.assertEqual(int(groups[0]["rack_restricted_removed"]), int(possible))
+
+    def test_later_rack_subsets_pass_after_disjoint_and_repeated_gap_rejections(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[0][:3], board[1][0] = list("AXX"), "A"
+        for binary in (False, True):
+            with self.subTest(binary=binary):
+                words = {"AA", "AXX", "XT", "ARRS", "ARST", "ATTR", "ATRT", "ATTT"}
+                if binary:
+                    # RRSTTT has six three-tile subsets. Over 24 groups selects binary probes.
+                    words.update("A" + letter * 3 for letter in "ABCDEFGHIJKLMNOPQRSUVWXYZ")
+                _, visits = profile_board(board, words, "RRSTTT", ["subset", "subset-capacity"], check_release=True)
+                target = window_groups(visits, row=1, start=0, length=4)
+                for variant in ("subset", "subset-capacity"):
+                    groups = [r for r in target if r["variant"] == variant]
+                    # RRS has no T, RST has one T for two crossings, RTT can play ATTR only.
+                    # TTT fills both crossings in every order.
+                    self.assertEqual([int(r["group_size"]) for r in groups], [1, 1, 2, 1])
+                    self.assertEqual([int(r["accepted"]) for r in groups], [0, 0, 1, 1])
+                    self.assertEqual([int(r["individual_checks"]) for r in groups],
+                                     [0, int(variant == "subset"), 2, 0])
+                    self.assertEqual([r["subset_rejection"] for r in groups],
+                                     ["disjoint", "capacity" if variant == "subset-capacity" else "", "", ""])
+                    self.assertEqual([int(r["subset_gaps_removed"]) for r in groups], [0, 0, 0, 2])
+                    self.assertTrue(all(r["skipped_group"] == "0" for r in groups))
+
+    def test_singleton_control_and_capacity_with_two_different_eligible_tiles(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[0][:3], board[1][0] = list("AXX"), "A"
+        variants = ["subset-multi", "subset-capacity"]
+        counts, visits = profile_board(board, ["AA", "AXX", "XS", "XT", "ARRT", "ASTR"],
+                                       "RRST", variants, check_release=True)
+        target = window_groups(visits, row=1, start=0, length=4)
+        for name in variants:
+            groups = [r for r in target if r["variant"] == name]
+            self.assertEqual([int(r["group_size"]) for r in groups], [1, 1])
+            self.assertEqual([int(r["accepted"]) for r in groups], [0, 1])
+            self.assertEqual([int(r["individual_checks"]) for r in groups], [int(name == "subset-multi"), 1])
+        stage = summarize(io.StringIO(visits), [{"case": "AXX", "stage": "early"}], variants, [counts])["early"]
+        singles = [stage["variants"][name]["groups_by_size"][1] for name in variants]
+        self.assertEqual(singles[0]["subset_checks"], 0)
+        self.assertGreaterEqual(singles[1]["capacity_rejections"], 1)
+
     def test_row_cache_profile_includes_overlaps_and_rows_without_requests(self):
         board = [["."] * 15 for _ in range(15)]
         board[0][:2] = ["A", "X"]

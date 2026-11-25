@@ -15,7 +15,8 @@ from bench.measurement_support.benchmark_inputs import ROOT, Position, qualify_p
 from bench.window_counters.window_benchmark import window_build
 from bench.window_counters.window_games import reserved_cases
 
-MASK_POLICIES = ("packed", "eager", "stop-gap", "stop-window")
+RACK_POLICIES = ("rack", "subset", "subset-capacity", "subset-multi")
+MASK_POLICIES = ("packed", "eager", "stop-gap", "stop-window", *RACK_POLICIES)
 
 
 def window_histograms():
@@ -63,6 +64,11 @@ def summarize(visits, cases, variants, qualified):
                 bucket["groups"] += 1
                 bucket["candidate_words"] += size
                 bucket["individual_checks"] += int(row["individual_checks"])
+                if name in RACK_POLICIES:
+                    bucket.update(subset_checks=int(row["subset_checked"]),
+                                  subset_gaps_removed=int(row["subset_gaps_removed"]),
+                                  disjoint_rejections=row["subset_rejection"] == "disjoint",
+                                  capacity_rejections=row["subset_rejection"] == "capacity")
                 if empty == 1:
                     profile["one_gap_groups"] += 1
                     profile["one_gap_candidates"] += size
@@ -80,6 +86,10 @@ def summarize(visits, cases, variants, qualified):
                 probes_avoided=int(window["probes_avoided"]),
                 merge_comparisons_avoided=int(window["merge_comparisons_avoided"]),
                 skipped_groups=skipped_groups, skipped_words=skipped_words)
+            if name in RACK_POLICIES:
+                profile["mask_search"][outcome].update(
+                    rack_gaps_removed=int(window["rack_gaps_removed"]),
+                    rack_restricted_removed=int(window["rack_restricted_removed"]))
         if name == "row-cache":
             board_row, hits = int(window["row"]), int(window["cache_hits"])
             requests = hits + lookups

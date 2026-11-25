@@ -24,6 +24,8 @@ static inline void trace_skipped_subset_probe() {}
 static inline void trace_skipped_merge_comparison() {}
 static inline void trace_individual_check() {}
 static inline void trace_mask_built(bool) {}
+static inline void trace_rack_gap_removed(bool) {}
+static inline void trace_subset(unsigned, const char *) {}
 #endif
 
 static inline int canonical_rack_subset_mask(uint8_t duplicate_follow_mask, uint8_t mask)
@@ -270,14 +272,54 @@ struct CachedRowCheckSets : RowCheckSets {
 };
 #endif
 
-template <bool stop_at_impossible>
-struct WindowMasks {
+struct GapChecks {
     struct Gap {
         uint8_t offset;
         uint32_t letters;
     };
     Gap gaps[MAX_RACK_TILES];
     uint8_t gap_count = 0;
+
+    bool accepts(const char *word) const
+    {
+        trace_individual_check();
+        for (uint8_t i = 0; i < gap_count; ++i) {
+            const Gap &gap = gaps[i];
+            if (gap.letters != PerpendicularCheckTable::all_letters &&
+                !(gap.letters & (1u << (word[gap.offset] - 'A')))) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+struct GroupWords {
+    const WordTable &dictionary;
+    const uint32_t *ids;
+    size_t size;
+    uint8_t row, start;
+
+    size_t decide(bool accepted) const
+    {
+        trace_placements(row, start, ids, size, accepted);
+        return accepted ? size : 0;
+    }
+
+    size_t check_words(const GapChecks &checks) const
+    {
+        size_t count = 0;
+        for (size_t i = 0; i < size; ++i) {
+            const bool accepted = checks.accepts(dictionary.words[ids[i]]);
+            count += accepted;
+            trace_placements(row, start, ids + i, 1, accepted);
+        }
+        return count;
+    }
+};
+
+template <bool stop_at_impossible>
+struct WindowMasks : GapChecks {
     bool ruled_out = false;
 
     template <typename Checks>
@@ -309,19 +351,6 @@ struct WindowMasks {
     {
         gaps[gap_count++] = {offset, letters};
         ruled_out |= letters == 0;
-    }
-
-    bool accepts(const char *word) const
-    {
-        trace_individual_check();
-        for (uint8_t i = 0; i < gap_count; ++i) {
-            const Gap &gap = gaps[i];
-            if (gap.letters != PerpendicularCheckTable::all_letters &&
-                !(gap.letters & (1u << (word[gap.offset] - 'A')))) {
-                return false;
-            }
-        }
-        return true;
     }
 };
 
@@ -379,6 +408,11 @@ struct WindowCounter {
     WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns)
         : dictionary(dictionary), patterns(patterns) {}
 
+#ifdef SCRABBLE_WINDOW_VARIANTS
+    WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &)
+        : WindowCounter(dictionary, patterns) {}
+#endif
+
     template <typename Checks, typename VisitGroups>
     size_t operator()(Checks &checks, uint16_t neighbors, const MatchedWindow &window,
                       uint8_t, VisitGroups visit_groups) const
@@ -403,16 +437,13 @@ struct WindowCounter {
             if (policy != MaskPolicy::eager && !masks) {
                 build_masks();
             }
-            const uint32_t *ids = patterns.word_indices.data() + group.word_indices.start;
+            const GroupWords words{dictionary, patterns.word_indices.data() + group.word_indices.start,
+                                   group.word_indices.count, checks.row, window.start};
             if (masks->ruled_out) {
-                trace_placements(checks.row, window.start, ids, group.word_indices.count, false);
+                words.decide(false);
                 return policy == MaskPolicy::stop_window ? GroupSearch::stop_window : GroupSearch::keep_going;
             }
-            for (size_t i = 0; i < group.word_indices.count; ++i) {
-                bool accepted = masks->accepts(dictionary.words[ids[i]]);
-                count += accepted;
-                trace_placements(checks.row, window.start, ids + i, 1, accepted);
-            }
+            count += words.check_words(*masks);
             return GroupSearch::keep_going;
         });
         return count;
@@ -452,6 +483,134 @@ struct OneGapCounter : PackedCounter {
     }
 };
 
+struct RackWindowChecks : GapChecks {
+    bool ruled_out = false;
+
+    RackWindowChecks(RowCheckSets &checks, const MatchedWindow &window, uint32_t rack_letters)
+    {
+        for (uint8_t offset = 0; offset < window.length; ++offset) {
+            const uint8_t col = window.start + offset;
+            if (checks.occupied() & bit_at_u16(col)) {
+                continue;
+            }
+            const uint32_t allowed = checks.get(col);
+            const uint32_t eligible = allowed & rack_letters;
+            if (!eligible) {
+                ruled_out = true;
+                break;
+            }
+            if (eligible == rack_letters) {
+                trace_rack_gap_removed(allowed != PerpendicularCheckTable::all_letters);
+            } else {
+                gaps[gap_count++] = {offset, eligible};
+            }
+        }
+        trace_mask_built(ruled_out);
+    }
+};
+
+enum class SubsetPolicy { none, alphabet, capacity, capacity_multi };
+
+static bool has_tile_capacity(const GapChecks &checks, PatternBytes key, uint8_t tile_count)
+{
+    for (uint8_t i = 1; i < checks.gap_count; ++i) {
+        const uint32_t letters = checks.gaps[i].letters;
+        unsigned needed = 1;
+        for (uint8_t j = 0; j < i; ++j) {
+            needed += checks.gaps[j].letters == letters;
+        }
+        if (needed > 1) {
+            unsigned available = 0;
+            for (uint8_t tile = 0; tile < tile_count; ++tile) {
+                const auto letter = get_byte_128(key, tile, BOARD_SIZE);
+                available += (letters >> (letter - 'A')) & 1u;
+            }
+            if (available < needed) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+template <SubsetPolicy policy>
+static size_t count_subset_words(const GroupWords &words, const GapChecks &window, PatternBytes key, uint8_t tile_count)
+{
+    uint32_t alphabet = 0;
+    for (uint8_t i = 0; i < tile_count; ++i) {
+        alphabet |= 1u << (get_byte_128(key, i, BOARD_SIZE) - 'A');
+    }
+
+    GapChecks subset;
+    unsigned removed = 0;
+    for (uint8_t i = 0; i < window.gap_count; ++i) {
+        const auto &gap = window.gaps[i];
+        const uint32_t eligible = gap.letters & alphabet;
+        if (!eligible) {
+            trace_subset(removed, "disjoint");
+            return words.decide(false);
+        }
+        if (eligible == alphabet) {
+            ++removed;
+        } else {
+            subset.gaps[subset.gap_count++] = {gap.offset, eligible};
+        }
+    }
+    if constexpr (policy != SubsetPolicy::alphabet) {
+        if (!has_tile_capacity(subset, key, tile_count)) {
+            trace_subset(removed, "capacity");
+            return words.decide(false);
+        }
+    }
+    trace_subset(removed, "");
+    return subset.gap_count ? words.check_words(subset) : words.decide(true);
+}
+
+template <SubsetPolicy policy>
+struct RackCounter {
+    const WordTable &dictionary;
+    const WordPatternTable &patterns;
+    uint32_t rack_letters = 0;
+
+    RackCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &rack)
+        : dictionary(dictionary), patterns(patterns)
+    {
+        for (uint8_t i = 0; i < rack.length; ++i) {
+            rack_letters |= 1u << (get_byte_64(rack.tiles, i) - 'A');
+        }
+    }
+
+    template <typename VisitGroups>
+    size_t operator()(RowCheckSets &checks, uint16_t, const MatchedWindow &window,
+                      uint8_t empty_count, VisitGroups visit_groups) const
+    {
+        size_t count = 0;
+        std::optional<RackWindowChecks> masks;
+        visit_groups([&](const WordPatternAnagramGroup &group) {
+            if (!masks) {
+                masks.emplace(checks, window, rack_letters);
+            }
+            const GroupWords words{dictionary, patterns.word_indices.data() + group.word_indices.start,
+                                   group.word_indices.count, checks.row, window.start};
+            if (masks->ruled_out) {
+                words.decide(false);
+                return GroupSearch::stop_window;
+            }
+            if (!masks->gap_count) {
+                count += words.decide(true);
+            } else if constexpr (policy == SubsetPolicy::none) {
+                count += words.check_words(*masks);
+            } else if (policy == SubsetPolicy::capacity_multi && words.size == 1) {
+                count += words.check_words(*masks);
+            } else {
+                count += count_subset_words<policy>(words, *masks, group.rack_letters, empty_count);
+            }
+            return GroupSearch::keep_going;
+        });
+        return count;
+    }
+};
+
 template <typename Counter, typename Checks = RowCheckSets>
 benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTable &patterns,
                                      Board &board, const benchmark::Rack &rack)
@@ -461,7 +620,7 @@ benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTa
     auto start = Clock::now();
 #endif
     auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
-    Counter counter(words, patterns);
+    Counter counter(words, patterns, rack);
     auto counts = count_both_views(board, [&] {
         return count_rack_windows<Checks>(&patterns, &keys, &board, rack.length, counter);
     });
@@ -483,6 +642,10 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
         {"eager", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::eager>>},
         {"stop-gap", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_gap>>},
         {"stop-window", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_window>>},
+        {"rack", measure_solve<RackCounter<SubsetPolicy::none>>},
+        {"subset", measure_solve<RackCounter<SubsetPolicy::alphabet>>},
+        {"subset-capacity", measure_solve<RackCounter<SubsetPolicy::capacity>>},
+        {"subset-multi", measure_solve<RackCounter<SubsetPolicy::capacity_multi>>},
         {"row-cache", measure_solve<PackedCounter, CachedRowCheckSets>},
         {"one-gap", measure_solve<OneGapCounter>},
         {"empty-bits", measure_solve<WindowCounter<GapTraversal::empty_bits>>},

@@ -13,6 +13,8 @@ void trace_skipped_subset_probe();
 void trace_skipped_merge_comparison();
 void trace_individual_check();
 void trace_mask_built(bool ruled_out);
+void trace_rack_gap_removed(bool restricted);
+void trace_subset(unsigned gaps_removed, const char *rejection);
 void trace_cache_hit();
 
 #endif

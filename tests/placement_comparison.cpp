@@ -38,6 +38,9 @@ struct VisitedGroup {
     bool skipped = false;
     unsigned accepted = 0;
     size_t individual_checks = 0;
+    bool subset_checked = false;
+    unsigned subset_gaps_removed = 0;
+    const char *subset_rejection = "";
 };
 
 struct VisitedWindow {
@@ -51,13 +54,16 @@ struct VisitedWindow {
     bool ruled_out = false;
     unsigned probes_avoided = 0;
     unsigned merge_comparisons_avoided = 0;
+    unsigned rack_gaps_removed = 0;
+    unsigned rack_restricted_removed = 0;
 };
 
 void WorkloadOutput::write_header() const
 {
     stream << "position,variant,down,row,start,length,empty,constrained,pattern_match,"
               "group_size,individual_checks,lookups,cache_hits,masks,ruled_out,skipped_group,accepted,"
-              "probes_avoided,merge_comparisons_avoided\n";
+              "probes_avoided,merge_comparisons_avoided,rack_gaps_removed,rack_restricted_removed,"
+              "subset_checked,subset_gaps_removed,subset_rejection\n";
 }
 
 struct WindowWorkload {
@@ -85,7 +91,9 @@ struct WindowWorkload {
                               << w.pattern_match << ',' << group.words << ',' << group.individual_checks << ','
                               << w.lookups << ',' << w.cache_hits << ',' << w.masks << ',' << w.ruled_out << ','
                               << group.skipped << ',' << group.accepted << ',' << w.probes_avoided << ','
-                              << w.merge_comparisons_avoided << '\n';
+                              << w.merge_comparisons_avoided << ',' << w.rack_gaps_removed << ','
+                              << w.rack_restricted_removed << ',' << group.subset_checked << ','
+                              << group.subset_gaps_removed << ',' << group.subset_rejection << '\n';
             };
             if (w.groups.empty()) {
                 emit({0});
@@ -135,6 +143,24 @@ void trace_skipped_subset_probe()
 {
     if (auto *window = current_workload_window()) {
         ++window->probes_avoided;
+    }
+}
+
+void trace_rack_gap_removed(bool restricted)
+{
+    if (auto *window = current_workload_window()) {
+        ++window->rack_gaps_removed;
+        window->rack_restricted_removed += restricted;
+    }
+}
+
+void trace_subset(unsigned gaps_removed, const char *rejection)
+{
+    if (auto *window = current_workload_window()) {
+        auto &group = window->groups.back();
+        group.subset_checked = true;
+        group.subset_gaps_removed = gaps_removed;
+        group.subset_rejection = rejection;
     }
 }
 
