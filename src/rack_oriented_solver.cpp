@@ -468,6 +468,9 @@ struct WindowCounter {
         : dictionary(dictionary), patterns(patterns) {}
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
+    template <typename OtherLayout>
+    using WithGapLayout = WindowCounter<traversal, policy, counting, OtherLayout>;
+
     WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &)
         : WindowCounter(dictionary, patterns) {}
 #endif
@@ -511,9 +514,7 @@ struct WindowCounter {
     }
 };
 
-template <typename Layout>
-using LayoutCounter = WindowCounter<GapTraversal::scan, MaskPolicy::lazy, WindowCounting::all_gaps_per_word, Layout>;
-using PackedCounter = LayoutCounter<GapDescriptors>;
+using PackedCounter = WindowCounter<GapTraversal::scan>;
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
 struct OneGapCounter : PackedCounter {
@@ -685,8 +686,8 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
 {
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
-        {"gap-u32", measure_solve<LayoutCounter<Uint32Gaps>>},
-        {"gap-arrays", measure_solve<LayoutCounter<GapArrays>>},
+        {"gap-u32", measure_solve<PackedCounter::WithGapLayout<Uint32Gaps>>},
+        {"gap-arrays", measure_solve<PackedCounter::WithGapLayout<GapArrays>>},
         {"eager", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::eager>>},
         {"stop-gap", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_gap>>},
         {"stop-window", measure_solve<StoppingCounter<WindowCounting::all_gaps_per_word>>},

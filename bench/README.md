@@ -306,17 +306,20 @@ The `gap-u32` loop at `0x7807` loads one 32-bit descriptor, masks off the offset
 To reproduce the paired solves, type sizes and linked-loop inspection from the repository root, run
 
 ```sh
+(
+set -e
 flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
 window_tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
 python3 -m bench.window_counters.window_games --export development build/window-development
 for layout in gap-u32 gap-arrays; do
     taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$window_tools" \
         --variants packed "$layout" --cases build/window-development/cases.csv \
-        --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > "build/packed-$layout.csv" || break
+        --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > "build/packed-$layout.csv"
 done
 clang++ $flags -DSCRABBLE_WINDOW_VARIANTS -Ibench/window_counters -Ibench/measurement_support \
     -Xclang -fdump-record-layouts -fsyntax-only src/rack_oriented_solver.cpp > build/gap-layouts.txt
 objdump -d -C -M intel "$window_tools/window_worker" > build/gap-layouts.asm
+)
 ```
 
 ### Profile the development workload and export reserved games
