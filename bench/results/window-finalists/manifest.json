@@ -1,0 +1,1090 @@
+{
+  "affinity": 2,
+  "builds": {
+    "portable": {
+      "binary": "build/window-compiler/builds/0e2161d823f45e3ff6a9/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/0e2161d823f45e3ff6a9/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/0e2161d823f45e3ff6a9/board.o build/window-compiler/builds/0e2161d823f45e3ff6a9/perpendicular_checks.o build/window-compiler/builds/0e2161d823f45e3ff6a9/rack_oriented_solver.o build/window-compiler/builds/0e2161d823f45e3ff6a9/utils.o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_index_start_row_table.o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_pattern_table.o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_start_row_table.o build/window-compiler/builds/0e2161d823f45e3ff6a9/word_table.o build/window-compiler/builds/0e2161d823f45e3ff6a9/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/0e2161d823f45e3ff6a9/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "bb3d7d2b3e300aaf1ed95518a89249effc1360d5063040aa1c1dc869e97e0ec5",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "463830295710d7ed17a6b05081aa82e30ad43aae389f82aa01606eb48134ec8e",
+      "text_bytes": 134005
+    },
+    "skylake": {
+      "binary": "build/window-compiler/builds/d2c4af4e36f507f5ad89/counter.so",
+      "commands": [
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/board.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/board.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/perpendicular_checks.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/perpendicular_checks.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden '-Rpass=inline|loop-vectorize' '-Rpass-missed=inline|loop-vectorize' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/rack_oriented_solver.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/utils.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/utils.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_index_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_pattern_table.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_pattern_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_start_row_table.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_start_row_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c src/word_table.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_table.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -c bench/window_counters/tuning_library.cpp -o build/window-compiler/builds/d2c4af4e36f507f5ad89/tuning_library.o",
+        "/usr/bin/clang++-18 -std=c++17 -O3 -march=skylake -mbranches-within-32B-boundaries -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -fPIC -fvisibility=hidden -fvisibility-inlines-hidden build/window-compiler/builds/d2c4af4e36f507f5ad89/board.o build/window-compiler/builds/d2c4af4e36f507f5ad89/perpendicular_checks.o build/window-compiler/builds/d2c4af4e36f507f5ad89/rack_oriented_solver.o build/window-compiler/builds/d2c4af4e36f507f5ad89/utils.o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_index_start_row_table.o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_pattern_table.o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_start_row_table.o build/window-compiler/builds/d2c4af4e36f507f5ad89/word_table.o build/window-compiler/builds/d2c4af4e36f507f5ad89/tuning_library.o -shared -Wl,-z,defs -o build/window-compiler/builds/d2c4af4e36f507f5ad89/counter.so"
+      ],
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "inputs": {
+        "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+        "bench/window_counters/tuning_library.cpp": "dd1f38657efbf14ffb7167bef5bd41eadc66b3e5d5cdeb974fa9e4a4c2528b13",
+        "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+        "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+        "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+        "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+        "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+        "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+        "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+        "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+        "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+        "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+        "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+        "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+        "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+        "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+        "src/rack_oriented_solver.cpp": "bb3d7d2b3e300aaf1ed95518a89249effc1360d5063040aa1c1dc869e97e0ec5",
+        "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+        "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+        "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+        "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+        "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+      },
+      "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "profile_sha256": null,
+      "sha256": "d88a37374806d42c48c6604b4fc2caa06651c9c73846cca1fa0420342b663093",
+      "text_bytes": 161653
+    }
+  },
+  "case_order": {
+    "development": [
+      "games/7bbdiRsCRY.csv#4",
+      "games/RHaUnC67uz.csv#15",
+      "games/6zTBhes669.csv#25",
+      "games/CpZHNqsaAe.csv#8",
+      "../replay/sjoholm-del-solar.csv#12",
+      "games/NSFqNG8yP5.csv#23",
+      "data/lewis/lewis1923.csv#5",
+      "data/traditional/traditional4982.csv#16",
+      "data/traditional/traditional2278.csv#22",
+      "data/traditional/traditional1484.csv#6",
+      "data/traditional/traditional8122.csv#14",
+      "data/random/random126.csv#20",
+      "data/one/one362.csv#6",
+      "data/traditional/traditional10562.csv#13",
+      "data/random/random272.csv#17",
+      "data/lewis/lewis4508.csv#4",
+      "data/fifty/fifty262.csv#18",
+      "data/lewis/lewis1684.csv#19",
+      "data/lewis/lewis12453.csv#2",
+      "data/one/one4373.csv#13",
+      "data/traditional/traditional5901.csv#18",
+      "data/random/random1155.csv#6",
+      "data/lewis/lewis13729.csv#9",
+      "data/random/random206.csv#20",
+      "data/random/random78.csv#4",
+      "data/one/one2848.csv#10",
+      "data/traditional/traditional2625.csv#21",
+      "data/lewis/lewis2827.csv#5",
+      "data/random/random1464.csv#10",
+      "data/lewis/lewis10012.csv#19"
+    ],
+    "pilot": [
+      "games/7bbdiRsCRY.csv#4",
+      "games/RHaUnC67uz.csv#15",
+      "games/6zTBhes669.csv#25",
+      "games/CpZHNqsaAe.csv#8",
+      "../replay/sjoholm-del-solar.csv#12",
+      "games/NSFqNG8yP5.csv#23"
+    ]
+  },
+  "counts": {
+    "../replay/sjoholm-del-solar.csv#12": {
+      "across": 165,
+      "across_candidates": 915,
+      "down": 192,
+      "down_candidates": 815
+    },
+    "data/fifty/fifty262.csv#18": {
+      "across": 33,
+      "across_candidates": 235,
+      "down": 24,
+      "down_candidates": 282
+    },
+    "data/lewis/lewis10012.csv#19": {
+      "across": 158,
+      "across_candidates": 922,
+      "down": 202,
+      "down_candidates": 1192
+    },
+    "data/lewis/lewis12453.csv#2": {
+      "across": 120,
+      "across_candidates": 630,
+      "down": 213,
+      "down_candidates": 489
+    },
+    "data/lewis/lewis13729.csv#9": {
+      "across": 255,
+      "across_candidates": 2586,
+      "down": 600,
+      "down_candidates": 1853
+    },
+    "data/lewis/lewis1684.csv#19": {
+      "across": 365,
+      "across_candidates": 1911,
+      "down": 315,
+      "down_candidates": 1757
+    },
+    "data/lewis/lewis1923.csv#5": {
+      "across": 388,
+      "across_candidates": 2213,
+      "down": 499,
+      "down_candidates": 2006
+    },
+    "data/lewis/lewis2827.csv#5": {
+      "across": 169,
+      "across_candidates": 1751,
+      "down": 288,
+      "down_candidates": 1384
+    },
+    "data/lewis/lewis4508.csv#4": {
+      "across": 134,
+      "across_candidates": 640,
+      "down": 272,
+      "down_candidates": 550
+    },
+    "data/one/one2848.csv#10": {
+      "across": 264,
+      "across_candidates": 330,
+      "down": 88,
+      "down_candidates": 147
+    },
+    "data/one/one362.csv#6": {
+      "across": 270,
+      "across_candidates": 1459,
+      "down": 382,
+      "down_candidates": 969
+    },
+    "data/one/one4373.csv#13": {
+      "across": 305,
+      "across_candidates": 1186,
+      "down": 150,
+      "down_candidates": 2558
+    },
+    "data/random/random1155.csv#6": {
+      "across": 282,
+      "across_candidates": 1106,
+      "down": 131,
+      "down_candidates": 783
+    },
+    "data/random/random126.csv#20": {
+      "across": 126,
+      "across_candidates": 692,
+      "down": 78,
+      "down_candidates": 530
+    },
+    "data/random/random1464.csv#10": {
+      "across": 302,
+      "across_candidates": 2169,
+      "down": 185,
+      "down_candidates": 2403
+    },
+    "data/random/random206.csv#20": {
+      "across": 238,
+      "across_candidates": 2265,
+      "down": 239,
+      "down_candidates": 1675
+    },
+    "data/random/random272.csv#17": {
+      "across": 97,
+      "across_candidates": 809,
+      "down": 122,
+      "down_candidates": 442
+    },
+    "data/random/random78.csv#4": {
+      "across": 123,
+      "across_candidates": 1255,
+      "down": 178,
+      "down_candidates": 754
+    },
+    "data/traditional/traditional10562.csv#13": {
+      "across": 705,
+      "across_candidates": 4258,
+      "down": 423,
+      "down_candidates": 3041
+    },
+    "data/traditional/traditional1484.csv#6": {
+      "across": 102,
+      "across_candidates": 1132,
+      "down": 301,
+      "down_candidates": 734
+    },
+    "data/traditional/traditional2278.csv#22": {
+      "across": 74,
+      "across_candidates": 259,
+      "down": 89,
+      "down_candidates": 224
+    },
+    "data/traditional/traditional2625.csv#21": {
+      "across": 29,
+      "across_candidates": 122,
+      "down": 21,
+      "down_candidates": 178
+    },
+    "data/traditional/traditional4982.csv#16": {
+      "across": 510,
+      "across_candidates": 2318,
+      "down": 324,
+      "down_candidates": 2401
+    },
+    "data/traditional/traditional5901.csv#18": {
+      "across": 137,
+      "across_candidates": 951,
+      "down": 87,
+      "down_candidates": 954
+    },
+    "data/traditional/traditional8122.csv#14": {
+      "across": 188,
+      "across_candidates": 1842,
+      "down": 262,
+      "down_candidates": 1891
+    },
+    "games/6zTBhes669.csv#25": {
+      "across": 54,
+      "across_candidates": 158,
+      "down": 31,
+      "down_candidates": 212
+    },
+    "games/7bbdiRsCRY.csv#4": {
+      "across": 322,
+      "across_candidates": 729,
+      "down": 207,
+      "down_candidates": 944
+    },
+    "games/CpZHNqsaAe.csv#8": {
+      "across": 31,
+      "across_candidates": 453,
+      "down": 70,
+      "down_candidates": 230
+    },
+    "games/NSFqNG8yP5.csv#23": {
+      "across": 136,
+      "across_candidates": 989,
+      "down": 138,
+      "down_candidates": 1186
+    },
+    "games/RHaUnC67uz.csv#15": {
+      "across": 415,
+      "across_candidates": 1618,
+      "down": 331,
+      "down_candidates": 2043
+    }
+  },
+  "cpu": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+  "host": {
+    "binary": "build/window-compiler/builds/abf9dadc5790cb2e3c21/worker",
+    "commands": [
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/board.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/board.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/perpendicular_checks.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/perpendicular_checks.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/rack_oriented_solver.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/rack_oriented_solver.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/utils.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/utils.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_index_start_row_table.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_index_start_row_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_pattern_table.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_pattern_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_start_row_table.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_start_row_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c src/word_table.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_table.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' -c bench/window_counters/window_worker.cpp -o build/window-compiler/builds/abf9dadc5790cb2e3c21/window_worker.o",
+      "/usr/bin/clang++-18 -std=c++17 -O2 -march=x86-64 -Iinclude -Ibench/window_counters -Ibench/measurement_support -DSCRABBLE_WINDOW_VARIANTS -DSCRABBLE_TUNING_PAIR -DWINDOW_TUNING_HOST '-DWINDOW_BUILD_FLAGS=\"tuning host\"' build/window-compiler/builds/abf9dadc5790cb2e3c21/board.o build/window-compiler/builds/abf9dadc5790cb2e3c21/perpendicular_checks.o build/window-compiler/builds/abf9dadc5790cb2e3c21/rack_oriented_solver.o build/window-compiler/builds/abf9dadc5790cb2e3c21/utils.o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_index_start_row_table.o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_pattern_table.o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_start_row_table.o build/window-compiler/builds/abf9dadc5790cb2e3c21/word_table.o build/window-compiler/builds/abf9dadc5790cb2e3c21/window_worker.o -ldl -o build/window-compiler/builds/abf9dadc5790cb2e3c21/worker"
+    ],
+    "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+    "inputs": {
+      "bench/measurement_support/benchmark_solver.h": "ccdd97a2b29a3df85b4a7e5120ac615b855894906c886810f43b8cf65db4fae5",
+      "bench/window_counters/tuning_loader.h": "865adb984c90359e735aaea0729c136abcec324c5fc74f8d587494e98908f050",
+      "bench/window_counters/window_variants.h": "6f745e02e4703327883ab981ba368bb2ebbdd91e001f6be9912c429fadec4d86",
+      "bench/window_counters/window_worker.cpp": "ab3c1e3b521170c15ee2f402db0a639cb6195835a6969a70b2d3a78b8a2e2b56",
+      "include/board.h": "2674b321b3670436470bcdab9bf2e77ede8c4d0c2b473e7cf5b5ea992516f0f4",
+      "include/dictionary.h": "f9883b67aac07ab486789944834e88e6694d03730acdc993aa62252e34f6d828",
+      "include/perpendicular_checks.h": "39387f5bcda5ef27542d9bcafd443579212159be3861eb98e7a92edfd66a5b63",
+      "include/rack_oriented_solver.h": "78a8c1746869c486dccda309fc321239b4dc5f2d8068ba4855e593f8259677dc",
+      "include/row_windows.h": "64150dab93e41b2d58c11a9e6d5875a49b7fbe3c0b33e7441ac0214bd647ec54",
+      "include/utils.h": "8dee27fe65494f3924ed3afe17c43b59d90ef1e444514709648c0d3c0f677687",
+      "include/validation_hot.h": "e0c8213263390cb34bf919df7e57fb6f9561da79fe7f2e7e7c5efd055848672c",
+      "include/word_index_start_row_table.h": "c748e14fcbecdc60968bc97546c57d71ab4a76e537e1f680e512a91f35b52cd0",
+      "include/word_pattern_table.h": "6ba9615f4ade94dd774c9029f7591030864ffd96a5e106c6f8cf6d0c65da330f",
+      "include/word_start_row_table.h": "305ecd88ecd4f2c03490cfcbce82f22e981383513b71524e9a27da94bcdcb93f",
+      "include/word_table.h": "7bd94109228b4abd8b2dd4367f7529372995cead5c10833de55824838fea52af",
+      "src/board.cpp": "d4b0413660649f6e984328ef2221dfcf95906f7e9720572cf4733476f5d558f8",
+      "src/perpendicular_checks.cpp": "71a0b720de37592e636ea395d334b11f37181f4533d10340d90a0073948b23ff",
+      "src/rack_oriented_solver.cpp": "bb3d7d2b3e300aaf1ed95518a89249effc1360d5063040aa1c1dc869e97e0ec5",
+      "src/utils.cpp": "870ac5ec29d2efc1f2378d225d644c31a199fd189e37a1f075ade4e920d4b2d7",
+      "src/word_index_start_row_table.cpp": "5db1ecbf9f9cb12248d279a2d97acb6d1d471688280abfa38eefcf4f3e5b04eb",
+      "src/word_pattern_table.cpp": "f2e62169bf77f51e57f373379171d57d366a0ecc197f62842238504b0945d90a",
+      "src/word_start_row_table.cpp": "1d8dd07e2956f1ac16fd789f95ea8ef34dd5ca9284785ad55e3b9a8c60b445ee",
+      "src/word_table.cpp": "c3554170c733440efa28c963c1d7a0806a92c1a55d978e6ffc366f9239cb62e7"
+    },
+    "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+    "profile_sha256": null,
+    "sha256": "57c0918df0fa61f25a2c2de20cfe018defaa0c86e7cde0e92e063faf903f66b9",
+    "text_bytes": 52983
+  },
+  "input_sha256": {
+    "bench/fixtures/mass/corpus.json.gz": "e656e6bfbd0f63407544ba32776d40eae206881514ca5d3183569db341fad3f6",
+    "bench/fixtures/pilot/corpus.json": "f38e0b2d6b7dfe310e32d416879ab4736f817a1ec1a2e9a86dcb4f89b56461fe",
+    "bench/fixtures/window-game-sets.csv": "7d3bba8f3bba43472ad9d9eb6626f1aeb41138e32ab18b752be8be2ebcb5c0e4",
+    "data/dictionaries/sample_dictionary.txt": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd"
+  },
+  "inputs": {
+    "../replay/sjoholm-del-solar.csv#12": {
+      "board_sha256": "95ea3896f6e88a8012d92a2d0aeb371f10e19e4365b8dfd61f7c533579965dc5",
+      "dataset": "development",
+      "rack": "IJNOORU",
+      "stage": "middle"
+    },
+    "data/fifty/fifty262.csv#18": {
+      "board_sha256": "32f303aad4177ffa89766e95ce1428c1f0133b192dcf3e5ea9392968325c8404",
+      "dataset": "development",
+      "rack": "AMNQRRW",
+      "stage": "middle"
+    },
+    "data/lewis/lewis10012.csv#19": {
+      "board_sha256": "be1d0f25a1bae3a85f4fff36de94c9251cf037161711b384c61758b82b245112",
+      "dataset": "development",
+      "rack": "AKLOVXY",
+      "stage": "late"
+    },
+    "data/lewis/lewis12453.csv#2": {
+      "board_sha256": "2bcd11953cbd0e1f1f1ac435af38adbbea628b58fc96e102ce8dd6fd8fb0e25b",
+      "dataset": "development",
+      "rack": "AFHIPRU",
+      "stage": "early"
+    },
+    "data/lewis/lewis13729.csv#9": {
+      "board_sha256": "644cfcb9be07c82e038a72e730832ec985a97c699c782447b185ae2010dd7a88",
+      "dataset": "development",
+      "rack": "ACENRUV",
+      "stage": "middle"
+    },
+    "data/lewis/lewis1684.csv#19": {
+      "board_sha256": "dc06700518d077f588d2f2aa0888a540b089221578c69692672acee2da10f3cc",
+      "dataset": "development",
+      "rack": "DGINORT",
+      "stage": "late"
+    },
+    "data/lewis/lewis1923.csv#5": {
+      "board_sha256": "43b31d0807dd55c2f36051ba8b0926cf9fd0f8dfa64110573d29558b57558a5d",
+      "dataset": "development",
+      "rack": "AEIIMRT",
+      "stage": "early"
+    },
+    "data/lewis/lewis2827.csv#5": {
+      "board_sha256": "16452cf464c97d2fde30e7e731748cb7c7837d5547d8b8b102e143a6e80ec4b0",
+      "dataset": "development",
+      "rack": "AEEHIST",
+      "stage": "early"
+    },
+    "data/lewis/lewis4508.csv#4": {
+      "board_sha256": "b2eede63bceab7c03fc93e0afb97d85ae449cc5a7c7547cca4f5754b2e7a628e",
+      "dataset": "development",
+      "rack": "DEIIOOS",
+      "stage": "early"
+    },
+    "data/one/one2848.csv#10": {
+      "board_sha256": "d8569e60ecdde4417f240d4061ba4374ea9acd83fae7a0f37f118bcc41754395",
+      "dataset": "development",
+      "rack": "FKNPRTV",
+      "stage": "middle"
+    },
+    "data/one/one362.csv#6": {
+      "board_sha256": "049626f3abeb4f47d1f237722d1e3eb903e7c5424c04e320bbfd54863f64ac66",
+      "dataset": "development",
+      "rack": "ADIRRVY",
+      "stage": "early"
+    },
+    "data/one/one4373.csv#13": {
+      "board_sha256": "178c10356b928d8154cd4621934f18aac312c09338d54e37a6078052846fe4be",
+      "dataset": "development",
+      "rack": "AENRTVW",
+      "stage": "middle"
+    },
+    "data/random/random1155.csv#6": {
+      "board_sha256": "e4c740e832cae3069576243ca47ea4efeed2b123eed4482359d57c839a8aaafc",
+      "dataset": "development",
+      "rack": "DEIKMTV",
+      "stage": "early"
+    },
+    "data/random/random126.csv#20": {
+      "board_sha256": "3e4c3462480f778fa5c7f59b1aa5aee65ee666613ff3bc35dc69da175adcf9ef",
+      "dataset": "development",
+      "rack": "BEILQVX",
+      "stage": "late"
+    },
+    "data/random/random1464.csv#10": {
+      "board_sha256": "fef8db73c55103a5eba5af74f66e0b496928a32bef62c6b7f189dabc9382f99b",
+      "dataset": "development",
+      "rack": "ANORTUY",
+      "stage": "middle"
+    },
+    "data/random/random206.csv#20": {
+      "board_sha256": "d5015473b489274a11157311a55a0fa29a12dbaf72d891607a7f8f0c110f4cf2",
+      "dataset": "development",
+      "rack": "ADDEFIR",
+      "stage": "late"
+    },
+    "data/random/random272.csv#17": {
+      "board_sha256": "0b96e691a2ebac06dc47b3448b4ee3bcc06e2cdc0780ab8a552c3bfc544c77b8",
+      "dataset": "development",
+      "rack": "FIMOTTT",
+      "stage": "late"
+    },
+    "data/random/random78.csv#4": {
+      "board_sha256": "919d0445bfa068ce5db8c954a3ab8fac7032624399a276bc366ee168dce0ae0a",
+      "dataset": "development",
+      "rack": "DEMOQSW",
+      "stage": "early"
+    },
+    "data/traditional/traditional10562.csv#13": {
+      "board_sha256": "eb40cde2a577f1261edd417251131cb72483b67813f1fd521c2a9e0ac8a8f486",
+      "dataset": "development",
+      "rack": "ADELMOR",
+      "stage": "middle"
+    },
+    "data/traditional/traditional1484.csv#6": {
+      "board_sha256": "9c711154473a120b52552e16ab8d93d78285067c781668318692eeedef4b1ce8",
+      "dataset": "development",
+      "rack": "EELMNOT",
+      "stage": "early"
+    },
+    "data/traditional/traditional2278.csv#22": {
+      "board_sha256": "e5aa24c8e2e84425f4df6094a548d272860b0ff6dbaab74a7860b7ddc489c727",
+      "dataset": "development",
+      "rack": "ENS",
+      "stage": "late"
+    },
+    "data/traditional/traditional2625.csv#21": {
+      "board_sha256": "64e0f4a85ffd39fa1452a65195e944f03e794f46c46423ead0f6d2d787800d40",
+      "dataset": "development",
+      "rack": "FFIN",
+      "stage": "late"
+    },
+    "data/traditional/traditional4982.csv#16": {
+      "board_sha256": "a68912994a7017ffcf4893d6f3155ecca2a5fcbe2816e1d62a949f49c1cae72b",
+      "dataset": "development",
+      "rack": "EFILNRT",
+      "stage": "middle"
+    },
+    "data/traditional/traditional5901.csv#18": {
+      "board_sha256": "beaeceda03f14eb653b3b1c428c175957bcdf4f8db430939701b57ea5325543a",
+      "dataset": "development",
+      "rack": "CDNOOTT",
+      "stage": "late"
+    },
+    "data/traditional/traditional8122.csv#14": {
+      "board_sha256": "dbc2a823cb2d131b31181eaf4e20ce1a3ab0b4fc76e2d196b7e581bbe7e5fe65",
+      "dataset": "development",
+      "rack": "DEGIIRS",
+      "stage": "middle"
+    },
+    "games/6zTBhes669.csv#25": {
+      "board_sha256": "4f23c5ce5b26664524881b56faa9709861ea1c5067d4f728f10dc51846e17224",
+      "dataset": "development",
+      "rack": "EJLO",
+      "stage": "late"
+    },
+    "games/7bbdiRsCRY.csv#4": {
+      "board_sha256": "c566f0439ccc16c5e03e8d249e0898ce84a4f74ac82f8bb79650523da72a925e",
+      "dataset": "development",
+      "rack": "EIJKORX",
+      "stage": "early"
+    },
+    "games/CpZHNqsaAe.csv#8": {
+      "board_sha256": "597f4b47af51c1ebcbb98f276cf07008ac8a2cd8b61d2b8b137ceb95a3a78527",
+      "dataset": "development",
+      "rack": "EFGNQUX",
+      "stage": "early"
+    },
+    "games/NSFqNG8yP5.csv#23": {
+      "board_sha256": "a704e1b60b0825837bc1fb6771308e141c245ef0db931f5295f19ed29d84eacc",
+      "dataset": "development",
+      "rack": "BHILNSU",
+      "stage": "late"
+    },
+    "games/RHaUnC67uz.csv#15": {
+      "board_sha256": "0f6b8895c04611fdb67768a6a483b70a6a96ca74af1207785fccf47cba5e3dd6",
+      "dataset": "development",
+      "rack": "DEFIIOS",
+      "stage": "middle"
+    }
+  },
+  "kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "pairs": [
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "packed"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack"
+      ],
+      [
+        "portable",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack"
+      ],
+      [
+        "portable",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack"
+      ],
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "neighbor-cache"
+      ],
+      [
+        "portable",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "neighbor-cache"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "neighbor-cache"
+      ],
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "neighbor-cache"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-cache"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-cache"
+      ],
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-cache"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-neighbor"
+      ],
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-neighbor"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "rack-neighbor-cache"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "row-cache"
+      ],
+      [
+        "portable",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "neighbor-bits"
+      ],
+      [
+        "portable",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "row-cache"
+      ],
+      [
+        "portable",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "neighbor-bits"
+      ],
+      [
+        "portable",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "portable",
+        "all-checks"
+      ],
+      [
+        "portable",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "rack"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "packed"
+      ],
+      [
+        "skylake",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack"
+      ],
+      [
+        "skylake",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack"
+      ],
+      [
+        "skylake",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack"
+      ],
+      [
+        "skylake",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack"
+      ],
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack"
+      ],
+      [
+        "skylake",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "neighbor-cache"
+      ],
+      [
+        "skylake",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "neighbor-cache"
+      ],
+      [
+        "skylake",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "neighbor-cache"
+      ],
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "neighbor-cache"
+      ],
+      [
+        "skylake",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack-cache"
+      ],
+      [
+        "skylake",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack-cache"
+      ],
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack-cache"
+      ],
+      [
+        "skylake",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack-neighbor"
+      ],
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack-neighbor"
+      ],
+      [
+        "skylake",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "rack-neighbor-cache"
+      ],
+      [
+        "skylake",
+        "rack-all-checks"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "row-cache"
+      ],
+      [
+        "skylake",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "neighbor-bits"
+      ],
+      [
+        "skylake",
+        "neighbor-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "row-cache"
+      ],
+      [
+        "skylake",
+        "rack-cache"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "neighbor-bits"
+      ],
+      [
+        "skylake",
+        "rack-neighbor"
+      ]
+    ],
+    [
+      [
+        "skylake",
+        "all-checks"
+      ],
+      [
+        "skylake",
+        "rack-all-checks"
+      ]
+    ]
+  ],
+  "protocol_sha256": {
+    "bench/measurement_support/paired_timings.py": "0964ad6b6ff613c072b02487b6898d7d866322e20ffbdc452c31601d0ee28a6c",
+    "bench/window_counters/compiler_trials.py": "59ea0f240df41211b19a920ba46dc9e3262312681e6273af9dff0c13771d9806",
+    "bench/window_counters/finalist_report.py": "817368fefd692211d7507fde590c9b77ffe5fe27844d5cd95b1a4ed70357b4ae",
+    "bench/window_counters/finalist_trials.py": "20ca7aa3c9e1ead22b5b5214c603ef3e35d5ccbbecb64e7c929c210b3797bd2e",
+    "bench/window_counters/tuning_report.py": "72491ebea3b4460123c5da90d66ca3f0078e6ae3cd423a828210a24e38888cf6",
+    "bench/window_counters/window_benchmark.py": "7edc834cd40380b6c60bc7dcc106312e1511fa22dbe0d3b46ab4b7973d59214e"
+  },
+  "qualification_ids": {
+    "portable": "65aad9462b14299b4f6b5a85f827f32e1290f33e6dd43cf4e6f1f8fdde1e586d",
+    "skylake": "daac94d643aa21863c4f1ae41cad151c57a23af5ade9f8e1e151690bc05b0e6d"
+  },
+  "schedule": {
+    "development": 40,
+    "pilot": 4
+  }
+}

@@ -477,6 +477,10 @@ objdump -d -C -M intel "$tools/window_worker" > build/scalar.asm
 
 The experiment compares AVX2 checks across four gaps in one word with scalar staging of two or four word pointers. The report gives paired solve times, eligible groups, scalar-tail frequencies, linked memory widths and rerun commands. [Bounded SIMD and batched loads](results/window-batches/README.md)
 
+### Window-counter finalists
+
+The development report compares five combinations with their constituents and the matched packed baseline, then freezes the portable and Skylake counters and builds for held-out confirmation. [Development results and finalist freeze](results/window-finalists/README.md)
+
 ### Profile the development workload and export reserved games
 
 Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator. For each game, counter and direction, the words in visited groups plus the words in any skipped groups must account for all of the validator’s candidate records.

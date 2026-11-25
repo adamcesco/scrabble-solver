@@ -405,7 +405,7 @@ class WindowBenchmarkTest(unittest.TestCase):
                          dict(requests=10, hits=6, distinct_squares_per_row={0: 14, 4: 1}))
 
     def test_neighbor_lookups_at_both_edges_in_both_views(self):
-        variants = ("packed", "empty-bits", "neighbor-bits")
+        variants = ("packed", "empty-bits", "neighbor-bits", "neighbor-cache", "rack-neighbor-cache")
         # Every crossing with A permits all letters, even when a lookup is needed.
         words = {"ST", "TS"}
         for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
@@ -418,6 +418,15 @@ class WindowBenchmarkTest(unittest.TestCase):
         cases = [{"case": "two As", "stage": "early"}]
         stage = summarize(io.StringIO(profile), cases, variants, [qualified])["early"]
         for name in variants:
+            if name in ("neighbor-cache", "rack-neighbor-cache"):
+                # Four active neighboring rows per view, each sharing one square across two windows.
+                for direction in ("across", "down"):
+                    self.assertEqual(stage["variants"][name]["lookup_counts"][direction],
+                                     dict(calls=4, matched_windows=12, matched_windows_without_lookups=8))
+                groups = stage["variants"][name]["groups_by_size"]
+                self.assertEqual(sum(g["individual_checks"] for g in groups.values()),
+                                 48 if name == "neighbor-cache" else 0)
+                continue
             filtered = name == "neighbor-bits"
             for direction in ("across", "down"):
                 self.assertEqual(stage["variants"][name]["lookup_counts"][direction],

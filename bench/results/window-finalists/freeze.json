@@ -1,0 +1,79 @@
+{
+  "affinity": 2,
+  "cpu": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+  "development_manifest_sha256": "94f75a28c1d297da818ad7f42355d8078e221d116bd37bccc5a4b1b049491fc8",
+  "held_out": {
+    "games_per_stage": 32,
+    "interval": {
+      "draws": 20000,
+      "method": "inclusive",
+      "percentiles": [
+        2.5,
+        97.5
+      ],
+      "seed": 15,
+      "tie": "low <= 0 <= high",
+      "unit": "paired games, resampled within stage"
+    },
+    "pairs": "all pairs of packed and the named finalists within each target",
+    "repetitions": 40,
+    "saving": "left minus right in microseconds per solve",
+    "warmups_per_side": 2,
+    "weighting": "mean repetitions per game, mean games per stage, equal weight for each stage"
+  },
+  "host_sha256": "57c0918df0fa61f25a2c2de20cfe018defaa0c86e7cde0e92e063faf903f66b9",
+  "input_sha256": {
+    "bench/fixtures/mass/corpus.json.gz": "e656e6bfbd0f63407544ba32776d40eae206881514ca5d3183569db341fad3f6",
+    "bench/fixtures/pilot/corpus.json": "f38e0b2d6b7dfe310e32d416879ab4736f817a1ec1a2e9a86dcb4f89b56461fe",
+    "bench/fixtures/window-game-sets.csv": "7d3bba8f3bba43472ad9d9eb6626f1aeb41138e32ab18b752be8be2ebcb5c0e4",
+    "data/dictionaries/sample_dictionary.txt": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd"
+  },
+  "membership": {
+    "development": "development",
+    "held_out": "held-out",
+    "path": "bench/fixtures/window-game-sets.csv",
+    "reserved_training": "pgo",
+    "training_games_used": []
+  },
+  "protocol_sha256": {
+    "bench/measurement_support/paired_timings.py": "0964ad6b6ff613c072b02487b6898d7d866322e20ffbdc452c31601d0ee28a6c",
+    "bench/window_counters/compiler_trials.py": "59ea0f240df41211b19a920ba46dc9e3262312681e6273af9dff0c13771d9806",
+    "bench/window_counters/finalist_report.py": "817368fefd692211d7507fde590c9b77ffe5fe27844d5cd95b1a4ed70357b4ae",
+    "bench/window_counters/finalist_trials.py": "20ca7aa3c9e1ead22b5b5214c603ef3e35d5ccbbecb64e7c929c210b3797bd2e",
+    "bench/window_counters/tuning_report.py": "72491ebea3b4460123c5da90d66ca3f0078e6ae3cd423a828210a24e38888cf6",
+    "bench/window_counters/window_benchmark.py": "7edc834cd40380b6c60bc7dcc106312e1511fa22dbe0d3b46ab4b7973d59214e"
+  },
+  "source_revision": "ec354c599a96edebc67c9653cfb5f25ada6edc49",
+  "targets": {
+    "portable": {
+      "baseline": "packed",
+      "binary_sha256": "463830295710d7ed17a6b05081aa82e30ad43aae389f82aa01606eb48134ec8e",
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "finalists": [
+        "rack-neighbor-cache",
+        "rack-all-checks",
+        "rack-neighbor"
+      ],
+      "profile_sha256": null,
+      "target_flags": [
+        "-O3",
+        "-march=x86-64"
+      ]
+    },
+    "skylake": {
+      "baseline": "packed",
+      "binary_sha256": "d88a37374806d42c48c6604b4fc2caa06651c9c73846cca1fa0420342b663093",
+      "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+      "finalists": [
+        "rack-neighbor",
+        "rack-neighbor-cache"
+      ],
+      "profile_sha256": null,
+      "target_flags": [
+        "-O3",
+        "-march=skylake",
+        "-mbranches-within-32B-boundaries"
+      ]
+    }
+  }
+}

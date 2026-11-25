@@ -1,0 +1,5371 @@
+{
+  "dictionary_sha256": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+  "game_set": "development",
+  "stages": {
+    "early": {
+      "games": 10,
+      "qualified_candidates": {
+        "across": 11368,
+        "down": 8843
+      },
+      "variants": {
+        "all-checks": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 12228,
+            "first_failures": {
+              "1": 4238,
+              "2": 1737,
+              "3": 1161,
+              "4": 485,
+              "5": 109,
+              "6": 16
+            },
+            "gap_checks": 38067
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 8699,
+              "groups": 8699,
+              "individual_checks": 6185
+            },
+            "2": {
+              "candidate_words": 6300,
+              "groups": 3150,
+              "individual_checks": 3738
+            },
+            "3": {
+              "candidate_words": 2937,
+              "groups": 979,
+              "individual_checks": 1488
+            },
+            "4": {
+              "candidate_words": 948,
+              "groups": 237,
+              "individual_checks": 384
+            },
+            "5": {
+              "candidate_words": 1075,
+              "groups": 215,
+              "individual_checks": 370
+            },
+            "9": {
+              "candidate_words": 252,
+              "groups": 28,
+              "individual_checks": 63
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 4383,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 4768,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "one_gap_candidates": 467,
+          "one_gap_groups": 467,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "neighbor-bits": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 12228,
+            "first_failures": {
+              "1": 6346,
+              "2": 1123,
+              "3": 259,
+              "4": 18
+            },
+            "gap_checks": 11694
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 8699,
+              "groups": 8699,
+              "individual_checks": 6185
+            },
+            "2": {
+              "candidate_words": 6300,
+              "groups": 3150,
+              "individual_checks": 3738
+            },
+            "3": {
+              "candidate_words": 2937,
+              "groups": 979,
+              "individual_checks": 1488
+            },
+            "4": {
+              "candidate_words": 948,
+              "groups": 237,
+              "individual_checks": 384
+            },
+            "5": {
+              "candidate_words": 1075,
+              "groups": 215,
+              "individual_checks": 370
+            },
+            "9": {
+              "candidate_words": 252,
+              "groups": 28,
+              "individual_checks": 63
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 2092,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 242
+            },
+            "down": {
+              "calls": 1252,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 627
+            }
+          },
+          "one_gap_candidates": 467,
+          "one_gap_groups": 467,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "neighbor-cache": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 12228,
+            "first_failures": {
+              "1": 6346,
+              "2": 1123,
+              "3": 259,
+              "4": 18
+            },
+            "gap_checks": 11694
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 8699,
+              "groups": 8699,
+              "individual_checks": 6185
+            },
+            "2": {
+              "candidate_words": 6300,
+              "groups": 3150,
+              "individual_checks": 3738
+            },
+            "3": {
+              "candidate_words": 2937,
+              "groups": 979,
+              "individual_checks": 1488
+            },
+            "4": {
+              "candidate_words": 948,
+              "groups": 237,
+              "individual_checks": 384
+            },
+            "5": {
+              "candidate_words": 1075,
+              "groups": 215,
+              "individual_checks": 370
+            },
+            "9": {
+              "candidate_words": 252,
+              "groups": 28,
+              "individual_checks": 63
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 186,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 1065
+            },
+            "down": {
+              "calls": 120,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 1292
+            }
+          },
+          "one_gap_candidates": 467,
+          "one_gap_groups": 467,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "packed": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 12228,
+            "first_failures": {
+              "1": 4238,
+              "2": 1737,
+              "3": 1161,
+              "4": 485,
+              "5": 109,
+              "6": 16
+            },
+            "gap_checks": 26738
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 8699,
+              "groups": 8699,
+              "individual_checks": 6185
+            },
+            "2": {
+              "candidate_words": 6300,
+              "groups": 3150,
+              "individual_checks": 3738
+            },
+            "3": {
+              "candidate_words": 2937,
+              "groups": 979,
+              "individual_checks": 1488
+            },
+            "4": {
+              "candidate_words": 948,
+              "groups": 237,
+              "individual_checks": 384
+            },
+            "5": {
+              "candidate_words": 1075,
+              "groups": 215,
+              "individual_checks": 370
+            },
+            "9": {
+              "candidate_words": 252,
+              "groups": 28,
+              "individual_checks": 63
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 4383,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 4768,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "mask_search": {
+            "accepted": {
+              "lookups": 3679,
+              "lookups_skipped": 0,
+              "masks": 1255,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 3679,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 1255
+            },
+            "all_rejected": {
+              "lookups": 5472,
+              "lookups_skipped": 0,
+              "masks": 1397,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 5472,
+              "ruled_out": 741,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 1397
+            },
+            "no_matching_group": {
+              "lookups": 0,
+              "lookups_skipped": 0,
+              "masks": 0,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 0,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 3005
+            }
+          },
+          "one_gap_candidates": 467,
+          "one_gap_groups": 467,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "rack": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 6735,
+            "first_failures": {
+              "1": 4059,
+              "2": 853,
+              "3": 172,
+              "4": 16
+            },
+            "gap_checks": 8598
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5691,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 5691,
+              "individual_checks": 2647,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "2": {
+              "candidate_words": 3384,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 1692,
+              "individual_checks": 2400,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "3": {
+              "candidate_words": 1335,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 445,
+              "individual_checks": 1092,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "4": {
+              "candidate_words": 316,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 79,
+              "individual_checks": 256,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "5": {
+              "candidate_words": 295,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 59,
+              "individual_checks": 295,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "9": {
+              "candidate_words": 45,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 5,
+              "individual_checks": 45,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 3459,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 3954,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "mask_search": {
+            "accepted": {
+              "lookups": 3679,
+              "lookups_skipped": 0,
+              "masks": 1255,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "rack_gaps_removed": 3076,
+              "rack_restricted_removed": 0,
+              "retained_gaps": 603,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 1255
+            },
+            "all_rejected": {
+              "lookups": 3734,
+              "lookups_skipped": 1738,
+              "masks": 1397,
+              "merge_comparisons_avoided": 6605,
+              "probes_avoided": 16334,
+              "rack_gaps_removed": 1552,
+              "rack_restricted_removed": 0,
+              "retained_gaps": 1078,
+              "ruled_out": 1104,
+              "skipped_groups": 5337,
+              "skipped_words": 9145,
+              "windows": 1397
+            },
+            "no_matching_group": {
+              "lookups": 0,
+              "lookups_skipped": 0,
+              "masks": 0,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "rack_gaps_removed": 0,
+              "rack_restricted_removed": 0,
+              "retained_gaps": 0,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 3005
+            }
+          },
+          "one_gap_candidates": 433,
+          "one_gap_groups": 433,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "rack-all-checks": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 6735,
+            "first_failures": {
+              "1": 4059,
+              "2": 853,
+              "3": 172,
+              "4": 16
+            },
+            "gap_checks": 12223
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5691,
+              "groups": 5691,
+              "individual_checks": 2647
+            },
+            "2": {
+              "candidate_words": 3384,
+              "groups": 1692,
+              "individual_checks": 2400
+            },
+            "3": {
+              "candidate_words": 1335,
+              "groups": 445,
+              "individual_checks": 1092
+            },
+            "4": {
+              "candidate_words": 316,
+              "groups": 79,
+              "individual_checks": 256
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 295
+            },
+            "9": {
+              "candidate_words": 45,
+              "groups": 5,
+              "individual_checks": 45
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 3459,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 3954,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "one_gap_candidates": 433,
+          "one_gap_groups": 433,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "rack-cache": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 6735,
+            "first_failures": {
+              "1": 4059,
+              "2": 853,
+              "3": 172,
+              "4": 16
+            },
+            "gap_checks": 8598
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5691,
+              "groups": 5691,
+              "individual_checks": 2647
+            },
+            "2": {
+              "candidate_words": 3384,
+              "groups": 1692,
+              "individual_checks": 2400
+            },
+            "3": {
+              "candidate_words": 1335,
+              "groups": 445,
+              "individual_checks": 1092
+            },
+            "4": {
+              "candidate_words": 316,
+              "groups": 79,
+              "individual_checks": 256
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 295
+            },
+            "9": {
+              "candidate_words": 45,
+              "groups": 5,
+              "individual_checks": 45
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 560,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 752
+            },
+            "down": {
+              "calls": 713,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 763
+            }
+          },
+          "one_gap_candidates": 433,
+          "one_gap_groups": 433,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "rack-neighbor": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 6735,
+            "first_failures": {
+              "1": 4059,
+              "2": 853,
+              "3": 172,
+              "4": 16
+            },
+            "gap_checks": 8598
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5691,
+              "groups": 5691,
+              "individual_checks": 2647
+            },
+            "2": {
+              "candidate_words": 3384,
+              "groups": 1692,
+              "individual_checks": 2400
+            },
+            "3": {
+              "candidate_words": 1335,
+              "groups": 445,
+              "individual_checks": 1092
+            },
+            "4": {
+              "candidate_words": 316,
+              "groups": 79,
+              "individual_checks": 256
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 295
+            },
+            "9": {
+              "candidate_words": 45,
+              "groups": 5,
+              "individual_checks": 45
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 1707,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 242
+            },
+            "down": {
+              "calls": 1078,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 627
+            }
+          },
+          "one_gap_candidates": 433,
+          "one_gap_groups": 433,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "rack-neighbor-cache": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 6735,
+            "first_failures": {
+              "1": 4059,
+              "2": 853,
+              "3": 172,
+              "4": 16
+            },
+            "gap_checks": 8598
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5691,
+              "groups": 5691,
+              "individual_checks": 2647
+            },
+            "2": {
+              "candidate_words": 3384,
+              "groups": 1692,
+              "individual_checks": 2400
+            },
+            "3": {
+              "candidate_words": 1335,
+              "groups": 445,
+              "individual_checks": 1092
+            },
+            "4": {
+              "candidate_words": 316,
+              "groups": 79,
+              "individual_checks": 256
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 295
+            },
+            "9": {
+              "candidate_words": 45,
+              "groups": 5,
+              "individual_checks": 45
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 183,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 1079
+            },
+            "down": {
+              "calls": 120,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 1297
+            }
+          },
+          "one_gap_candidates": 433,
+          "one_gap_groups": 433,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        },
+        "row-cache": {
+          "gap_evaluation": {
+            "candidates": 20211,
+            "checked_candidates": 12228,
+            "first_failures": {
+              "1": 4238,
+              "2": 1737,
+              "3": 1161,
+              "4": 485,
+              "5": 109,
+              "6": 16
+            },
+            "gap_checks": 26738
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 8699,
+              "groups": 8699,
+              "individual_checks": 6185
+            },
+            "2": {
+              "candidate_words": 6300,
+              "groups": 3150,
+              "individual_checks": 3738
+            },
+            "3": {
+              "candidate_words": 2937,
+              "groups": 979,
+              "individual_checks": 1488
+            },
+            "4": {
+              "candidate_words": 948,
+              "groups": 237,
+              "individual_checks": 384
+            },
+            "5": {
+              "candidate_words": 1075,
+              "groups": 215,
+              "individual_checks": 370
+            },
+            "9": {
+              "candidate_words": 252,
+              "groups": 28,
+              "individual_checks": 63
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 630,
+              "matched_windows": 1242,
+              "matched_windows_without_lookups": 668
+            },
+            "down": {
+              "calls": 804,
+              "matched_windows": 1410,
+              "matched_windows_without_lookups": 669
+            }
+          },
+          "one_gap_candidates": 467,
+          "one_gap_groups": 467,
+          "row_cache": {
+            "across": {
+              "distinct_squares_per_row": {
+                "0": 81,
+                "1": 3,
+                "2": 2,
+                "3": 1,
+                "5": 4,
+                "6": 4,
+                "7": 10,
+                "8": 6,
+                "9": 3,
+                "10": 8,
+                "11": 7,
+                "12": 7,
+                "13": 7,
+                "14": 6,
+                "15": 1
+              },
+              "hits": 3753,
+              "requests": 4383
+            },
+            "down": {
+              "distinct_squares_per_row": {
+                "0": 55,
+                "2": 3,
+                "3": 1,
+                "4": 3,
+                "5": 4,
+                "6": 15,
+                "7": 10,
+                "8": 10,
+                "9": 12,
+                "10": 13,
+                "11": 14,
+                "12": 3,
+                "13": 4,
+                "14": 2,
+                "15": 1
+              },
+              "hits": 3964,
+              "requests": 4768
+            }
+          },
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 666,
+                "2": 302,
+                "3": 255,
+                "4": 160,
+                "5": 85,
+                "6": 81,
+                "7": 184,
+                "8": 57,
+                "9": 76,
+                "10": 43,
+                "11": 120,
+                "12": 97,
+                "13": 42,
+                "14": 23,
+                "15": 117,
+                "16": 53,
+                "17": 2,
+                "18": 26,
+                "19": 30,
+                "20": 2,
+                "22": 28,
+                "23": 20,
+                "24": 19,
+                "26": 18,
+                "27": 24,
+                "31": 68,
+                "36": 54
+              },
+              "by_constrained_gaps": {
+                "0": 869,
+                "1": 939,
+                "2": 392,
+                "3": 253,
+                "4": 141,
+                "5": 50,
+                "6": 8
+              },
+              "by_empty_squares": {
+                "1": 207,
+                "2": 579,
+                "3": 623,
+                "4": 578,
+                "5": 418,
+                "6": 214,
+                "7": 33
+              },
+              "windows": 2652
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 751
+              },
+              "by_constrained_gaps": {
+                "0": 461,
+                "1": 120,
+                "2": 68,
+                "3": 36,
+                "4": 27,
+                "5": 22,
+                "6": 12,
+                "7": 5
+              },
+              "by_empty_squares": {
+                "1": 69,
+                "2": 86,
+                "3": 106,
+                "4": 119,
+                "5": 124,
+                "6": 127,
+                "7": 120
+              },
+              "windows": 751
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3005
+              },
+              "by_constrained_gaps": {
+                "0": 1453,
+                "1": 732,
+                "2": 248,
+                "3": 197,
+                "4": 166,
+                "5": 132,
+                "6": 61,
+                "7": 16
+              },
+              "by_empty_squares": {
+                "1": 56,
+                "2": 73,
+                "3": 166,
+                "4": 326,
+                "5": 571,
+                "6": 817,
+                "7": 996
+              },
+              "windows": 3005
+            }
+          }
+        }
+      }
+    },
+    "late": {
+      "games": 10,
+      "qualified_candidates": {
+        "across": 9078,
+        "down": 8350
+      },
+      "variants": {
+        "all-checks": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 8984,
+            "first_failures": {
+              "1": 3748,
+              "2": 1710,
+              "3": 564,
+              "4": 200,
+              "5": 23,
+              "6": 3
+            },
+            "gap_checks": 24566
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 9391,
+              "groups": 9391,
+              "individual_checks": 5357
+            },
+            "2": {
+              "candidate_words": 5982,
+              "groups": 2991,
+              "individual_checks": 2766
+            },
+            "3": {
+              "candidate_words": 1404,
+              "groups": 468,
+              "individual_checks": 609
+            },
+            "4": {
+              "candidate_words": 296,
+              "groups": 74,
+              "individual_checks": 112
+            },
+            "5": {
+              "candidate_words": 355,
+              "groups": 71,
+              "individual_checks": 140
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 4134,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 4227,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "one_gap_candidates": 1047,
+          "one_gap_groups": 1047,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "neighbor-bits": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 8984,
+            "first_failures": {
+              "1": 5190,
+              "2": 941,
+              "3": 105,
+              "4": 12
+            },
+            "gap_checks": 8677
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 9391,
+              "groups": 9391,
+              "individual_checks": 5357
+            },
+            "2": {
+              "candidate_words": 5982,
+              "groups": 2991,
+              "individual_checks": 2766
+            },
+            "3": {
+              "candidate_words": 1404,
+              "groups": 468,
+              "individual_checks": 609
+            },
+            "4": {
+              "candidate_words": 296,
+              "groups": 74,
+              "individual_checks": 112
+            },
+            "5": {
+              "candidate_words": 355,
+              "groups": 71,
+              "individual_checks": 140
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 2336,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 295
+            },
+            "down": {
+              "calls": 2285,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 371
+            }
+          },
+          "one_gap_candidates": 1047,
+          "one_gap_groups": 1047,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "neighbor-cache": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 8984,
+            "first_failures": {
+              "1": 5190,
+              "2": 941,
+              "3": 105,
+              "4": 12
+            },
+            "gap_checks": 8677
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 9391,
+              "groups": 9391,
+              "individual_checks": 5357
+            },
+            "2": {
+              "candidate_words": 5982,
+              "groups": 2991,
+              "individual_checks": 2766
+            },
+            "3": {
+              "candidate_words": 1404,
+              "groups": 468,
+              "individual_checks": 609
+            },
+            "4": {
+              "candidate_words": 296,
+              "groups": 74,
+              "individual_checks": 112
+            },
+            "5": {
+              "candidate_words": 355,
+              "groups": 71,
+              "individual_checks": 140
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 430,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 1105
+            },
+            "down": {
+              "calls": 404,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 1178
+            }
+          },
+          "one_gap_candidates": 1047,
+          "one_gap_groups": 1047,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "packed": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 8984,
+            "first_failures": {
+              "1": 3748,
+              "2": 1710,
+              "3": 564,
+              "4": 200,
+              "5": 23,
+              "6": 3
+            },
+            "gap_checks": 16098
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 9391,
+              "groups": 9391,
+              "individual_checks": 5357
+            },
+            "2": {
+              "candidate_words": 5982,
+              "groups": 2991,
+              "individual_checks": 2766
+            },
+            "3": {
+              "candidate_words": 1404,
+              "groups": 468,
+              "individual_checks": 609
+            },
+            "4": {
+              "candidate_words": 296,
+              "groups": 74,
+              "individual_checks": 112
+            },
+            "5": {
+              "candidate_words": 355,
+              "groups": 71,
+              "individual_checks": 140
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 4134,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 4227,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "mask_search": {
+            "accepted": {
+              "lookups": 2255,
+              "lookups_skipped": 0,
+              "masks": 1054,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 2255,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 1054
+            },
+            "all_rejected": {
+              "lookups": 6106,
+              "lookups_skipped": 0,
+              "masks": 2009,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 6106,
+              "ruled_out": 1210,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 2009
+            },
+            "no_matching_group": {
+              "lookups": 0,
+              "lookups_skipped": 0,
+              "masks": 0,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 0,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 2635
+            }
+          },
+          "one_gap_candidates": 1047,
+          "one_gap_groups": 1047,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "rack": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 4709,
+            "first_failures": {
+              "1": 3152,
+              "2": 580,
+              "3": 65,
+              "4": 7
+            },
+            "gap_checks": 5750
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5384,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 5384,
+              "individual_checks": 2484,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "2": {
+              "candidate_words": 2502,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 1251,
+              "individual_checks": 1714,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "3": {
+              "candidate_words": 525,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 175,
+              "individual_checks": 366,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "4": {
+              "candidate_words": 92,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 23,
+              "individual_checks": 80,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "5": {
+              "candidate_words": 65,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 13,
+              "individual_checks": 65,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 3252,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 3170,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "mask_search": {
+            "accepted": {
+              "lookups": 2255,
+              "lookups_skipped": 0,
+              "masks": 1054,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "rack_gaps_removed": 1722,
+              "rack_restricted_removed": 15,
+              "retained_gaps": 533,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 1054
+            },
+            "all_rejected": {
+              "lookups": 4167,
+              "lookups_skipped": 1939,
+              "masks": 2009,
+              "merge_comparisons_avoided": 12131,
+              "probes_avoided": 16770,
+              "rack_gaps_removed": 1287,
+              "rack_restricted_removed": 4,
+              "retained_gaps": 1236,
+              "ruled_out": 1644,
+              "skipped_groups": 6149,
+              "skipped_words": 8860,
+              "windows": 2009
+            },
+            "no_matching_group": {
+              "lookups": 0,
+              "lookups_skipped": 0,
+              "masks": 0,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "rack_gaps_removed": 0,
+              "rack_restricted_removed": 0,
+              "retained_gaps": 0,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 2635
+            }
+          },
+          "one_gap_candidates": 933,
+          "one_gap_groups": 933,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "rack-all-checks": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 4709,
+            "first_failures": {
+              "1": 3152,
+              "2": 580,
+              "3": 65,
+              "4": 7
+            },
+            "gap_checks": 8795
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5384,
+              "groups": 5384,
+              "individual_checks": 2484
+            },
+            "2": {
+              "candidate_words": 2502,
+              "groups": 1251,
+              "individual_checks": 1714
+            },
+            "3": {
+              "candidate_words": 525,
+              "groups": 175,
+              "individual_checks": 366
+            },
+            "4": {
+              "candidate_words": 92,
+              "groups": 23,
+              "individual_checks": 80
+            },
+            "5": {
+              "candidate_words": 65,
+              "groups": 13,
+              "individual_checks": 65
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 3252,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 3170,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "one_gap_candidates": 933,
+          "one_gap_groups": 933,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "rack-cache": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 4709,
+            "first_failures": {
+              "1": 3152,
+              "2": 580,
+              "3": 65,
+              "4": 7
+            },
+            "gap_checks": 5750
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5384,
+              "groups": 5384,
+              "individual_checks": 2484
+            },
+            "2": {
+              "candidate_words": 2502,
+              "groups": 1251,
+              "individual_checks": 1714
+            },
+            "3": {
+              "candidate_words": 525,
+              "groups": 175,
+              "individual_checks": 366
+            },
+            "4": {
+              "candidate_words": 92,
+              "groups": 23,
+              "individual_checks": 80
+            },
+            "5": {
+              "candidate_words": 65,
+              "groups": 13,
+              "individual_checks": 65
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 867,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 764
+            },
+            "down": {
+              "calls": 863,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 803
+            }
+          },
+          "one_gap_candidates": 933,
+          "one_gap_groups": 933,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "rack-neighbor": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 4709,
+            "first_failures": {
+              "1": 3152,
+              "2": 580,
+              "3": 65,
+              "4": 7
+            },
+            "gap_checks": 5750
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5384,
+              "groups": 5384,
+              "individual_checks": 2484
+            },
+            "2": {
+              "candidate_words": 2502,
+              "groups": 1251,
+              "individual_checks": 1714
+            },
+            "3": {
+              "candidate_words": 525,
+              "groups": 175,
+              "individual_checks": 366
+            },
+            "4": {
+              "candidate_words": 92,
+              "groups": 23,
+              "individual_checks": 80
+            },
+            "5": {
+              "candidate_words": 65,
+              "groups": 13,
+              "individual_checks": 65
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 1787,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 295
+            },
+            "down": {
+              "calls": 1645,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 371
+            }
+          },
+          "one_gap_candidates": 933,
+          "one_gap_groups": 933,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "rack-neighbor-cache": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 4709,
+            "first_failures": {
+              "1": 3152,
+              "2": 580,
+              "3": 65,
+              "4": 7
+            },
+            "gap_checks": 5750
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 5384,
+              "groups": 5384,
+              "individual_checks": 2484
+            },
+            "2": {
+              "candidate_words": 2502,
+              "groups": 1251,
+              "individual_checks": 1714
+            },
+            "3": {
+              "candidate_words": 525,
+              "groups": 175,
+              "individual_checks": 366
+            },
+            "4": {
+              "candidate_words": 92,
+              "groups": 23,
+              "individual_checks": 80
+            },
+            "5": {
+              "candidate_words": 65,
+              "groups": 13,
+              "individual_checks": 65
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 414,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 1127
+            },
+            "down": {
+              "calls": 391,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 1203
+            }
+          },
+          "one_gap_candidates": 933,
+          "one_gap_groups": 933,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        },
+        "row-cache": {
+          "gap_evaluation": {
+            "candidates": 17428,
+            "checked_candidates": 8984,
+            "first_failures": {
+              "1": 3748,
+              "2": 1710,
+              "3": 564,
+              "4": 200,
+              "5": 23,
+              "6": 3
+            },
+            "gap_checks": 16098
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 9391,
+              "groups": 9391,
+              "individual_checks": 5357
+            },
+            "2": {
+              "candidate_words": 5982,
+              "groups": 2991,
+              "individual_checks": 2766
+            },
+            "3": {
+              "candidate_words": 1404,
+              "groups": 468,
+              "individual_checks": 609
+            },
+            "4": {
+              "candidate_words": 296,
+              "groups": 74,
+              "individual_checks": 112
+            },
+            "5": {
+              "candidate_words": 355,
+              "groups": 71,
+              "individual_checks": 140
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 920,
+              "matched_windows": 1508,
+              "matched_windows_without_lookups": 695
+            },
+            "down": {
+              "calls": 930,
+              "matched_windows": 1555,
+              "matched_windows_without_lookups": 720
+            }
+          },
+          "one_gap_candidates": 1047,
+          "one_gap_groups": 1047,
+          "row_cache": {
+            "across": {
+              "distinct_squares_per_row": {
+                "0": 15,
+                "1": 6,
+                "2": 5,
+                "3": 7,
+                "4": 17,
+                "5": 17,
+                "6": 15,
+                "7": 18,
+                "8": 14,
+                "9": 7,
+                "10": 6,
+                "11": 9,
+                "12": 6,
+                "13": 4,
+                "14": 4
+              },
+              "hits": 3214,
+              "requests": 4134
+            },
+            "down": {
+              "distinct_squares_per_row": {
+                "0": 16,
+                "1": 4,
+                "2": 6,
+                "3": 9,
+                "4": 14,
+                "5": 23,
+                "6": 13,
+                "7": 11,
+                "8": 12,
+                "9": 7,
+                "10": 7,
+                "11": 15,
+                "12": 6,
+                "13": 3,
+                "14": 4
+              },
+              "hits": 3297,
+              "requests": 4227
+            }
+          },
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 914,
+                "2": 523,
+                "3": 270,
+                "4": 201,
+                "5": 203,
+                "6": 54,
+                "7": 176,
+                "8": 51,
+                "9": 135,
+                "10": 18,
+                "11": 95,
+                "12": 9,
+                "13": 68,
+                "14": 94,
+                "15": 3,
+                "16": 48,
+                "17": 3,
+                "18": 2,
+                "19": 18,
+                "23": 31,
+                "25": 54,
+                "28": 37,
+                "31": 31,
+                "33": 25
+              },
+              "by_constrained_gaps": {
+                "0": 666,
+                "1": 1061,
+                "2": 731,
+                "3": 386,
+                "4": 162,
+                "5": 50,
+                "6": 7
+              },
+              "by_empty_squares": {
+                "1": 553,
+                "2": 977,
+                "3": 743,
+                "4": 458,
+                "5": 202,
+                "6": 127,
+                "7": 3
+              },
+              "windows": 3063
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2655
+              },
+              "by_constrained_gaps": {
+                "0": 543,
+                "1": 770,
+                "2": 567,
+                "3": 378,
+                "4": 228,
+                "5": 112,
+                "6": 53,
+                "7": 4
+              },
+              "by_empty_squares": {
+                "1": 361,
+                "2": 445,
+                "3": 502,
+                "4": 447,
+                "5": 340,
+                "6": 306,
+                "7": 254
+              },
+              "windows": 2655
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 2635
+              },
+              "by_constrained_gaps": {
+                "0": 603,
+                "1": 724,
+                "2": 462,
+                "3": 339,
+                "4": 235,
+                "5": 166,
+                "6": 82,
+                "7": 24
+              },
+              "by_empty_squares": {
+                "1": 193,
+                "2": 309,
+                "3": 450,
+                "4": 478,
+                "5": 413,
+                "6": 382,
+                "7": 410
+              },
+              "windows": 2635
+            }
+          }
+        }
+      }
+    },
+    "middle": {
+      "games": 10,
+      "qualified_candidates": {
+        "across": 17457,
+        "down": 17434
+      },
+      "variants": {
+        "all-checks": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 19512,
+            "first_failures": {
+              "1": 7570,
+              "2": 3520,
+              "3": 1967,
+              "4": 559,
+              "5": 137,
+              "6": 38
+            },
+            "gap_checks": 61389
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 14328,
+              "groups": 14328,
+              "individual_checks": 8710
+            },
+            "2": {
+              "candidate_words": 13090,
+              "groups": 6545,
+              "individual_checks": 7216
+            },
+            "3": {
+              "candidate_words": 4710,
+              "groups": 1570,
+              "individual_checks": 2340
+            },
+            "4": {
+              "candidate_words": 2456,
+              "groups": 614,
+              "individual_checks": 1080
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 160
+            },
+            "6": {
+              "candidate_words": 12,
+              "groups": 2,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 5925,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 5202,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "one_gap_candidates": 986,
+          "one_gap_groups": 986,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "neighbor-bits": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 19512,
+            "first_failures": {
+              "1": 11262,
+              "2": 2145,
+              "3": 356,
+              "4": 27,
+              "5": 1
+            },
+            "gap_checks": 19603
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 14328,
+              "groups": 14328,
+              "individual_checks": 8710
+            },
+            "2": {
+              "candidate_words": 13090,
+              "groups": 6545,
+              "individual_checks": 7216
+            },
+            "3": {
+              "candidate_words": 4710,
+              "groups": 1570,
+              "individual_checks": 2340
+            },
+            "4": {
+              "candidate_words": 2456,
+              "groups": 614,
+              "individual_checks": 1080
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 160
+            },
+            "6": {
+              "candidate_words": 12,
+              "groups": 2,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 2428,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 545
+            },
+            "down": {
+              "calls": 2683,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 345
+            }
+          },
+          "one_gap_candidates": 986,
+          "one_gap_groups": 986,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "neighbor-cache": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 19512,
+            "first_failures": {
+              "1": 11262,
+              "2": 2145,
+              "3": 356,
+              "4": 27,
+              "5": 1
+            },
+            "gap_checks": 19603
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 14328,
+              "groups": 14328,
+              "individual_checks": 8710
+            },
+            "2": {
+              "candidate_words": 13090,
+              "groups": 6545,
+              "individual_checks": 7216
+            },
+            "3": {
+              "candidate_words": 4710,
+              "groups": 1570,
+              "individual_checks": 2340
+            },
+            "4": {
+              "candidate_words": 2456,
+              "groups": 614,
+              "individual_checks": 1080
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 160
+            },
+            "6": {
+              "candidate_words": 12,
+              "groups": 2,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 291,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 1554
+            },
+            "down": {
+              "calls": 327,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 1320
+            }
+          },
+          "one_gap_candidates": 986,
+          "one_gap_groups": 986,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "packed": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 19512,
+            "first_failures": {
+              "1": 7570,
+              "2": 3520,
+              "3": 1967,
+              "4": 559,
+              "5": 137,
+              "6": 38
+            },
+            "gap_checks": 39251
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 14328,
+              "groups": 14328,
+              "individual_checks": 8710
+            },
+            "2": {
+              "candidate_words": 13090,
+              "groups": 6545,
+              "individual_checks": 7216
+            },
+            "3": {
+              "candidate_words": 4710,
+              "groups": 1570,
+              "individual_checks": 2340
+            },
+            "4": {
+              "candidate_words": 2456,
+              "groups": 614,
+              "individual_checks": 1080
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 160
+            },
+            "6": {
+              "candidate_words": 12,
+              "groups": 2,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 5925,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 5202,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "mask_search": {
+            "accepted": {
+              "lookups": 3687,
+              "lookups_skipped": 0,
+              "masks": 1416,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 3687,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 1416
+            },
+            "all_rejected": {
+              "lookups": 7440,
+              "lookups_skipped": 0,
+              "masks": 2053,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 7440,
+              "ruled_out": 1295,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 2053
+            },
+            "no_matching_group": {
+              "lookups": 0,
+              "lookups_skipped": 0,
+              "masks": 0,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "retained_gaps": 0,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 3206
+            }
+          },
+          "one_gap_candidates": 986,
+          "one_gap_groups": 986,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "rack": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 10180,
+            "first_failures": {
+              "1": 6335,
+              "2": 1543,
+              "3": 269,
+              "4": 18
+            },
+            "gap_checks": 13170
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 7972,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 7972,
+              "individual_checks": 3949,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "2": {
+              "candidate_words": 5706,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 2853,
+              "individual_checks": 4264,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "3": {
+              "candidate_words": 1713,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 571,
+              "individual_checks": 1242,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "4": {
+              "candidate_words": 872,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 218,
+              "individual_checks": 624,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "5": {
+              "candidate_words": 95,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 19,
+              "individual_checks": 95,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            },
+            "6": {
+              "candidate_words": 6,
+              "capacity_rejections": 0,
+              "disjoint_rejections": 0,
+              "groups": 1,
+              "individual_checks": 6,
+              "subset_checks": 0,
+              "subset_gaps_removed": 0
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 4632,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 4012,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "mask_search": {
+            "accepted": {
+              "lookups": 3687,
+              "lookups_skipped": 0,
+              "masks": 1416,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "rack_gaps_removed": 2849,
+              "rack_restricted_removed": 0,
+              "retained_gaps": 838,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 1416
+            },
+            "all_rejected": {
+              "lookups": 4957,
+              "lookups_skipped": 2483,
+              "masks": 2053,
+              "merge_comparisons_avoided": 15075,
+              "probes_avoided": 25680,
+              "rack_gaps_removed": 1723,
+              "rack_restricted_removed": 0,
+              "retained_gaps": 1532,
+              "ruled_out": 1702,
+              "skipped_groups": 11484,
+              "skipped_words": 18527,
+              "windows": 2053
+            },
+            "no_matching_group": {
+              "lookups": 0,
+              "lookups_skipped": 0,
+              "masks": 0,
+              "merge_comparisons_avoided": 0,
+              "probes_avoided": 0,
+              "rack_gaps_removed": 0,
+              "rack_restricted_removed": 0,
+              "retained_gaps": 0,
+              "ruled_out": 0,
+              "skipped_groups": 0,
+              "skipped_words": 0,
+              "windows": 3206
+            }
+          },
+          "one_gap_candidates": 918,
+          "one_gap_groups": 918,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "rack-all-checks": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 10180,
+            "first_failures": {
+              "1": 6335,
+              "2": 1543,
+              "3": 269,
+              "4": 18
+            },
+            "gap_checks": 20662
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 7972,
+              "groups": 7972,
+              "individual_checks": 3949
+            },
+            "2": {
+              "candidate_words": 5706,
+              "groups": 2853,
+              "individual_checks": 4264
+            },
+            "3": {
+              "candidate_words": 1713,
+              "groups": 571,
+              "individual_checks": 1242
+            },
+            "4": {
+              "candidate_words": 872,
+              "groups": 218,
+              "individual_checks": 624
+            },
+            "5": {
+              "candidate_words": 95,
+              "groups": 19,
+              "individual_checks": 95
+            },
+            "6": {
+              "candidate_words": 6,
+              "groups": 1,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 4632,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 0
+            },
+            "down": {
+              "calls": 4012,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 0
+            }
+          },
+          "one_gap_candidates": 918,
+          "one_gap_groups": 918,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "rack-cache": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 10180,
+            "first_failures": {
+              "1": 6335,
+              "2": 1543,
+              "3": 269,
+              "4": 18
+            },
+            "gap_checks": 13170
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 7972,
+              "groups": 7972,
+              "individual_checks": 3949
+            },
+            "2": {
+              "candidate_words": 5706,
+              "groups": 2853,
+              "individual_checks": 4264
+            },
+            "3": {
+              "candidate_words": 1713,
+              "groups": 571,
+              "individual_checks": 1242
+            },
+            "4": {
+              "candidate_words": 872,
+              "groups": 218,
+              "individual_checks": 624
+            },
+            "5": {
+              "candidate_words": 95,
+              "groups": 19,
+              "individual_checks": 95
+            },
+            "6": {
+              "candidate_words": 6,
+              "groups": 1,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 861,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 1054
+            },
+            "down": {
+              "calls": 781,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 959
+            }
+          },
+          "one_gap_candidates": 918,
+          "one_gap_groups": 918,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "rack-neighbor": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 10180,
+            "first_failures": {
+              "1": 6335,
+              "2": 1543,
+              "3": 269,
+              "4": 18
+            },
+            "gap_checks": 13170
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 7972,
+              "groups": 7972,
+              "individual_checks": 3949
+            },
+            "2": {
+              "candidate_words": 5706,
+              "groups": 2853,
+              "individual_checks": 4264
+            },
+            "3": {
+              "candidate_words": 1713,
+              "groups": 571,
+              "individual_checks": 1242
+            },
+            "4": {
+              "candidate_words": 872,
+              "groups": 218,
+              "individual_checks": 624
+            },
+            "5": {
+              "candidate_words": 95,
+              "groups": 19,
+              "individual_checks": 95
+            },
+            "6": {
+              "candidate_words": 6,
+              "groups": 1,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 1947,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 545
+            },
+            "down": {
+              "calls": 2125,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 345
+            }
+          },
+          "one_gap_candidates": 918,
+          "one_gap_groups": 918,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "rack-neighbor-cache": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 10180,
+            "first_failures": {
+              "1": 6335,
+              "2": 1543,
+              "3": 269,
+              "4": 18
+            },
+            "gap_checks": 13170
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 7972,
+              "groups": 7972,
+              "individual_checks": 3949
+            },
+            "2": {
+              "candidate_words": 5706,
+              "groups": 2853,
+              "individual_checks": 4264
+            },
+            "3": {
+              "candidate_words": 1713,
+              "groups": 571,
+              "individual_checks": 1242
+            },
+            "4": {
+              "candidate_words": 872,
+              "groups": 218,
+              "individual_checks": 624
+            },
+            "5": {
+              "candidate_words": 95,
+              "groups": 19,
+              "individual_checks": 95
+            },
+            "6": {
+              "candidate_words": 6,
+              "groups": 1,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 284,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 1566
+            },
+            "down": {
+              "calls": 323,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 1342
+            }
+          },
+          "one_gap_candidates": 918,
+          "one_gap_groups": 918,
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        },
+        "row-cache": {
+          "gap_evaluation": {
+            "candidates": 34891,
+            "checked_candidates": 19512,
+            "first_failures": {
+              "1": 7570,
+              "2": 3520,
+              "3": 1967,
+              "4": 559,
+              "5": 137,
+              "6": 38
+            },
+            "gap_checks": 39251
+          },
+          "groups_by_size": {
+            "1": {
+              "candidate_words": 14328,
+              "groups": 14328,
+              "individual_checks": 8710
+            },
+            "2": {
+              "candidate_words": 13090,
+              "groups": 6545,
+              "individual_checks": 7216
+            },
+            "3": {
+              "candidate_words": 4710,
+              "groups": 1570,
+              "individual_checks": 2340
+            },
+            "4": {
+              "candidate_words": 2456,
+              "groups": 614,
+              "individual_checks": 1080
+            },
+            "5": {
+              "candidate_words": 295,
+              "groups": 59,
+              "individual_checks": 160
+            },
+            "6": {
+              "candidate_words": 12,
+              "groups": 2,
+              "individual_checks": 6
+            }
+          },
+          "lookup_counts": {
+            "across": {
+              "calls": 955,
+              "matched_windows": 1830,
+              "matched_windows_without_lookups": 955
+            },
+            "down": {
+              "calls": 861,
+              "matched_windows": 1639,
+              "matched_windows_without_lookups": 855
+            }
+          },
+          "one_gap_candidates": 986,
+          "one_gap_groups": 986,
+          "row_cache": {
+            "across": {
+              "distinct_squares_per_row": {
+                "0": 28,
+                "1": 5,
+                "2": 7,
+                "3": 6,
+                "4": 9,
+                "5": 7,
+                "6": 8,
+                "7": 14,
+                "8": 9,
+                "9": 16,
+                "10": 6,
+                "11": 11,
+                "12": 13,
+                "13": 7,
+                "14": 3,
+                "15": 1
+              },
+              "hits": 4970,
+              "requests": 5925
+            },
+            "down": {
+              "distinct_squares_per_row": {
+                "0": 38,
+                "1": 6,
+                "2": 8,
+                "3": 5,
+                "4": 13,
+                "5": 5,
+                "6": 11,
+                "7": 5,
+                "8": 10,
+                "9": 11,
+                "10": 4,
+                "11": 8,
+                "12": 7,
+                "13": 12,
+                "14": 6,
+                "15": 1
+              },
+              "hits": 4341,
+              "requests": 5202
+            }
+          },
+          "windows": {
+            "matching_groups": {
+              "by_candidates": {
+                "1": 609,
+                "2": 430,
+                "3": 341,
+                "4": 218,
+                "5": 164,
+                "6": 161,
+                "7": 83,
+                "8": 131,
+                "9": 84,
+                "10": 156,
+                "11": 17,
+                "12": 157,
+                "13": 14,
+                "14": 57,
+                "15": 98,
+                "16": 110,
+                "17": 7,
+                "18": 10,
+                "19": 2,
+                "20": 1,
+                "21": 53,
+                "22": 44,
+                "23": 80,
+                "24": 39,
+                "25": 30,
+                "27": 90,
+                "28": 3,
+                "29": 1,
+                "30": 35,
+                "31": 1,
+                "32": 40,
+                "35": 70,
+                "40": 30,
+                "43": 33,
+                "45": 1,
+                "46": 36,
+                "53": 1,
+                "57": 32
+              },
+              "by_constrained_gaps": {
+                "0": 890,
+                "1": 1193,
+                "2": 660,
+                "3": 415,
+                "4": 217,
+                "5": 80,
+                "6": 13,
+                "7": 1
+              },
+              "by_empty_squares": {
+                "1": 434,
+                "2": 856,
+                "3": 800,
+                "4": 649,
+                "5": 422,
+                "6": 281,
+                "7": 27
+              },
+              "windows": 3469
+            },
+            "no_dictionary_match": {
+              "by_candidates": {
+                "0": 2326
+              },
+              "by_constrained_gaps": {
+                "0": 721,
+                "1": 687,
+                "2": 409,
+                "3": 260,
+                "4": 141,
+                "5": 74,
+                "6": 31,
+                "7": 3
+              },
+              "by_empty_squares": {
+                "1": 226,
+                "2": 293,
+                "3": 353,
+                "4": 370,
+                "5": 377,
+                "6": 366,
+                "7": 341
+              },
+              "windows": 2326
+            },
+            "no_matching_group": {
+              "by_candidates": {
+                "0": 3206
+              },
+              "by_constrained_gaps": {
+                "0": 864,
+                "1": 893,
+                "2": 450,
+                "3": 403,
+                "4": 303,
+                "5": 173,
+                "6": 93,
+                "7": 27
+              },
+              "by_empty_squares": {
+                "1": 109,
+                "2": 228,
+                "3": 327,
+                "4": 458,
+                "5": 613,
+                "6": 663,
+                "7": 808
+              },
+              "windows": 3206
+            }
+          }
+        }
+      }
+    }
+  }
+}
