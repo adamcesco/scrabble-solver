@@ -142,22 +142,24 @@ static void reuse_check_sets_across_overlapping_windows()
         assert(board.perpendicular_check_set(1, 0) != 0); // Below A, T and X are allowed.
         assert(board.perpendicular_check_set(1, 1) == 0); // No word starts with X.
 
-        const std::array<benchmark::Rack, 2> racks{benchmark::Rack("ACT"), benchmark::Rack("OT")};
-        const ViewDecisions expected[] = {
-            fixture.compare_board("AT and CAT below AX", board, "ACT", {&cached}),
-            fixture.compare_board("TO below AX", board, "OT", {&cached}),
+        struct RackCase {
+            const char *letters;
+            unsigned below_a, below_x;
+            ViewDecisions expected;
         };
-        for (const auto &rack : racks) {
+        // AT and CAT start at 0 and 1 below AX. The second rack matches only TO.
+        RackCase racks[] = {{"ACT", 2, 4, {}}, {"OT", 1, 2, {}}};
+        for (auto &rack : racks) {
+            rack.expected = fixture.compare_board("overlapping windows below AX", board, rack.letters, {&cached});
             PlacementTrace baseline{words, board, snapshot};
-            baseline.solve(packed, fixture.patterns, rack);
-            // AT and CAT start at 0 and 1 below AX. The second rack matches only TO.
-            assert(baseline.lookups[0][1][0] == (rack.length == 3 ? 2u : 1u));
-            assert(baseline.lookups[0][1][1] == (rack.length == 3 ? 4u : 2u));
+            baseline.solve(packed, fixture.patterns, benchmark::Rack(rack.letters));
+            assert(baseline.lookups[0][1][0] == rack.below_a);
+            assert(baseline.lookups[0][1][1] == rack.below_x);
         }
-        for (size_t i = 0; i < racks.size(); ++i) {
+        for (const auto &rack : racks) {
             PlacementTrace reuse{words, board, snapshot};
-            reuse.solve(cached, fixture.patterns, racks[i]);
-            assert(reuse.decisions == expected[i]);
+            reuse.solve(cached, fixture.patterns, benchmark::Rack(rack.letters));
+            assert(reuse.decisions == rack.expected);
             assert(reuse.lookups[0][1][0] == 1 && reuse.lookups[0][1][1] == 1);
         }
     }
@@ -220,7 +222,7 @@ static void qualify_inputs(const char *dictionary_path, const std::filesystem::p
             }
             visits.exceptions(std::ios::failbit | std::ios::badbit);
             visits.open(profile_path);
-            visits << "position,variant,down,row,start,length,empty,constrained,pattern_match,group_size,individual_checks,lookups,cache_hits\n";
+            profile.write_header();
         }
         std::cout << "across,across_candidates,down,down_candidates\n";
         std::string line;

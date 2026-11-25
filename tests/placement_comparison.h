@@ -29,6 +29,7 @@ struct WindowWorkload;
 struct WorkloadOutput {
     std::ostream &stream;
     size_t position = 0;
+    void write_header() const;
 };
 
 struct PlacementTrace {

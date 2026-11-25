@@ -18,6 +18,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from bench.window_counters.window_profile import summarize
 
 
+def profile_board(board, words, rack, variants):
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        (root / "words").write_text("\n".join(sorted(words)) + "\n")
+        with (root / "board.csv").open("w") as stream:
+            csv.writer(stream, lineterminator="\n").writerows(board)
+        output = subprocess.check_output(
+            [window_build() / "placement_equivalence_test", root / "words", root / "cache",
+             "--profile", root / "visits", *variants], input=f"{root / 'board.csv'}\t{rack}\n", text=True)
+        counts = {k: int(v) for k, v in next(csv.DictReader(io.StringIO(output))).items()}
+        return counts, (root / "visits").read_text()
+
+
 class WindowBenchmarkTest(unittest.TestCase):
     def test_reserved_game_lists_reproduce_and_export_disjoint_cases(self):
         command = ["python3", "-m", "bench.window_counters.window_games"]
@@ -101,42 +114,25 @@ class WindowBenchmarkTest(unittest.TestCase):
             summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
 
     def test_row_cache_profile_includes_overlaps_and_rows_without_requests(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / "words").write_text("AX\nAT\nCAT\nTO\n")
-            board = [["."] * 15 for _ in range(15)]
-            board[0][:2] = ["A", "X"]
-            with (root / "board.csv").open("w") as stream:
-                csv.writer(stream, lineterminator="\n").writerows(board)
-            output = subprocess.check_output(
-                [window_build() / "placement_equivalence_test", root / "words", root / "cache",
-                 "--profile", root / "visits", "row-cache"], input=f"{root / 'board.csv'}\tACT\n", text=True)
-            counts = {k: int(v) for k, v in next(csv.DictReader(io.StringIO(output))).items()}
-            with (root / "visits").open() as stream:
-                stage = summarize(stream, [{"case": "AX", "stage": "early"}], ["row-cache"], [counts])["early"]
+        board = [["."] * 15 for _ in range(15)]
+        board[0][:2] = ["A", "X"]
+        variants = ["row-cache"]
+        counts, visits = profile_board(board, ["AX", "AT", "CAT", "TO"], "ACT", variants)
+        stage = summarize(io.StringIO(visits), [{"case": "AX", "stage": "early"}], variants, [counts])["early"]
         self.assertEqual(stage["variants"]["row-cache"]["row_cache"]["across"],
                          dict(requests=10, hits=6, distinct_squares_per_row={0: 14, 4: 1}))
 
     def test_neighbor_lookups_at_both_edges_in_both_views(self):
         variants = ("packed", "empty-bits", "neighbor-bits")
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            # Every crossing with A permits all letters, even when a lookup is needed.
-            words = {"ST", "TS"}
-            for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                words.update(("A" + char, char + "A"))
-            (root / "words").write_text("\n".join(sorted(words)) + "\n")
-            board = [["."] * 15 for _ in range(15)]
-            board[1][1] = board[13][13] = "A"
-            with (root / "board.csv").open("w") as stream:
-                csv.writer(stream, lineterminator="\n").writerows(board)
-            output = subprocess.check_output(
-                [window_build() / "placement_equivalence_test", root / "words", root / "cache",
-                 "--profile", root / "visits", *variants], input=f"{root / 'board.csv'}\tST\n", text=True)
-            qualified = {k: int(v) for k, v in next(csv.DictReader(io.StringIO(output))).items()}
-            self.assertEqual(qualified["across"], 24)
-            self.assertEqual(qualified["down"], 24)
-            profile = (root / "visits").read_text()
+        # Every crossing with A permits all letters, even when a lookup is needed.
+        words = {"ST", "TS"}
+        for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            words.update(("A" + char, char + "A"))
+        board = [["."] * 15 for _ in range(15)]
+        board[1][1] = board[13][13] = "A"
+        qualified, profile = profile_board(board, words, "ST", variants)
+        self.assertEqual(qualified["across"], 24)
+        self.assertEqual(qualified["down"], 24)
         cases = [{"case": "two As", "stage": "early"}]
         stage = summarize(io.StringIO(profile), cases, variants, [qualified])["early"]
         for name in variants:

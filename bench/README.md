@@ -100,16 +100,16 @@ python3 -m bench.window_counters.window_profile > build/window-workload.json
 
 ### Reuse perpendicular-check sets across overlapping windows
 
-On 30 development games, `row-cache` saved **11.14 µs per complete solve (2.7%)** against `packed`. Both counters scan every gap when a window first reaches a matching group. The cache stores the first result for each queried column in the current row and board view. A separate validity bit lets it reuse an empty set. The timed worker initializes the validity mask for each row and tests it on every request. [Raw paired solves](results/window-packed-row-cache.csv.gz)
+On 30 development games, `row-cache` saved **8.81 µs per complete solve (2.25%)** against `packed`. Both counters scan every gap when a window first reaches a matching group. The cache stores the first result for each queried column in the current row and board view. A separate validity bit lets it reuse an empty set. The timed worker initializes the validity mask for each row and tests it on every request. [Raw paired solves](results/window-packed-row-cache.csv.gz)
 
 | Stage | Packed (µs/solve) | Row cache (µs/solve) | Paired saving (µs/solve) |
 | --- | ---: | ---: | ---: |
-| Early | 357.40 | 347.86 | 9.54 |
-| Middle | 514.20 | 498.73 | 15.47 |
-| Late | 369.95 | 361.53 | 8.41 |
-| **Equal-stage mean** | **413.85** | **402.71** | **11.14** |
+| Early | 339.26 | 329.83 | 9.44 |
+| Middle | 491.85 | 478.93 | 12.92 |
+| Late | 344.89 | 340.81 | 4.08 |
+| **Equal-stage mean** | **392.00** | **383.19** | **8.81** |
 
-The 95% game-level interval for the saving was **6.21 to 16.36 µs**. The six pilot games saved 20.42 µs (95% CI 11.18 to 29.66), and the 24 additional games saved 8.82 µs (3.60 to 14.33). Each game contributed 40 pairs, 20 in each order, on logical CPU 2 of the i7-6700K with Clang 18.1.3 at `-O2 -march=x86-64` and the full project dictionary. Intervals resample mean paired differences by game within each stage, sorted by case name, with 20,000 draws and seed 15. Both counters agreed with place-and-restore on all 72,530 candidate decisions and all release runs returned the qualified directional counts.
+The 95% game-level interval for the saving was **5.43 to 12.12 µs**. The six pilot games saved 13.10 µs (95% CI 10.20 to 16.01), and the 24 additional games saved 7.74 µs (4.08 to 11.59). Each game contributed 40 pairs, 20 in each order, on logical CPU 2 of the i7-6700K with Clang 18.1.3 at `-O2 -march=x86-64` and the full project dictionary. Intervals resample mean paired differences by game within each stage, sorted by case name, with 20,000 draws and seed 15. The earlier implementation at `1ca4ce2` saved 11.14 µs on the same games (95% CI 6.21 to 16.36). Both counters agreed with place-and-restore on all 72,530 candidate decisions and all release runs returned the qualified directional counts.
 
 The separate diagnostic run counted **23,539 hits on 28,639 requests (82.2%)**. Each miss was the first request for its square in that row and view. Both counters visited the same 49,421 matching groups and performed the same 40,724 individual word checks. Reuse removes repeated lookups during mask construction, which accounts for one part of the solve. [Per-row distributions by stage and direction](results/window-workload.json)
 

@@ -47,6 +47,12 @@ struct VisitedWindow {
     unsigned cache_hits = 0;
 };
 
+void WorkloadOutput::write_header() const
+{
+    stream << "position,variant,down,row,start,length,empty,constrained,pattern_match,"
+              "group_size,individual_checks,lookups,cache_hits\n";
+}
+
 struct WindowWorkload {
     std::vector<VisitedWindow> windows;
 

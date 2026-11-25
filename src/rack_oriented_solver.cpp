@@ -212,19 +212,22 @@ struct MatchedWindow {
 
 enum class GapTraversal { scan, empty_bits, neighbor_bits };
 
-struct DirectCheckSets {
-    static uint32_t get(const Board &board, uint8_t row, uint8_t col)
-    {
-        return board.perpendicular_check_set(row, col);
-    }
+struct RowCheckSets {
+    const Board &board;
+    const uint8_t row;
+
+    RowCheckSets(const Board &board, uint8_t row) : board(board), row(row) {}
+    uint16_t occupied() const { return board.rows[row].occupiedMask; }
+    uint32_t get(uint8_t col) const { return board.perpendicular_check_set(row, col); }
 };
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
-struct CachedRowCheckSets {
+struct CachedRowCheckSets : RowCheckSets {
+    using RowCheckSets::RowCheckSets;
     uint16_t valid = 0;
     uint32_t letters[BOARD_SIZE];
 
-    uint32_t get(const Board &board, uint8_t row, uint8_t col)
+    uint32_t get(uint8_t col)
     {
         const uint16_t bit = bit_at_u16(col);
         if (valid & bit) {
@@ -233,7 +236,7 @@ struct CachedRowCheckSets {
 #endif
             return letters[col];
         }
-        letters[col] = board.perpendicular_check_set(row, col);
+        letters[col] = RowCheckSets::get(col);
         valid |= bit;
         return letters[col];
     }
@@ -250,22 +253,23 @@ struct WindowMasks {
     bool ruled_out = false;
 
     template <typename Checks>
-    WindowMasks(Checks &checks, const Board &board, uint8_t row, const MatchedWindow &window)
+    WindowMasks(Checks &checks, const MatchedWindow &window)
     {
         for (uint8_t offset = 0; offset < window.length; ++offset) {
             uint8_t col = window.start + offset;
-            if (!(board.rows[row].occupiedMask & bit_at_u16(col))) {
-                add_gap(offset, checks.get(board, row, col));
+            if (!(checks.occupied() & bit_at_u16(col))) {
+                add_gap(offset, checks.get(col));
             }
         }
     }
 
-    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window, uint16_t eligible_columns)
+    template <typename Checks>
+    WindowMasks(Checks &checks, const MatchedWindow &window, uint16_t eligible_columns)
     {
-        uint16_t columns = window.empty_columns(board.rows[row].occupiedMask) & eligible_columns;
+        uint16_t columns = window.empty_columns(checks.occupied()) & eligible_columns;
         while (columns) {
             const uint8_t col = __builtin_ctz(columns);
-            add_gap(col - window.start, board.perpendicular_check_set(row, col));
+            add_gap(col - window.start, checks.get(col));
             columns &= columns - 1u;
         }
     }
@@ -290,7 +294,7 @@ struct WindowMasks {
     }
 };
 
-template <typename Checks = DirectCheckSets, typename CountWindow>
+template <typename Checks = RowCheckSets, typename CountWindow>
 size_t count_rack_windows(
     const WordPatternTable *word_patterns,
     const RackSubsetKeys *rack_subset_keys,
@@ -316,7 +320,7 @@ size_t count_rack_windows(
                 }
             }
         );
-        Checks checks;
+        Checks checks(*board, row_index);
         for (uint8_t empty_count = 1; empty_count <= rack_length; ++empty_count) {
             for (uint8_t index = 0; index < counts[empty_count]; ++index) {
                 const MatchedWindow &window = by_empty_count[empty_count][index];
@@ -327,7 +331,7 @@ size_t count_rack_windows(
                         rack_subset_keys->keys[empty_count], rack_subset_keys->counts[empty_count], visit
                     );
                 };
-                count += count_window(checks, row_index, neighbors, window, empty_count, visit_groups);
+                count += count_window(checks, neighbors, window, empty_count, visit_groups);
             }
         }
     }
@@ -338,13 +342,12 @@ template <GapTraversal traversal>
 struct WindowCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
-    const Board &board;
 
-    WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns, const Board &board)
-        : dictionary(dictionary), patterns(patterns), board(board) {}
+    WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns)
+        : dictionary(dictionary), patterns(patterns) {}
 
     template <typename Checks, typename VisitGroups>
-    size_t operator()(Checks &checks, uint8_t row, uint16_t neighbors, const MatchedWindow &window,
+    size_t operator()(Checks &checks, uint16_t neighbors, const MatchedWindow &window,
                       uint8_t, VisitGroups visit_groups) const
     {
         size_t count = 0;
@@ -352,22 +355,22 @@ struct WindowCounter {
         visit_groups([&](const WordPatternAnagramGroup &group) {
             if (!masks) {
                 if constexpr (traversal == GapTraversal::scan) {
-                    masks.emplace(checks, board, row, window);
+                    masks.emplace(checks, window);
                 } else if constexpr (traversal == GapTraversal::empty_bits) {
-                    masks.emplace(board, row, window, UINT16_MAX);
+                    masks.emplace(checks, window, UINT16_MAX);
                 } else {
-                    masks.emplace(board, row, window, neighbors);
+                    masks.emplace(checks, window, neighbors);
                 }
             }
             const uint32_t *ids = patterns.word_indices.data() + group.word_indices.start;
             if (masks->ruled_out) {
-                trace_placements(row, window.start, ids, group.word_indices.count, false);
+                trace_placements(checks.row, window.start, ids, group.word_indices.count, false);
                 return;
             }
             for (size_t i = 0; i < group.word_indices.count; ++i) {
                 bool accepted = masks->accepts(dictionary.words[ids[i]]);
                 count += accepted;
-                trace_placements(row, window.start, ids + i, 1, accepted);
+                trace_placements(checks.row, window.start, ids + i, 1, accepted);
             }
         });
         return count;
@@ -381,32 +384,32 @@ struct OneGapCounter : PackedCounter {
     using PackedCounter::PackedCounter;
 
     template <typename VisitGroups>
-    size_t operator()(DirectCheckSets &checks, uint8_t row, uint16_t neighbors, const MatchedWindow &window,
+    size_t operator()(RowCheckSets &checks, uint16_t neighbors, const MatchedWindow &window,
                       uint8_t empty_count, VisitGroups visit_groups) const
     {
         if (empty_count != 1) {
-            return PackedCounter::operator()(checks, row, neighbors, window, empty_count, visit_groups);
+            return PackedCounter::operator()(checks, neighbors, window, empty_count, visit_groups);
         }
         std::optional<uint32_t> letters;
         size_t count = 0;
         visit_groups([&](const WordPatternAnagramGroup &group) {
             if (!letters) {
-                const auto gap = window.empty_columns(board.rows[row].occupiedMask);
-                letters = board.perpendicular_check_set(row, __builtin_ctz(gap));
+                const auto gap = window.empty_columns(checks.occupied());
+                letters = checks.get(__builtin_ctz(gap));
             }
             const auto tile = get_byte_128(group.rack_letters, 0, BOARD_SIZE);
             const bool accepted = *letters & (1u << (tile - 'A'));
             if (accepted) {
                 count += group.word_indices.count;
             }
-            trace_placements(row, window.start, patterns.word_indices.data() + group.word_indices.start,
+            trace_placements(checks.row, window.start, patterns.word_indices.data() + group.word_indices.start,
                              group.word_indices.count, accepted);
         });
         return count;
     }
 };
 
-template <typename Counter, typename Checks = DirectCheckSets>
+template <typename Counter, typename Checks = RowCheckSets>
 benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTable &patterns,
                                      Board &board, const benchmark::Rack &rack)
 {
@@ -415,7 +418,7 @@ benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTa
     auto start = Clock::now();
 #endif
     auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
-    Counter counter(words, patterns, board);
+    Counter counter(words, patterns);
     auto counts = count_both_views(board, [&] {
         return count_rack_windows<Checks>(&patterns, &keys, &board, rack.length, counter);
     });
@@ -457,7 +460,7 @@ size_t rack_oriented_full_board_solver(
 )
 {
     return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
-                              PackedCounter(*dictionary, *word_patterns, *board));
+                              PackedCounter(*dictionary, *word_patterns));
 }
 
 size_t rack_oriented_full_board_solver(
@@ -471,12 +474,12 @@ size_t rack_oriented_full_board_solver(
 {
     const Board original_board = *board;
     return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
-        [&](DirectCheckSets &, uint8_t row, uint16_t, const MatchedWindow &window, uint8_t, auto visit_groups) {
+        [&](const RowCheckSets &checks, uint16_t, const MatchedWindow &window, uint8_t, auto visit_groups) {
             size_t count = 0;
             visit_groups([&](const WordPatternAnagramGroup &group) {
                 count += validate_rack_window_words(
                     dictionary, word_patterns, word_start_rows, board,
-                    row, window.start, window.length, group, &original_board
+                    checks.row, window.start, window.length, group, &original_board
                 );
             });
             return count;
