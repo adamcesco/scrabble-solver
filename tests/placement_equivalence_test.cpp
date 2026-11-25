@@ -37,8 +37,7 @@ static void compare_rt_orders(bool tar_first, const WindowVariants &variants)
             board.prepare_perpendicular_checks(fixture.lookup);
             SolverBoardSnapshot snapshot{board};
             const benchmark::Rack rack("RT");
-            auto rt = rack_subset_keys_for_rack(rack.tiles, rack.length);
-            auto counts = rack_oriented_both_directions(&words, &fixture.patterns, &rt, &board, rack.length);
+            auto counts = rack_neighbor_both_directions(words, fixture.patterns, board, rack.tiles, rack.length);
             snapshot.check(board, false);
             assert(counts.across == accepted_count(decisions[0]));
             assert(counts.down == accepted_count(decisions[1]));
@@ -114,20 +113,28 @@ static void compare_duplicate_group_entries(const WindowVariants &variants)
     words.destroy();
 }
 
-static void one_tile_counts_in_both_directions_and_restores_the_prepared_board(const WindowVariants &variants)
+static void one_tile_counts_in_both_directions_and_restores_the_board(const WindowVariants &variants)
 {
     WordTable words = load_dictionary("AS\nST\n");
     {
         PlacementComparison fixture{words};
-        Board board = board_at(0, 0, {"AS", "S."});
-        fixture.compare_board("one tile", board, "T", variants);
-        board.prepare_perpendicular_checks(fixture.lookup);
-        SolverBoardSnapshot snapshot{board};
-        const benchmark::Rack tiles("T");
-        auto rack = rack_subset_keys_for_rack(tiles.tiles, tiles.length);
-        const auto counts = rack_oriented_both_directions(&words, &fixture.patterns, &rack, &board, 1);
-        assert(counts.across == 1 && counts.down == 1);
-        snapshot.check(board, false);
+        const Board position = board_at(0, 1, {"AS", "S."});
+        fixture.compare_board("one tile", position, "T", variants);
+        const benchmark::Rack rack("T");
+        for (bool packed : {false, true}) {
+            benchmark::Validator validator(words, fixture.patterns, packed);
+            Board board = position;
+            validator.prepare(board);
+            const SolverBoardSnapshot snapshot{board};
+            for (bool transposed : {false, true}) {
+                if (transposed) {
+                    board.swap_views();
+                }
+                const auto counts = validator.solve(board, rack);
+                assert(counts.across == 1 && counts.down == 1);
+                snapshot.check(board, transposed);
+            }
+        }
     }
     words.destroy();
 }
@@ -361,7 +368,7 @@ int main(int argc, char **argv)
         compare_rt_orders(false, variants);
         compare_rack_groups_and_ruled_out_windows(variants);
         compare_duplicate_group_entries(variants);
-        one_tile_counts_in_both_directions_and_restores_the_prepared_board(variants);
+        one_tile_counts_in_both_directions_and_restores_the_board(variants);
         if (argc >= 3) {
             qualify_inputs(argv[1], argv[2], argv[0], mode, variants, profile_path);
         } else if (argc != 1) {

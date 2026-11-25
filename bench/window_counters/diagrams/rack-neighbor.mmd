@@ -1,0 +1,65 @@
+---
+title: Rack-neighbor solver
+config:
+  flowchart:
+    nodeSpacing: 24
+    rankSpacing: 30
+    padding: 10
+    wrappingWidth: 240
+---
+flowchart LR
+    %% RackNeighborCounter with RowCheckSets in src/solvers/rack_neighbor/counter.h (uncached release path).
+    subgraph solve["Solve both directions"]
+        direction TB
+        start(["Prepared board, dictionary,<br/>pattern table and sorted rack"])
+        start --> keys["Build distinct rack subset keys<br/>and sort them within each tile count"]
+        keys --> alphabet["Build the set of letters on the whole rack once"]
+        alphabet --> view["Start the active view with count 0"]
+        view --> row{"Another row?"}
+        row -->|Yes| buckets["Find connected, complete windows with<br/>1 to rack-size gaps. Bucket pattern-table<br/>hits by their number of gaps.<br/>Keep columns occupied above or below."]
+        buckets --> window{"Another window<br/>in these groups?"}
+        window -->|Yes| countWindow[["Count one window and<br/>add its result to the view total"]]
+        countWindow --> window
+        window -->|No| row
+        row -->|No| across{"Which view just finished?"}
+        across -->|Across| swap["Save across count and<br/>swap to the perpendicular view"]
+        swap --> view
+        across -->|Down| done(["Save down count, restore the original view<br/>and return both directional counts"])
+    end
+
+    subgraph counter["Count one window · rack-neighbor"]
+        direction TB
+        choose{"Pattern groups &gt; 4 × rack subset keys<br/>of the required tile count?"}
+        choose -->|Yes| probe["Binary-search for each rack subset key"]
+        choose -->|No| merge["Merge sorted group and rack subset keys"]
+        probe --> group{"Next matching anagram group?"}
+        merge --> group
+        group -->|No| total(["Return the window count"])
+        group -->|Yes| first{"First match in this window?"}
+        first -->|Yes| build[["Build rack-filtered gap checks"]]
+        build --> impossible{"Window ruled out?"}
+        impossible -->|Yes| stop(["Stop the group search.<br/>Return 0 for the entire window."])
+        impossible -->|No| retained
+        first -->|No| retained{"Any retained gaps?"}
+        retained -->|No| bulk["Add the group size"]
+        retained -->|Yes| words["For each word, test the retained offsets.<br/>Reject on the first disallowed letter.<br/>Add 1 if the word passes every check."]
+        bulk --> group
+        words --> group
+    end
+
+    subgraph masks["Build rack-filtered gap checks"]
+        direction TB
+        filter["Intersect the window's empty columns<br/>with the adjacent rows' occupied columns"]
+        filter --> gap{"Another selected column?"}
+        gap -->|No| ready(["Reuse the retained checks<br/>for this window"])
+        gap -->|Yes| eligible["Read its perpendicular-check set.<br/>Intersect it with the whole rack's letter set."]
+        eligible --> none{"Any eligible letters?"}
+        none -->|No| ruled(["Mark the window impossible<br/>and stop building checks"])
+        none -->|Yes| all{"Are all rack letters eligible?"}
+        all -->|Yes · skip gap| gap
+        all -->|No| save["Save the word offset and eligible letters"]
+        save --> gap
+    end
+
+    solve -.->|one call per window| counter
+    counter -.->|first match only| masks

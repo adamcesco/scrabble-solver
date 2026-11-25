@@ -56,6 +56,14 @@ A selection of tiles from the rack, identified by its letters and how many of ea
 
 A word formed through a newly placed tile at right angles to the word being considered. In the `SEA` and `TEA` example, each is perpendicular to the other.
 
+**Preexisting perpendicular prefix word** (prefix word)
+
+The uninterrupted run of existing tiles immediately before the square to be filled, read in the direction of the perpendicular word. In `AT.AS`, placing L forms `ATLAS` with `AT` as the prefix word.
+
+**Preexisting perpendicular suffix word** (suffix word)
+
+The uninterrupted run of existing tiles immediately after the square to be filled, read in the direction of the perpendicular word. In `AT.AS`, the suffix word is `AS`. Either run can be a single tile.
+
 **Perpendicular-check set**
 
 The letters allowed at an empty square by the perpendicular word requirement alone, in the board view being considered. The set contains every letter when no perpendicular word would form, and only `{B, M}` when `BA` and `MA` are the only dictionary words that fit the perpendicular pattern `.A`.

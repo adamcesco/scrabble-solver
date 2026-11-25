@@ -11,11 +11,12 @@ from bench.measurement_support.benchmark_inputs import sha256
 
 WORK = Path("build/window-compiler")
 HERE = Path("bench/window_counters")
-SOLVER = Path("src/rack_oriented_solver.cpp")
-SOURCES = sorted(set(Path("src").glob("*.cpp")) - {Path("src/main.cpp")})
+SOLVERS = Path("src/solvers")
+REGISTRY = HERE / "window_variants.cpp"
+SOURCES = sorted(set(Path("src").rglob("*.cpp")) - {Path("src/main.cpp")})
 PORTABLE = ("-O2", "-march=x86-64")
 NATIVE = ("-O2", "-march=skylake")
-# Each edge changes one setting. The size trial overrides only the solver object.
+# Each edge changes one setting. The size trial overrides only the solver and counter-registry objects.
 CONFIGS = {
     "portable": PORTABLE,
     "portable-o3": ("-O3", "-march=x86-64"),
@@ -48,15 +49,15 @@ def build(name, flags, *, profile=None, full_registry=False):
     cxx = shutil.which("clang++-18")
     version = subprocess.check_output([cxx, "--version"], text=True).strip()
     ld = subprocess.check_output(["ld", "--version"], text=True).splitlines()[0]
-    common = ["-std=c++17", *flags, "-Iinclude", "-Ibench/window_counters", "-Ibench/measurement_support",
-              "-DSCRABBLE_WINDOW_VARIANTS"]
+    common = ["-std=c++17", *flags, "-Iinclude", "-Isrc", "-Ibench/window_counters", "-Ibench/measurement_support"]
     if not full_registry:
         common.append("-DSCRABBLE_TUNING_PAIR")
     if profile:
         common += [f"-fprofile-instr-use={profile}", "-Werror=profile-instr-out-of-date",
                    "-Werror=profile-instr-unprofiled"]
-    sources = [*SOURCES, HERE / ("window_worker.cpp" if host else "tuning_library.cpp")]
-    headers = [*Path("include").glob("*.h"), HERE / "window_variants.h",
+    sources = [*SOURCES, REGISTRY, HERE / ("window_worker.cpp" if host else "tuning_library.cpp")]
+    headers = [*Path("include").rglob("*.h"), *SOLVERS.rglob("*.h"), HERE / "window_variants.h",
+               *(HERE / "variants").glob("*.h"),
                Path("bench/measurement_support/benchmark_solver.h")]
     if host:
         headers.append(HERE / "tuning_loader.h")
@@ -68,11 +69,11 @@ def build(name, flags, *, profile=None, full_registry=False):
     objects = []
     for source in sources:
         extra = []
-        if source == SOLVER and not host:
+        if not host and (source == REGISTRY or SOLVERS in source.parents):
             extra = ["-Rpass=inline|loop-vectorize", "-Rpass-missed=inline|loop-vectorize"]
             if name == "solver-os":
                 extra.append("-Os")
-        obj = "{out}/" + source.stem + ".o"
+        obj = "{out}/" + str(source.with_suffix(".o"))
         commands.append([cxx, *common, *extra, "-c", str(source), "-o", obj])
         objects.append(obj)
     link = ["-ldl"] if host else ["-shared", "-Wl,-z,defs"]
@@ -88,6 +89,8 @@ def build(name, flags, *, profile=None, full_registry=False):
         if sha256(binary) == saved["sha256"]:
             return saved
     print(f"build {name} in {directory}", flush=True)
+    for parent in {source.parent for source in sources}:
+        (directory / parent).mkdir(parents=True, exist_ok=True)
     executed = []
     with gzip.open(directory / "remarks.txt.gz", "wt") as remarks:
         for cmd in commands:

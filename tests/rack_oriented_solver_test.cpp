@@ -35,30 +35,19 @@ static size_t solve_with_dictionary(Board *board, const char *dictionary_content
     uint64_t packed_rack = 0;
     uint8_t rack_length = (uint8_t)strlen(rack);
     memcpy(&packed_rack, rack, rack_length);
-    RackSubsetKeys rack_subset_keys = rack_subset_keys_for_rack(packed_rack, rack_length);
-    size_t reference_count = rack_oriented_full_board_solver(
-        &dictionary,
-        &patterns,
-        &rows,
-        &rack_subset_keys,
-        board,
-        rack_length
-    );
+    const auto reference = place_and_restore_both_directions(dictionary, patterns, rows, *board, packed_rack, rack_length);
 
-    size_t count;
     {
         PerpendicularCheckTable lookup(dictionary);
         Board prepared = *board;
         prepared.prepare_perpendicular_checks(lookup);
-        count = rack_oriented_full_board_solver(
-            &dictionary, &patterns, &rack_subset_keys, &prepared, rack_length
-        );
-        assert(count == reference_count);
+        const auto packed = packed_both_directions(dictionary, patterns, prepared, packed_rack, rack_length);
+        assert(packed.across == reference.across && packed.down == reference.down);
     }
     rows.destroy();
     dictionary.destroy();
 
-    return count;
+    return reference.across;
 }
 
 static void counts_words_matching_board_pattern_and_rack_subset(void)

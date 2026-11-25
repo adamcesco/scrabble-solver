@@ -1,5 +1,6 @@
 #include "placement_comparison.h"
 #include "placement_trace.h"
+#include "solvers/place_and_restore/counter.h"
 #include "square_equivalence.h"
 
 #include <algorithm>
@@ -285,7 +286,8 @@ ViewDecisions PlacementComparison::compare_board(
     for (bool down : {false, true}) {
         check_view(name, down ? "down" : "across", words, original, board);
         active_trace = &reference;
-        expected_counts[down] = rack_oriented_full_board_solver(&words, &patterns, &rows, &keys, &board, rack.length);
+        expected_counts[down] = rack_solver::count_rack_windows(
+            &patterns, &keys, &board, rack.length, rack_solver::PlaceAndRestoreCounter(words, patterns, rows, board));
         active_trace = nullptr;
         snapshot.check(board, down);
         packed_lookups[down] = expected_lookups(board, reference.decisions[down]);

@@ -1,4 +1,4 @@
-# Paired validator benchmark
+# Solver benchmarks
 
 Run from the repository root with Python 3.10+ and the C++17 toolchain.
 
@@ -14,7 +14,7 @@ Each measurement owns its runner and native worker. Python code shared between m
 
 ## Compare window counters on prepared boards
 
-`make -s window-benchmark` qualifies and times `packed` and `one-gap` on the small fixture. Use `--variants BASELINE CHALLENGER` to select a different pair. Each CSV row records both solve times in microseconds, their difference (baseline minus challenger), the run order, stage, directional counts, input fingerprints, compiler flags, worker fingerprint and CPU affinity.
+Use `make window-benchmark` for prepared-board comparisons. By default it qualifies and times `packed` and `one-gap` on the small fixture. Use `--variants BASELINE CHALLENGER` to select a different pair. Each CSV row records both solve times in microseconds, their difference (baseline minus challenger), the run order, stage, directional counts, input fingerprints, compiler flags, worker fingerprint and CPU affinity.
 
 To compare counters on one position, pass a board CSV and its rack. The board path is relative to the working directory. The output uses the board filename stem as the case name and `single` as the stage.
 
@@ -38,7 +38,9 @@ taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
     > bench/results/window-pilot.csv
 ```
 
-To add a counter, define its window callable beside `PackedCounter` and register `measure_solve<YourCounter>` under a name in `window_variant`. The qualifier and worker compile that registry. The production entry calls the packed counter directly. For workload profiles, shared traversal records each window and group visit. `GroupWords::count_if` records one individual check for each word it passes to an acceptance test. A counter with its own per-word acceptance test should record one `trace_individual_check()` per word it checks. [Counter implementations and registry](../src/rack_oriented_solver.cpp)
+The CLI uses the uncached rack-neighbor counter. The packed baseline and the place-and-restore validator each have their own solver directory. All three use the same rack-subset keys and window traversal. [Rack-neighbor](../src/solvers/rack_neighbor/counter.h) · [Packed](../src/solvers/packed/counter.h) · [Place-and-restore](../src/solvers/place_and_restore/solver.cpp) · [Shared traversal](../src/solvers/shared/rack_windows.h)
+
+To add a benchmark counter, put its implementation in `bench/window_counters/variants/` and register its `measure_solve` specialization by name. The qualifier and worker use the same registry. Shared traversal records each window and group visit. `GroupWords::count_if` records one individual check for each word it tests. A counter with its own per-word acceptance test should record one `trace_individual_check()` per word it checks. [Benchmark variants](window_counters/variants/) · [Registry](window_counters/window_variants.cpp)
 
 The build keeps each compiler and flag configuration in its own directory. Run `make -s window-tools CXX=clang++ CXXFLAGS="$flags"` to print the directory containing the qualifier and worker. In the recorded Clang 18.1.3 worker, `objdump -d -C` shows separate timed drivers at `0x3cf0` and `0x3de0`. Each calls rack-subset generation immediately after the start clock and reads the end clock after the second view swap. Both the production packed entry and the packed driver call the traversal at `0x3f00`. In the one-gap traversal the binary-probe and merge paths test the key letter with `bt` at `0x5002` and `0x523e`, then branch around the addition of the group count on a miss. Neither path fetches a candidate word. Multi-gap matches call the packed candidate check directly. The variant name lookup is outside both timed drivers.
 
@@ -316,8 +318,8 @@ for layout in gap-u32 gap-arrays; do
         --variants packed "$layout" --cases build/window-development/cases.csv \
         --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > "build/packed-$layout.csv"
 done
-clang++ $flags -DSCRABBLE_WINDOW_VARIANTS -Ibench/window_counters -Ibench/measurement_support \
-    -Xclang -fdump-record-layouts -fsyntax-only src/rack_oriented_solver.cpp > build/gap-layouts.txt
+clang++ $flags -Isrc -Ibench/window_counters -Ibench/measurement_support \
+    -Xclang -fdump-record-layouts -fsyntax-only bench/window_counters/window_variants.cpp > build/gap-layouts.txt
 objdump -d -C -M intel "$window_tools/window_worker" > build/gap-layouts.asm
 )
 ```
@@ -504,6 +506,20 @@ Each of the 30 development games contributes one turn. Within each stage, develo
 The two zero-group columns together cover every visited window with zero candidates. Each group visit contributes its full word range to candidate words, including words rejected by an impossible gap. Individual checks count actual calls to the per-word acceptance test. Windows with exactly one empty square accounted for 467 early candidates (2.3%), 986 middle (2.8%) and 1,047 late (6.0%). Packed already ruled out some of these in bulk. The one-gap shortcut avoided 445, 890 and 859 additional individual checks, respectively.
 
 The JSON gives exact frequency tables by stage and counter for empty squares, constrained gaps and candidates per window. It keeps windows with matching groups, patterns with no matching rack subset and patterns with no dictionary match separate. A constrained gap is an empty square whose perpendicular-check set permits fewer than 26 letters, including zero. The qualifier inspects those squares after the traced solve, so these diagnostic lookups preserve the baseline lookup check. The `groups_by_size` table gives visits, candidate words and individual checks for each group size. [Full development profile](results/window-workload.json)
+
+### Reproduce the historical single-counter run
+
+Revision `8eb0edd` contains the one-row batch solver from the row-local comparison and its standalone driver. From the repository root, use the separately supplied sample board and dictionary with that revision. The recorded run used Clang 18.1.3 and logical CPU 3.
+
+```sh
+sample_data="$PWD/data"
+git worktree add --detach ../scrabble-row-local 8eb0edd
+cd ../scrabble-row-local
+mkdir -p data/caches
+make -B CXX=clang++ build/solver_benchmark
+taskset -c 3 ./build/solver_benchmark "$sample_data/boards/sample_board.csv" \
+    "$sample_data/dictionaries/sample_dictionary.txt" 5000
+```
 
 ## Replay a recorded game
 

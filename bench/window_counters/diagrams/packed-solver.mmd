@@ -1,0 +1,58 @@
+---
+title: Packed solver
+config:
+  flowchart:
+    nodeSpacing: 24
+    rankSpacing: 30
+    padding: 10
+    wrappingWidth: 240
+---
+flowchart LR
+    %% PackedCounter in src/solvers/packed/counter.h; count_both_views in include/solvers/shared.h.
+    subgraph solve["Solve both directions"]
+        direction TB
+        start(["Prepared board, dictionary,<br/>pattern table and sorted rack"])
+        start --> keys["Build distinct rack subset keys<br/>and sort them within each tile count"]
+        keys --> view["Start the active view with count 0"]
+        view --> row{"Another row?"}
+        row -->|Yes| buckets["Find connected, complete windows with<br/>1 to rack-size gaps. Bucket pattern-table<br/>hits by their number of gaps."]
+        buckets --> window{"Another window<br/>in these groups?"}
+        window -->|Yes| countWindow[["Count one window and<br/>add its result to the view total"]]
+        countWindow --> window
+        window -->|No| row
+        row -->|No| across{"Which view just finished?"}
+        across -->|Across| swap["Save across count and<br/>swap to the perpendicular view"]
+        swap --> view
+        across -->|Down| done(["Save down count, restore the original view<br/>and return both directional counts"])
+    end
+
+    subgraph counter["Count one window · packed"]
+        direction TB
+        choose{"Pattern groups &gt; 4 × rack subset keys<br/>of the required tile count?"}
+        choose -->|Yes| probe["Binary-search for each rack subset key"]
+        choose -->|No| merge["Merge sorted group and rack subset keys"]
+        probe --> group{"Next matching anagram group?"}
+        merge --> group
+        group -->|No| total(["Return the window count"])
+        group -->|Yes| first{"First match in this window?"}
+        first -->|Yes| build[["Build checks for all gaps"]]
+        first -->|No| impossible
+        build --> impossible{"Does any gap allow zero letters?"}
+        impossible -->|Yes| reject["Count zero for this group"]
+        reject --> group
+        impossible -->|No| words["For each word, skip unrestricted gaps.<br/>Reject on the first disallowed letter.<br/>Add 1 if the word passes every gap."]
+        words --> group
+    end
+
+    subgraph masks["Build checks for all gaps"]
+        direction TB
+        scan["Scan window squares from left to right"] --> square{"Another square?"}
+        square -->|Yes| empty{"Empty square?"}
+        empty -->|No| square
+        empty -->|Yes| save["Read its perpendicular-check set.<br/>Save the word offset and allowed letters,<br/>including empty and unrestricted sets."]
+        save --> square
+        square -->|No| ready(["Reuse the checks for every<br/>matching group in this window"])
+    end
+
+    solve -.->|one call per window| counter
+    counter -.->|first match only| masks

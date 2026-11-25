@@ -105,13 +105,10 @@ struct Validator {
 
     DirectionalCounts solve(Board &board, const Rack &rack) const
     {
-        auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
         if (packed) {
-            return rack_oriented_both_directions(&words, &patterns, &keys, &board, rack.length);
+            return packed_both_directions(words, patterns, board, rack.tiles, rack.length);
         }
-        return count_both_views(board, [&] {
-            return rack_oriented_full_board_solver(&words, &patterns, &original, &keys, &board, rack.length);
-        });
+        return place_and_restore_both_directions(words, patterns, original, board, rack.tiles, rack.length);
     }
 };
 
