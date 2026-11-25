@@ -320,8 +320,8 @@ struct GroupWords {
 };
 
 struct AllLetters {
-    static constexpr uint32_t letters = PerpendicularCheckTable::all_letters;
     uint32_t eligible(uint32_t allowed) const { return allowed; }
+    bool unrestricted(uint32_t eligible) const { return eligible == PerpendicularCheckTable::all_letters; }
 };
 
 template <bool stop_at_impossible, bool constrained_only>
@@ -341,7 +341,7 @@ struct WindowMasks : GapChecks {
                     break;
                 }
                 if constexpr (constrained_only) {
-                    if (letters == alphabet.letters) {
+                    if (alphabet.unrestricted(letters)) {
 #ifdef SCRABBLE_TRACE_PLACEMENTS
                         trace_rack_gap_removed(allowed != PerpendicularCheckTable::all_letters);
 #endif
@@ -507,6 +507,7 @@ struct OneGapCounter : PackedCounter {
 struct RackAlphabet {
     uint32_t letters = 0;
     uint32_t eligible(uint32_t allowed) const { return allowed & letters; }
+    bool unrestricted(uint32_t eligible) const { return eligible == letters; }
 };
 
 enum class SubsetPolicy { none, alphabet, capacity, capacity_multi };
