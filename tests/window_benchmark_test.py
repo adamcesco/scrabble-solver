@@ -159,6 +159,51 @@ class WindowBenchmarkTest(unittest.TestCase):
                     self.assertEqual(int(group["individual_checks"]), 2 if accepted else 0)
                     self.assertEqual(int(group["accepted"]), accepted)
 
+    def test_fixed_and_general_constrained_gap_counts(self):
+        board = [["."] * 15 for _ in range(15)]
+        words = ["AZST", "ASTZ", "AZTS", "AZSU", "XZ", "YS", "QT", "XY", "XYQ"]
+        # AZST fits every row. The first failures for ASTZ, AZTS and AZSU
+        # fall at X, Y and Q, respectively.
+        for count in (1, 2, 3):
+            row = 3 * count
+            board[row][0] = "A"
+            board[row - 1][1:1 + count] = "XYQ"[:count]
+        variants = ("scalar-general", "scalar-1-2")
+        _, visits = profile_board(board, words, "STUZ", variants, check_release=True)
+        for count in (1, 2, 3):
+            groups = window_groups(visits, row=3 * count, start=0, length=4)
+            for name in variants:
+                observed = [r for r in groups if r["variant"] == name]
+                self.assertEqual({int(r["retained_gaps"]) for r in observed}, {count})
+                self.assertEqual(sum(int(r["individual_checks"]) for r in observed), 4)
+                self.assertEqual(sum(int(r["accepted"]) for r in observed), 4 - count)
+                self.assertEqual([sum(int(r[f"first_failure_{i}"]) for r in observed) for i in range(1, 4)],
+                                 [int(i <= count) for i in range(1, 4)])
+
+    def test_single_letter_and_general_membership_at_final_offset(self):
+        board = [["."] * 15 for _ in range(15)]
+        # Under X only Z passes. Under Y either R or Z passes. Q rules out
+        # the window and an empty neighbor admits all three candidates.
+        crossings = [(1, "X", 1), (4, "Y", 2), (7, "Q", 0), (10, ".", 3)]
+        for row, above, _ in crossings:
+            board[row][0], board[row - 1][2] = "A", above
+        variants = ("singleton-mask", "singleton-byte")
+        counts, visits = profile_board(board, ["ART", "ATR", "ATZ", "XZ", "YR", "YZ"], "RTZ", variants,
+                                       check_release=True)
+        for row, above, accepted in crossings:
+            groups = window_groups(visits, row=row, start=0, length=3)
+            for name in variants:
+                observed = [r for r in groups if r["variant"] == name]
+                self.assertEqual(sum(int(r["accepted"]) for r in observed), accepted)
+                self.assertEqual(sum(int(r["individual_checks"]) for r in observed), 3 if above in "XY" else 0)
+                self.assertEqual({r["singleton_letter"] for r in observed}, {"1" if above == "X" else "0"})
+        profiles = summarize(io.StringIO(visits), [{"case": "crossings", "stage": "early"}], variants, [counts])
+        for profile in profiles["early"]["variants"].values():
+            # XZ, YR, YZ and the bottom A's three completions are unrestricted in both views.
+            self.assertEqual(profile["scalar_paths"],
+                             dict(ruled_out=3, unrestricted=12, checked_by_gap_count={1: 6},
+                                  singleton_windows=1, singleton_candidates=3))
+
     def test_first_failure_in_candidate_gap_order(self):
         board = [["."] * 15 for _ in range(15)]
         board[1][0], board[0][1], board[0][3] = "A", "X", "Y"

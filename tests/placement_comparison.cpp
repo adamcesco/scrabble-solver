@@ -54,6 +54,7 @@ struct VisitedWindow {
     unsigned cache_hits = 0;
     unsigned masks = 0;
     unsigned retained_gaps = 0;
+    bool singleton_letter = false;
     bool ruled_out = false;
     unsigned probes_avoided = 0;
     unsigned merge_comparisons_avoided = 0;
@@ -70,7 +71,7 @@ void WorkloadOutput::write_header() const
     for (int position = 1; position <= MAX_RACK_TILES; ++position) {
         stream << ",first_failure_" << position;
     }
-    stream << '\n';
+    stream << ",singleton_letter\n";
 }
 
 struct WindowWorkload {
@@ -108,7 +109,7 @@ struct WindowWorkload {
                 for (auto failures : group.first_failures) {
                     output.stream << ',' << failures;
                 }
-                output.stream << '\n';
+                output.stream << ',' << w.singleton_letter << '\n';
             };
             if (w.groups.empty()) {
                 emit({0});
@@ -155,11 +156,12 @@ void trace_gap_check(uint8_t index, bool first_failure)
     }
 }
 
-void trace_mask_built(bool ruled_out, unsigned retained_gaps)
+void trace_mask_built(bool ruled_out, unsigned retained_gaps, bool singleton_letter)
 {
     if (auto *window = current_workload_window()) {
         ++window->masks;
         window->retained_gaps = retained_gaps;
+        window->singleton_letter = singleton_letter;
         window->ruled_out = ruled_out;
     }
 }

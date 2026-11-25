@@ -38,7 +38,7 @@ taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
     > bench/results/window-pilot.csv
 ```
 
-To add a counter, define its window callable beside `PackedCounter` and register `measure_solve<YourCounter>` under a name in `window_variant`. The qualifier and worker compile that registry. The production entry calls the packed counter directly. For workload profiles, shared traversal records each window and group visit. `WindowMasks::accepts` records an individual check at entry. A counter with its own per-word acceptance test should record one `trace_individual_check()` per word it checks. [Counter implementations and registry](../src/rack_oriented_solver.cpp)
+To add a counter, define its window callable beside `PackedCounter` and register `measure_solve<YourCounter>` under a name in `window_variant`. The qualifier and worker compile that registry. The production entry calls the packed counter directly. For workload profiles, shared traversal records each window and group visit. `GroupWords::count_if` records one individual check for each word it passes to an acceptance test. A counter with its own per-word acceptance test should record one `trace_individual_check()` per word it checks. [Counter implementations and registry](../src/rack_oriented_solver.cpp)
 
 The build keeps each compiler and flag configuration in its own directory. Run `make -s window-tools CXX=clang++ CXXFLAGS="$flags"` to print the directory containing the qualifier and worker. In the recorded Clang 18.1.3 worker, `objdump -d -C` shows separate timed drivers at `0x3cf0` and `0x3de0`. Each calls rack-subset generation immediately after the start clock and reads the end clock after the second view swap. Both the production packed entry and the packed driver call the traversal at `0x3f00`. In the one-gap traversal the binary-probe and merge paths test the key letter with `bt` at `0x5002` and `0x523e`, then branch around the addition of the group count on a miss. Neither path fetches a candidate word. Multi-gap matches call the packed candidate check directly. The variant name lookup is outside both timed drivers.
 
@@ -391,6 +391,85 @@ python3 -m bench.window_counters.window_profile --build-dir "$window_tools" \
     --variants packed early-exit all-checks selective-first --gap-checks > build/gap-checks.json
 cmp bench/results/window-gap-order/profile.json build/gap-checks.json
 objdump -d -C -M intel "$window_tools/window_worker" > build/gap-checks.asm
+)
+```
+
+### Specialize common constrained-gap checks
+
+The fixed one- and two-gap paths tied the general scalar loop on the 30 development games. Their paired saving was 0.71 µs/solve (95% CI −2.26 to +3.69). On the same single-letter windows, byte equality cost 2.61 µs/solve against the matched bit test (0.50 to 4.78). Both comparisons include mask preparation, both board views and restoration.
+
+All four experimental counters prepare the same constrained gaps in offset order. They stop group traversal at an impossible gap and count an unrestricted window's groups in bulk. `scalar-general` checks each remaining word with a variable-length early-exit loop. `scalar-1-2` selects a fixed bound of one or two checks at the group boundary and uses the general loop for longer counts.
+
+In a separate comparison, `singleton-mask` and `singleton-byte` prepare a required character once when a window has exactly one constrained gap and its mask has one bit. Both select a single check for every group in that window and use the general loop elsewhere. The matched pair differs only in whether it tests the character's bit or compares the character directly.
+
+| Control | Challenger | Control / challenger (µs/solve) | Saving (95% CI) | Saving on 24 games outside pilot (95% CI) |
+| --- | --- | ---: | ---: | ---: |
+| `packed` | [`scalar-general`](results/window-scalar/packed-scalar-general.csv.gz) | 394.04 / 335.32 | +58.73 (+48.46 to +68.62) | +59.36 (+47.11 to +71.00) |
+| `packed` | [`scalar-1-2`](results/window-scalar/packed-scalar-1-2.csv.gz) | 429.48 / 365.25 | +64.23 (+52.20 to +76.54) | +65.74 (+51.51 to +80.20) |
+| `scalar-general` | [`scalar-1-2`](results/window-scalar/scalar-general-scalar-1-2.csv.gz) | 332.51 / 331.80 | +0.71 (-2.26 to +3.69) | +0.30 (-3.22 to +3.89) |
+| `packed` | [`singleton-mask`](results/window-scalar/packed-singleton-mask.csv.gz) | 392.98 / 336.67 | +56.31 (+45.04 to +67.36) | +58.15 (+44.53 to +71.39) |
+| `scalar-general` | [`singleton-mask`](results/window-scalar/scalar-general-singleton-mask.csv.gz) | 337.66 / 339.75 | -2.09 (-4.63 to +0.09) | -2.76 (-5.69 to -0.32) |
+| `packed` | [`singleton-byte`](results/window-scalar/packed-singleton-byte.csv.gz) | 392.23 / 334.56 | +57.68 (+47.18 to +67.88) | +58.73 (+46.22 to +70.93) |
+| `scalar-general` | [`singleton-byte`](results/window-scalar/scalar-general-singleton-byte.csv.gz) | 346.28 / 347.05 | -0.77 (-3.08 to +1.72) | -2.28 (-4.39 to -0.24) |
+| `singleton-mask` | [`singleton-byte`](results/window-scalar/singleton-mask-singleton-byte.csv.gz) | 343.62 / 346.23 | -2.61 (-4.78 to -0.50) | -2.44 (-4.70 to -0.15) |
+
+Each row is a separate paired experiment on the same 30 development games. A positive saving favors the challenger. The six-game pilot ran first with four pairs per game. The development run used 40 pairs per game, 20 in each order, with two warm-ups per counter per pair. Both sides used the full 191,852-word dictionary, Clang 18.1.3 with `-O2 -march=x86-64`, and logical CPU 2 on the i7-6700K. The interval resamples paired game means within each stage, sorted by case name, with 20,000 draws and seed 15. Early, middle and late games have equal weight. [Initial pilot pairs](results/window-scalar/pilot.csv.gz)
+
+#### Candidate paths
+
+The place-and-restore qualifier matched all 72,530 candidate decisions per counter, including duplicates and both directions. Of the 32,351 words that needed a constrained-gap check, 12,499 had one gap (38.6%) and 10,765 had two (33.3%). These were the two most frequent counts in the development profile. The general loop handled the remaining 9,087 words, with 6,580 at three gaps, 2,175 at four, 313 at five and 19 at six. [Untimed profile by stage](results/window-scalar/profile.json)
+
+| Path | `scalar-general` | `scalar-1-2` | `singleton-mask` / `singleton-byte` |
+| --- | ---: | ---: | ---: |
+| Impossible window | 31,806 (43.85%) | 31,806 (43.85%) | 31,806 (43.85%) |
+| Unrestricted window | 8,373 (11.54%) | 8,373 (11.54%) | 8,373 (11.54%) |
+| Fixed one-gap bit test | — | 12,499 (17.23%) | — |
+| Fixed two-gap bit tests | — | 10,765 (14.84%) | — |
+| One permitted letter | — | — | 3,892 (5.37%) |
+| General scalar loop | 32,351 (44.60%) | 9,087 (12.53%) | 28,459 (39.24%) |
+
+Each column partitions all qualified candidates. The singleton path served 3,892 words in 488 prepared windows, or 7.98 comparisons per prepared singleton. The qualification fixtures include a failure at each of the first three constrained gaps and a passing word for every count. At the final word offset, separate fixtures exercise single-letter, multiple-letter, impossible and unrestricted crossings. Every timed across and down count matched its qualified result.
+
+#### Linked code size and candidate loops
+
+| Counter | Group visitor (bytes) | Change from general | Timed driver, traversal and group visitor (bytes) |
+| --- | ---: | ---: | ---: |
+| `scalar-general` | 431 | — | 2,074 |
+| `scalar-1-2` | 708 | +277 | 2,351 |
+| `singleton-mask` | 676 | +245 | 2,319 |
+| `singleton-byte` | 664 | +233 | 2,307 |
+
+The sizes come from the linked timing worker's `nm -S -C` symbols and exclude alignment padding between functions. The entire worker's `.text` grew from 89,974 to 99,142 bytes (+9,168) with all four counters registered. The production solver translation unit's `.text` matched revision `836dac6` byte for byte with the same compiler flags.
+
+The general loop uses an indexed descriptor load followed by `bt` and `jb` at `0xc81f`. In `scalar-1-2`, count comparisons at `0xcf0e` and `0xcf14` precede the word loops. The two-gap path tests the first mask at `0xcfa6` and the second at `0xcf79`, with an early exit after a first-gap failure. Neither fixed path has a gap-loop back edge. The fallback still iterates at `0xd033`. In the singleton trials, both preparations find the set bit once. The mask visitor uses `bt` at `0xd8d9`. The byte visitor uses `cmp BYTE PTR` and `sete` at `0xe130` and `0xe134`. Clang processes two candidate words per iteration in both singleton paths and emits a one-word tail.
+
+To rerun qualification, the measurements and linked-code inspection from the repository root, run
+
+```sh
+(
+set -e
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
+python3 -m bench.window_counters.window_games --export development build/window-development
+python3 -m bench.corpus.sample_turns --verify bench/fixtures/pilot/corpus.json --window-dir build/window-pilot
+for dataset in pilot development; do
+    repetitions=40
+    if [ "$dataset" = pilot ]; then repetitions=4; fi
+    for pair in 'packed scalar-general' 'scalar-general scalar-1-2' 'packed scalar-1-2' \
+                'singleton-mask singleton-byte' 'scalar-general singleton-byte' 'packed singleton-byte' \
+                'scalar-general singleton-mask' 'packed singleton-mask'; do
+        set -- $pair
+        taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$tools" \
+            --variants "$1" "$2" --cases "build/window-$dataset/cases.csv" --repetitions "$repetitions" \
+            --dictionary data/dictionaries/sample_dictionary.txt > "build/$dataset-$1-$2.csv"
+    done
+done
+python3 -m bench.window_counters.window_profile --build-dir "$tools" --gap-checks \
+    --variants packed scalar-general scalar-1-2 singleton-mask singleton-byte > build/scalar-profile.json
+cmp bench/results/window-scalar/profile.json build/scalar-profile.json
+size -A "$tools/window_worker"
+nm -S -nC "$tools/window_worker" > build/scalar-symbols.txt
+objdump -d -C -M intel "$tools/window_worker" > build/scalar.asm
 )
 ```
 

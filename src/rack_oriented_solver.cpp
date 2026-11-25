@@ -24,7 +24,7 @@ static inline void trace_skipped_subset_probe() {}
 static inline void trace_skipped_merge_comparison() {}
 static inline void trace_individual_check() {}
 static inline void trace_gap_check(uint8_t, bool) {}
-static inline void trace_mask_built(bool, unsigned) {}
+static inline void trace_mask_built(bool, unsigned, bool = false) {}
 #ifdef SCRABBLE_WINDOW_VARIANTS
 static inline void trace_subset(unsigned, benchmark::SubsetRejection) {}
 #endif
@@ -287,6 +287,20 @@ struct GapDescriptors {
 };
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
+struct SingletonGaps : GapDescriptors {
+    char required_letter = 0;
+
+    void prepare(bool ruled_out, uint8_t count)
+    {
+        if (!ruled_out && count == 1) {
+            const uint32_t mask = letters_at(0);
+            if ((mask & (mask - 1)) == 0) {
+                required_letter = 'A' + __builtin_ctz(mask);
+            }
+        }
+    }
+};
+
 struct Uint32Gaps {
     static constexpr unsigned offset_shift = 28;
     static_assert(BOARD_SIZE <= 16 && PerpendicularCheckTable::all_letters < (1u << offset_shift));
@@ -314,8 +328,13 @@ struct GapArrays {
 };
 #endif
 
-enum class GapEvaluation { skip_unrestricted, early_exit, accumulate };
+enum class GapEvaluation { skip_unrestricted, early_exit, accumulate, fixed_one_two, singleton_mask, singleton_byte };
 enum class GapOrder { offset, selectivity };
+
+constexpr bool tests_singleton_letter(GapEvaluation evaluation)
+{
+    return evaluation == GapEvaluation::singleton_mask || evaluation == GapEvaluation::singleton_byte;
+}
 
 template <typename Layout = GapDescriptors>
 struct GapChecks {
@@ -325,11 +344,10 @@ struct GapChecks {
     void append(uint8_t offset, uint32_t letters) { gaps.set(gap_count++, offset, letters); }
 
     template <GapEvaluation evaluation>
-    bool accepts(const char *word) const
+    bool accepts(const char *word, uint8_t count) const
     {
-        trace_individual_check();
         bool accepted = true;
-        for (uint8_t i = 0; i < gap_count; ++i) {
+        for (uint8_t i = 0; i < count; ++i) {
             const uint32_t letters = gaps.letters_at(i);
             const bool passes = (evaluation == GapEvaluation::skip_unrestricted &&
                                  letters == PerpendicularCheckTable::all_letters) ||
@@ -384,16 +402,52 @@ struct GroupWords {
         return accepted ? size : 0;
     }
 
-    template <GapEvaluation evaluation = GapEvaluation::skip_unrestricted, typename Layout>
-    size_t check_words(const GapChecks<Layout> &checks) const
+    template <typename Accept>
+    size_t count_if(Accept accepts) const
     {
         size_t count = 0;
         for (size_t i = 0; i < size; ++i) {
-            const bool accepted = checks.template accepts<evaluation>(dictionary.words[ids[i]]);
+            trace_individual_check();
+            const bool accepted = accepts(dictionary.words[ids[i]]);
             count += accepted;
             trace_placements(row, start, ids + i, 1, accepted);
         }
         return count;
+    }
+
+    template <GapEvaluation evaluation, int fixed_count = -1, typename Layout>
+    size_t check_gaps(const GapChecks<Layout> &checks) const
+    {
+        return count_if([&](const char *word) {
+            return checks.template accepts<evaluation>(word, fixed_count < 0 ? checks.gap_count : fixed_count);
+        });
+    }
+
+    template <GapEvaluation evaluation = GapEvaluation::skip_unrestricted, typename Layout>
+    size_t check_words(const GapChecks<Layout> &checks) const
+    {
+        if constexpr (evaluation == GapEvaluation::fixed_one_two) {
+            switch (checks.gap_count) {
+                case 1: return check_gaps<GapEvaluation::early_exit, 1>(checks);
+                case 2: return check_gaps<GapEvaluation::early_exit, 2>(checks);
+            }
+        }
+        if constexpr (tests_singleton_letter(evaluation)) {
+            const char required_letter = checks.gaps.required_letter;
+            if (required_letter) {
+                if constexpr (evaluation == GapEvaluation::singleton_mask) {
+                    return check_gaps<GapEvaluation::early_exit, 1>(checks);
+                } else {
+                    const uint8_t offset = checks.gaps.offset_at(0);
+                    return count_if([&](const char *word) {
+                        const bool passes = word[offset] == required_letter;
+                        trace_gap_check(0, !passes);
+                        return passes;
+                    });
+                }
+            }
+        }
+        return check_gaps<evaluation>(checks);
     }
 };
 
@@ -536,7 +590,13 @@ struct WindowCounter {
             if constexpr (order == GapOrder::selectivity) {
                 order_by_selectivity(*masks);
             }
-            trace_mask_built(masks->ruled_out, masks->gap_count);
+            bool singleton = false;
+            if constexpr (tests_singleton_letter(evaluation)) {
+                // Charge both singleton trials for identifying the same required letter once per window.
+                masks->gaps.prepare(masks->ruled_out, masks->gap_count);
+                singleton = masks->gaps.required_letter != 0;
+            }
+            trace_mask_built(masks->ruled_out, masks->gap_count, singleton);
         };
         if constexpr (policy == MaskPolicy::eager) {
             build_masks();
@@ -703,6 +763,9 @@ struct RackCounter {
 template <WindowCounting counting>
 using StoppingCounter = WindowCounter<GapTraversal::scan, MaskPolicy::stop_window, counting>;
 
+using ScalarCounter = StoppingCounter<WindowCounting::bulk_unrestricted>;
+using SingletonCounter = ScalarCounter::WithGapLayout<SingletonGaps>;
+
 template <typename Counter, typename Checks = RowCheckSets>
 benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTable &patterns,
                                      Board &board, const benchmark::Rack &rack)
@@ -741,6 +804,10 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
         {"stop-window", measure_solve<StoppingCounter<WindowCounting::all_gaps_per_word>>},
         {"constrained-only", measure_solve<StoppingCounter<WindowCounting::constrained_per_word>>},
         {"all-letters", measure_solve<StoppingCounter<WindowCounting::bulk_unrestricted>>},
+        {"scalar-general", measure_solve<ScalarCounter::WithGapEvaluation<GapEvaluation::early_exit>>},
+        {"scalar-1-2", measure_solve<ScalarCounter::WithGapEvaluation<GapEvaluation::fixed_one_two>>},
+        {"singleton-mask", measure_solve<SingletonCounter::WithGapEvaluation<GapEvaluation::singleton_mask>>},
+        {"singleton-byte", measure_solve<SingletonCounter::WithGapEvaluation<GapEvaluation::singleton_byte>>},
         {"rack", measure_solve<RackCounter<SubsetPolicy::none>>},
         {"subset", measure_solve<RackCounter<SubsetPolicy::alphabet>>},
         {"subset-capacity", measure_solve<RackCounter<SubsetPolicy::capacity>>},

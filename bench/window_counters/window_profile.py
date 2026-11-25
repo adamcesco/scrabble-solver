@@ -17,6 +17,8 @@ from bench.window_counters.window_games import reserved_cases
 
 RACK_POLICIES = ("all-letters", "rack", "subset", "subset-capacity", "subset-multi")
 MASK_POLICIES = ("packed", "eager", "stop-gap", "stop-window", "constrained-only", *RACK_POLICIES)
+SINGLETON_VARIANTS = ("singleton-mask", "singleton-byte")
+SCALAR_VARIANTS = ("scalar-general", "scalar-1-2", *SINGLETON_VARIANTS)
 
 
 def window_histograms():
@@ -34,6 +36,11 @@ def variant_profile(name, gap_checks):
                                 for direction in ("across", "down")}
     if name in MASK_POLICIES:
         profile["mask_search"] = {kind: Counter() for kind in ("accepted", "all_rejected", "no_matching_group")}
+    if name in SCALAR_VARIANTS:
+        paths = dict(ruled_out=0, unrestricted=0, checked_by_gap_count=Counter())
+        if name in SINGLETON_VARIANTS:
+            paths.update(singleton_windows=0, singleton_candidates=0)
+        profile["scalar_paths"] = paths
     if gap_checks:
         profile["gap_evaluation"] = dict(candidates=0, checked_candidates=0, gap_checks=0, first_failures=Counter())
     return profile
@@ -52,12 +59,13 @@ def summarize(visits, cases, variants, qualified, *, gap_checks=False):
         empty, lookups = int(window["empty"]), int(window["lookups"])
         case = cases[index]
         profile = stages[case["stage"]]["variants"][name]
-        candidates = accepted = skipped_groups = skipped_words = 0
+        candidates = accepted = checked = skipped_groups = skipped_words = 0
         for row in chain((window,), groups):
             size = int(row["group_size"])
             if size:
                 candidates += size
                 accepted += int(row["accepted"])
+                checked += int(row["individual_checks"])
                 if gap_checks:
                     evaluation = profile["gap_evaluation"]
                     evaluation["candidates"] += size
@@ -114,6 +122,21 @@ def summarize(visits, cases, variants, qualified, *, gap_checks=False):
             kind = "matching_groups"
             lookup_counts["matched_windows"] += 1
             lookup_counts["matched_windows_without_lookups"] += lookups == 0
+            if name in SCALAR_VARIANTS:
+                paths = profile["scalar_paths"]
+                constrained = int(window["constrained"])
+                ruled_out = window["ruled_out"] == "1"
+                if checked != (candidates if constrained and not ruled_out else 0):
+                    raise ValueError(f"{case['case']} {name}: individual checks differ from window constraints")
+                if ruled_out:
+                    paths["ruled_out"] += candidates
+                elif not constrained:
+                    paths["unrestricted"] += candidates
+                else:
+                    paths["checked_by_gap_count"][constrained] += checked
+                    if window["singleton_letter"] == "1":
+                        paths["singleton_windows"] += 1
+                        paths["singleton_candidates"] += checked
         windows = profile["windows"][kind]
         windows["windows"] += 1
         windows["by_empty_squares"][empty] += 1
