@@ -7,7 +7,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from bench.corpus.sample_turns import BENCH, PILOT, STAGES, write_benchmark
+from bench.corpus.sample_turns import BENCH, PILOT, STAGES, case_name, write_benchmark
 
 GAME_LIST = BENCH / "fixtures/window-game-sets.csv"
 SETS = ("development", "pgo", "held-out")
@@ -43,7 +43,7 @@ def game_sets():
 
 
 def membership(sets):
-    return [dict(set=split, game=c["game"], stage=c["stage"], case=f"{c['game']}#{c['turn']}")
+    return [dict(set=split, game=c["game"], stage=c["stage"], case=case_name(c))
             for split, cases in sets.items() for c in cases]
 
 

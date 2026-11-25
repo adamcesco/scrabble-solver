@@ -212,8 +212,12 @@ def add_companion_racks_and_boards(rows, cases):
                 raise ValueError(f"{rows[index]['case']}: no distinct {stage} board with a reusable rack")
 
 
+def case_name(case):
+    return f"{case['game']}#{case['turn']}"
+
+
 def write_benchmark(directory, cases, *, paired=True):
-    rows = [dict(case=f"{c['game']}#{c['turn']}", stage=c["stage"],
+    rows = [dict(case=case_name(c), stage=c["stage"],
                  board=f"board-{i}.csv", rack=c["rack"]) for i, c in enumerate(cases, 1)]
     if paired:
         add_companion_racks_and_boards(rows, cases)

@@ -165,14 +165,31 @@ static void qualify_inputs(const char *dictionary_path, const std::filesystem::p
 
         std::ofstream visits;
         WorkloadOutput profile{visits};
+        std::stringstream saved_requests;
+        std::istream *requests = &std::cin;
         if (profile_path) {
+            if (std::filesystem::exists(profile_path)) {
+                // Check every input, including later boards, before truncating an existing CSV.
+                auto protect = [&](const std::filesystem::path &path) {
+                    if (std::filesystem::equivalent(profile_path, path)) {
+                        throw std::invalid_argument("profile output aliases input: " + path.string());
+                    }
+                };
+                protect(dictionary_path);
+                protect(cache_path);
+                for (std::string line; std::getline(std::cin, line);) {
+                    protect(line.substr(0, line.find('\t')));
+                    saved_requests << line << '\n';
+                }
+                requests = &saved_requests;
+            }
             visits.exceptions(std::ios::failbit | std::ios::badbit);
             visits.open(profile_path);
             visits << "position,variant,down,row,start,length,empty,constrained,pattern_match,group_size,individual_checks\n";
         }
         std::cout << "across,across_candidates,down,down_candidates\n";
         std::string line;
-        while (std::getline(std::cin, line)) {
+        while (std::getline(*requests, line)) {
             std::istringstream fields(line);
             std::string path, letters;
             std::getline(fields, path, '\t');

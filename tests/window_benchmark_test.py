@@ -100,6 +100,31 @@ class WindowBenchmarkTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "RT packed across"):
             summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
 
+    def test_workload_output_cannot_overwrite_qualification_inputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dictionary = root / "words"
+            board = root / "board.csv"
+            cache = root / "patterns"
+            shutil.copyfile(FIXTURE / "dictionary.txt", dictionary)
+            shutil.copyfile(FIXTURE / "crossings.csv", board)
+            qualifier = window_build() / "placement_equivalence_test"
+            seed_cache(qualifier, dictionary, cache, root)
+            output = root / "visits.csv"
+            command = [qualifier, dictionary, cache, "--load-cache", "--profile", output, "packed"]
+            for path in (dictionary, board, cache):
+                with self.subTest(path=path.name):
+                    original = path.read_bytes()
+                    output.hardlink_to(path)
+                    result = subprocess.run(command, input=f"{board}\tRT\n", text=True, capture_output=True)
+                    output.unlink()
+                    self.assertEqual(path.read_bytes(), original)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("profile output aliases", result.stderr)
+            for _ in range(2):
+                subprocess.run(command, input=f"{board}\tRT\n", text=True, capture_output=True, check=True)
+                self.assertTrue(output.read_text().startswith("position,variant,"))
+
     def test_unknown_window_counter_prevents_timing(self):
         directory = window_build()
         for command in ([*WINDOW, "--variants", "packed", "absent"],

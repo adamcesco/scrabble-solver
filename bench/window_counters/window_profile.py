@@ -20,7 +20,7 @@ def window_histograms():
 
 
 def variant_profile():
-    return dict(windows={kind: window_histograms() for kind in ("no_pattern", "no_matching_group", "matching_groups")},
+    return dict(windows={kind: window_histograms() for kind in ("no_dictionary_match", "no_matching_group", "matching_groups")},
                 groups_by_size=defaultdict(Counter), one_gap_groups=0, one_gap_candidates=0)
 
 
@@ -45,7 +45,7 @@ def summarize(visits, cases, variants, qualified):
                     profile["one_gap_groups"] += 1
                     profile["one_gap_candidates"] += size
 
-        kind = "no_matching_group" if pattern == "1" else "no_pattern"
+        kind = "no_matching_group" if pattern == "1" else "no_dictionary_match"
         if candidates:
             kind = "matching_groups"
         windows = profile["windows"][kind]

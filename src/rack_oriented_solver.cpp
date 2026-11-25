@@ -229,6 +229,7 @@ struct WindowMasks {
 
     bool accepts(const char *word) const
     {
+        trace_individual_check();
         for (uint8_t i = 0; i < gap_count; ++i) {
             const Gap &gap = gaps[i];
             if (gap.letters != PerpendicularCheckTable::all_letters &&
@@ -306,7 +307,6 @@ struct PackedCounter {
                 return;
             }
             for (size_t i = 0; i < group.word_indices.count; ++i) {
-                trace_individual_check();
                 bool accepted = masks->accepts(dictionary.words[ids[i]]);
                 count += accepted;
                 trace_placements(row, window.start, ids + i, 1, accepted);

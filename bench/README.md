@@ -38,7 +38,7 @@ taskset -c 2 make -s window-benchmark CXX=clang++ CXXFLAGS="$flags" \
     > bench/results/window-pilot.csv
 ```
 
-To add a counter, define its window callable beside `PackedCounter` and register `measure_solve<YourCounter>` under a name in `window_variant`. The qualifier and worker compile that registry. The production entry calls the packed counter directly. [Counter implementations and registry](../src/rack_oriented_solver.cpp)
+To add a counter, define its window callable beside `PackedCounter` and register `measure_solve<YourCounter>` under a name in `window_variant`. The qualifier and worker compile that registry. The production entry calls the packed counter directly. For workload profiles, shared traversal records each window and group visit. `WindowMasks::accepts` records an individual check at entry. A counter with its own per-word acceptance test should record one `trace_individual_check()` per word it checks. [Counter implementations and registry](../src/rack_oriented_solver.cpp)
 
 The build keeps each compiler and flag configuration in its own directory. Run `make -s window-tools CXX=clang++ CXXFLAGS="$flags"` to print the directory containing the qualifier and worker. In the recorded Clang 18.1.3 worker, `objdump -d -C` shows separate timed drivers at `0x3cf0` and `0x3de0`. Each calls rack-subset generation immediately after the start clock and reads the end clock after the second view swap. Both the production packed entry and the packed driver call the traversal at `0x3f00`. In the one-gap traversal the binary-probe and merge paths test the key letter with `bt` at `0x5002` and `0x523e`, then branch around the addition of the group count on a miss. Neither path fetches a candidate word. Multi-gap matches call the packed candidate check directly. The variant name lookup is outside both timed drivers.
 
@@ -70,7 +70,7 @@ python3 -m bench.window_counters.window_games --export development build/window-
 
 Each of the 30 development games contributes one turn. Within each stage, development uses the two pilot games and the first eight games from the saved Quackle corpus. PGO uses the next 16 games per stage. The held-out set takes the last 32 per stage for confirmation after finalist selection. Selection uses saved corpus order and stage only. The exporter checks the frozen case identities and rejects repeated game IDs or source records across the three lists. Use `--export pgo build/window-pgo` for profile training and `--export held-out build/window-held-out` for final comparisons. Each export writes the selected boards and a `cases.csv` for the window benchmark. [Frozen game lists](fixtures/window-game-sets.csv)
 
-| Stage | Windows visited | No dictionary pattern | Pattern with zero matching groups | Visited groups | Candidate words | Packed individual checks | One-gap individual checks |
+| Stage | Windows visited | No dictionary match | Pattern with zero matching groups | Visited groups | Candidate words | Packed individual checks | One-gap individual checks |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Early | 6,408 | 751 | 3,005 | 13,308 | 20,211 | 12,228 | 11,783 |
 | Middle | 9,001 | 2,326 | 3,206 | 23,118 | 34,891 | 19,512 | 18,622 |
@@ -78,7 +78,7 @@ Each of the 30 development games contributes one turn. Within each stage, develo
 
 The two zero-group columns together cover every visited window with zero candidates. Each group visit contributes its full word range to candidate words, including words rejected by an impossible gap. Individual checks count actual calls to the per-word acceptance test. Windows with exactly one empty square accounted for 467 early candidates (2.3%), 986 middle (2.8%) and 1,047 late (6.0%). Packed already ruled out some of these in bulk. The one-gap shortcut avoided 445, 890 and 859 additional individual checks, respectively.
 
-The JSON gives exact frequency tables by stage and counter for empty squares, constrained gaps and candidates per window. It keeps windows with matching groups, unmatched rack subsets and absent dictionary patterns separate. A constrained gap is an empty square whose perpendicular-check set permits fewer than 26 letters, including zero. The qualifier inspects those squares after the traced solve, so these diagnostic lookups preserve the baseline lookup check. The `groups_by_size` table gives visits, candidate words and individual checks for each group size. [Full development profile](results/window-workload.json)
+The JSON gives exact frequency tables by stage and counter for empty squares, constrained gaps and candidates per window. It keeps windows with matching groups, patterns with no matching rack subset and patterns with no dictionary match separate. A constrained gap is an empty square whose perpendicular-check set permits fewer than 26 letters, including zero. The qualifier inspects those squares after the traced solve, so these diagnostic lookups preserve the baseline lookup check. The `groups_by_size` table gives visits, candidate words and individual checks for each group size. [Full development profile](results/window-workload.json)
 
 ## Replay a recorded game
 
