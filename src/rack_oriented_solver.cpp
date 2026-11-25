@@ -834,6 +834,7 @@ static size_t count_subset_words(const GroupWords &words, const GapChecks<> &win
 template <SubsetPolicy policy, GapTraversal traversal = GapTraversal::scan,
           GapEvaluation evaluation = GapEvaluation::skip_unrestricted>
 struct RackCounter {
+    static_assert(traversal == GapTraversal::scan || traversal == GapTraversal::neighbor_bits);
     const WordTable &dictionary;
     const WordPatternTable &patterns;
     RackAlphabet alphabet;

@@ -162,6 +162,10 @@ def comparisons(builds):
             yield (control, variant), (challenger, variant)
 
 
+def pair_filename(split, left, right):
+    return f"{split}_{'.'.join(left)}_{'.'.join(right)}.csv.gz"
+
+
 def time_pairs(output, schedule, pairs, cases, builds, host, cache, counts):
     with ExitStack() as stack:
         proc = None
@@ -169,7 +173,7 @@ def time_pairs(output, schedule, pairs, cases, builds, host, cache, counts):
             for left, right in pairs:
                 left_build, left_counter = left
                 right_build, right_counter = right
-                filename = output / f"{split}_{left_build}.{left_counter}_{right_build}.{right_counter}.csv.gz"
+                filename = output / pair_filename(split, left, right)
                 if filename.exists():
                     continue
                 if proc is None:

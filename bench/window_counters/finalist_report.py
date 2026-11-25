@@ -1,4 +1,4 @@
-"""Verify the frozen pair schedule and print stage means, paired intervals and development selections."""
+"""Verify the pair schedule and report stage means, paired game intervals and development selections."""
 import argparse
 import json
 from collections import defaultdict
@@ -6,6 +6,7 @@ from pathlib import Path
 from statistics import fmean
 
 from bench.corpus.sample_turns import STAGES
+from bench.window_counters.compiler_trials import pair_filename
 from bench.window_counters.finalist_trials import CONTENDERS
 from bench.window_counters.tuning_report import Game, estimate, read_pairs
 
@@ -17,35 +18,44 @@ def report(directory):
     files = directory / "pairs" if (directory / "pairs").is_dir() else directory
     positions = {split: [Game(n, manifest["inputs"][n]["stage"]) for n in names]
                  for split, names in manifest["case_order"].items()}
-    dataset = "development" if "development" in positions else "held-out"
+    pilot = {case.name for case in positions.get("pilot", [])}
+    dataset = "development" if pilot else "held-out"
+    alignment = manifest.get("study") == "alignment"
     for target in manifest["builds"]:
         means, intervals = defaultdict(list), {}
         print(f"\n## {target}\n")
-        print("| Left | Right | Early L/R | Middle L/R | Late L/R | Equal-stage L/R | Saving (95% CI) | Outcome |")
-        print("| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |")
-        for (left_build, left), (right_build, right) in manifest["pairs"]:
-            if left_build != target:
+        separate_header = " Outside pilot saving (95% CI) |" if pilot else ""
+        print("| Left | Right | Early L/R | Middle L/R | Late L/R | Equal-stage L/R | Saving (95% CI) | Outcome |"
+              + separate_header)
+        print("| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |" + (" ---: |" if pilot else ""))
+        for left, right in manifest["pairs"]:
+            if left[0] != target:
                 continue
-            filename = f"{left_build}.{left}_{right_build}.{right}.csv.gz"
-            if "pilot" in positions:
-                read_pairs(files / ("pilot_" + filename), positions["pilot"], manifest["schedule"]["pilot"],
+            a, b = left[1], right[1]
+            if pilot:
+                read_pairs(files / pair_filename("pilot", left, right), positions["pilot"], manifest["schedule"]["pilot"],
                            manifest["counts"])
-            games = read_pairs(files / (dataset + "_" + filename), positions[dataset], manifest["schedule"][dataset],
-                               manifest["counts"])
-            paired = estimate(games, set())
+            games = read_pairs(files / pair_filename(dataset, left, right), positions[dataset],
+                               manifest["schedule"][dataset], manifest["counts"])
+            left_mean, right_mean, saving, low, high = estimate(games, set())
             stages = []
             for stage in STAGES:
-                group = [p for (s, _), p in games.items() if s == stage]
-                stages.append(f"{fmean(p.original for p in group):.2f} / {fmean(p.packed for p in group):.2f}")
-            outcome = "right faster" if paired.low > 0 else "right slower" if paired.high < 0 else "tie"
-            print(f"| {left} | {right} | {' | '.join(stages)} | {paired.original:.2f} / {paired.packed:.2f} "
-                  f"| {paired.saving:+.2f} ({paired.low:+.2f}, {paired.high:+.2f}) | {outcome} |")
-            if left in CONTENDERS and right in CONTENDERS:
-                means[left].append(paired.original)
-                means[right].append(paired.packed)
-                intervals[left, right] = (paired.low, paired.high)
-                intervals[right, left] = (-paired.high, -paired.low)
-        if dataset == "development":
+                left_games, right_games = zip(*(p for (s, _), p in games.items() if s == stage))
+                stages.append(f"{fmean(left_games):.2f} / {fmean(right_games):.2f}")
+            outcome = "right faster" if low > 0 else "right slower" if high < 0 else "tie"
+            separate = ""
+            if pilot:
+                rest = estimate(games, pilot)
+                separate = f" {rest.saving:+.2f} ({rest.low:+.2f}, {rest.high:+.2f}) |"
+            labels = (".".join(left), ".".join(right)) if left[0] != right[0] else (a, b)
+            print(f"| {labels[0]} | {labels[1]} | {' | '.join(stages)} | {left_mean:.2f} / {right_mean:.2f} "
+                  f"| {saving:+.2f} ({low:+.2f}, {high:+.2f}) | {outcome} |" + separate)
+            if pilot and not alignment and a in CONTENDERS and b in CONTENDERS:
+                means[a].append(left_mean)
+                means[b].append(right_mean)
+                intervals[a, b] = (low, high)
+                intervals[b, a] = (-high, -low)
+        if means:
             ranked = sorted(means, key=lambda n: fmean(means[n]))
             leader = ranked[0]
             finalists = [n for i, n in enumerate(ranked) if n != "packed" and

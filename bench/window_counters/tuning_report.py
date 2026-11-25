@@ -10,7 +10,7 @@ from typing import NamedTuple
 
 from bench.corpus.sample_turns import STAGES
 from bench.measurement_support.paired_timings import Pair, summarize
-from bench.window_counters.compiler_trials import comparisons
+from bench.window_counters.compiler_trials import comparisons, pair_filename
 from bench.window_counters.window_benchmark import paired_order
 
 ARCHIVE = Path("bench/results/window-compiler")
@@ -54,7 +54,7 @@ def main():
     for left, right in comparisons(manifest["builds"]):
         a, b = (".".join(side) for side in (left, right))
         for dataset in ("pilot", "development"):
-            path = pairs / f"{dataset}_{a}_{b}.csv.gz"
+            path = pairs / pair_filename(dataset, left, right)
             games = read_pairs(path, cases[dataset], manifest["schedule"][dataset], manifest["counts"])
         full = estimate(games, set())
         separate = estimate(games, pilot)
