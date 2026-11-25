@@ -23,16 +23,16 @@ def sha256(path):
 
 @dataclass(frozen=True)
 class SelectedCache:
-    path: Path | None  # A memory run can leave the private destination to each worker.
+    path: Path
     existing: bool
 
 
 def select_cache(worker, dictionary, requested):
-    result = subprocess.check_output([worker, "--select-cache", dictionary, ROOT, requested or ""])
+    result = subprocess.check_output([worker, "--select-cache", dictionary, ROOT, requested])
     state, path = result.split(b"\n", 1)
     if state not in (b"existing", b"build"):
         raise ValueError(f"unrecognized pattern cache selection: {state!r}")
-    return SelectedCache(Path(os.fsdecode(path)) if path else None, state == b"existing")
+    return SelectedCache(Path(os.fsdecode(path)), state == b"existing")
 
 
 @dataclass(frozen=True)

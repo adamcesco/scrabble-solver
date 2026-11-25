@@ -61,15 +61,11 @@ def observe(worker):
     return counts, sizes
 
 
-def measure(variant, dictionary, board, rack, shared_cache):
-    with tempfile.TemporaryDirectory() as directory:
-        hit = shared_cache is not None
-        cache = shared_cache if hit else Path(directory) / "patterns"
-        warm_files([dictionary, board, cache] if hit else [dictionary, board])
-        command = [BUILD / "memory_worker", variant, "hit" if hit else "miss",
-                   dictionary, cache, board, rack]
-        with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as worker:
-            return observe(worker)
+def measure(variant, dictionary, board, rack, cache, hit):
+    warm_files([dictionary, board, cache] if hit else [dictionary, board])
+    command = [BUILD / "memory_worker", variant, "hit" if hit else "miss", dictionary, cache, board, rack]
+    with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as worker:
+        return observe(worker)
 
 
 def main():
@@ -85,17 +81,26 @@ def main():
     dictionary_sha = sha256(args.dictionary)
     if args.cache is not None and not args.cache.is_file():
         parser.error(f"pattern cache missing: {args.cache}")
-    cache = select_cache(BUILD / "memory_worker", args.dictionary, args.cache).path
     rack = "".join(sorted(args.rack))
     metadata = dict(dictionary=os.path.relpath(args.dictionary), dictionary_sha256=dictionary_sha,
                     board=os.path.relpath(args.board), board_sha256=sha256(args.board), rack=rack,
-                    cache_file=os.path.relpath(cache) if cache else "")
+                    cache_file="")
     writer = csv.DictWriter(sys.stdout, [*metadata, "cache", "repetition", "first_validator", "across",
                                          "down", "metric", "original_bytes", "packed_bytes",
                                          "packed_minus_original_bytes"], lineterminator="\n")
     order = ("original", "packed")
+    selected = None
     for repetition in range(1, args.repetitions + 1):
-        pair = {variant: measure(variant, args.dictionary, args.board, rack, cache) for variant in order}
+        pair = {}
+        for variant in order:
+            with tempfile.TemporaryDirectory() as directory:
+                private = Path(directory) / "patterns"
+                if selected is None:
+                    selected = select_cache(BUILD / "memory_worker", args.dictionary, args.cache or private)
+                    if selected.existing:
+                        metadata["cache_file"] = os.path.relpath(selected.path)
+                cache = selected.path if selected.existing else private
+                pair[variant] = measure(variant, args.dictionary, args.board, rack, cache, selected.existing)
         original_counts, original = pair["original"]
         packed_counts, packed = pair["packed"]
         if original_counts != packed_counts:

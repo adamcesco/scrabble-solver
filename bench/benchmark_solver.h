@@ -20,7 +20,7 @@ struct PatternCache {
 inline PatternCache select_pattern_cache(const WordTable &words, const std::filesystem::path &requested,
                                          const std::filesystem::path &project_root)
 {
-    const auto path = requested.empty() ? requested : std::filesystem::absolute(requested);
+    const auto path = std::filesystem::absolute(requested);
     if (std::filesystem::exists(path)) {
         return {path, true};
     }

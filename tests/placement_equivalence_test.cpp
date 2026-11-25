@@ -140,16 +140,18 @@ static std::filesystem::path qualifier_project(const char *executable)
     return {};
 }
 
+enum class CacheMode { discover, require_existing, build_if_missing };
+
 // A replay can append the expected play: down (0/1), view row, start, complete word.
 static void qualify_inputs(const char *dictionary_path, const std::filesystem::path &requested, const char *executable,
-                           const std::optional<bool> selected_existing, const WindowVariants &variants)
+                           CacheMode mode, const WindowVariants &variants)
 {
     WordTable words = WordTable::from_file(dictionary_path);
     assert(words.count > 0);
     {
-        const auto [cache_path, existing] = selected_existing.has_value()
-            ? benchmark::PatternCache{requested, *selected_existing || std::filesystem::exists(requested)}
-            : benchmark::select_pattern_cache(words, requested, qualifier_project(executable));
+        const auto [cache_path, existing] = mode == CacheMode::discover
+            ? benchmark::select_pattern_cache(words, requested, qualifier_project(executable))
+            : benchmark::PatternCache{requested, mode == CacheMode::require_existing || std::filesystem::exists(requested)};
         std::cerr << "Qualification " << (existing ? "loading " : "building ") << cache_path << '\n';
         PlacementComparison fixture{words, existing ? WordPatternTable::load(words, cache_path.c_str())
                                                     : WordPatternTable::from_words(words)};
@@ -195,12 +197,14 @@ int main(int argc, char **argv)
 {
     try {
         WindowVariants variants;
-        const std::string_view mode = argc > 3 ? argv[3] : "";
-        std::optional<bool> selected_existing;
-        if (mode == "--load-cache" || mode == "--build-cache") {
-            selected_existing = (mode == "--load-cache");
+        CacheMode mode = CacheMode::discover;
+        const std::string_view option = argc > 3 ? argv[3] : "";
+        if (option == "--load-cache") {
+            mode = CacheMode::require_existing;
+        } else if (option == "--build-cache") {
+            mode = CacheMode::build_if_missing;
         }
-        for (int i = selected_existing.has_value() ? 4 : 3; i < argc; ++i) {
+        for (int i = mode == CacheMode::discover ? 3 : 4; i < argc; ++i) {
             variants.push_back(&benchmark::window_variant(argv[i]));
         }
         if (variants.empty()) {
@@ -212,7 +216,7 @@ int main(int argc, char **argv)
         compare_rack_groups_and_ruled_out_windows(variants);
         one_tile_counts_in_both_directions_and_restores_the_prepared_board(variants);
         if (argc >= 3) {
-            qualify_inputs(argv[1], argv[2], argv[0], selected_existing, variants);
+            qualify_inputs(argv[1], argv[2], argv[0], mode, variants);
         } else if (argc != 1) {
             return 1;
         }

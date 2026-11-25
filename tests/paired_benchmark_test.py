@@ -151,11 +151,12 @@ class PairedBenchmarkTest(unittest.TestCase):
             for case in ("absent", "mismatched", "matching", "explicit"):
                 with self.subTest(case=case):
                     options = []
+                    project_cache.unlink(missing_ok=True)
                     if case == "mismatched":
                         other = outside / "other-dictionary"
                         other.write_bytes(dictionary.read_bytes() + b"\nZZ\n")
                         seed_cache(qualifier, other, project_cache, outside)
-                    if case == "matching":
+                    elif case in ("matching", "explicit"):
                         shutil.copyfile(tools_cache, project_cache)
                     if case == "explicit":
                         options = ["--cache", explicit]
