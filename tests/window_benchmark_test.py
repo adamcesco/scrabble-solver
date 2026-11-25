@@ -132,6 +132,28 @@ class WindowBenchmarkTest(unittest.TestCase):
         self.assertEqual([(r["variant"], r["pattern_match"], r["group_size"], r["masks"], r["lookups"])
                           for r in target], [("packed", "1", "0", "0", "0"), ("eager", "1", "0", "1", "2")])
 
+    def test_gap_layouts_at_the_last_word_offset(self):
+        prefix = "ABCDEFGHIJKLM"
+        words = [prefix, prefix + "AZ", prefix + "ZA", "XA", "QZ"]
+        board = [["."] * 15 for _ in range(15)]
+        # At offset 14, X allows only A, Q allows only Z, and Y allows neither.
+        crossings = [(1, "X", 1), (4, "Q", 1), (7, ".", 2), (10, "Y", 0)]
+        for row, above, _ in crossings:
+            board[row][:13] = prefix
+            board[row - 1][14] = above
+        layouts = ["packed", "gap-u32", "gap-arrays"]
+        _, visits = profile_board(board, words, "AZ", layouts)
+        for row, _, accepted in crossings:
+            groups = window_groups(visits, row=row, start=0, length=15)
+            self.assertEqual([r["variant"] for r in groups], layouts)
+            for group in groups:
+                with self.subTest(row=row, layout=group["variant"]):
+                    self.assertEqual(int(group["group_size"]), 2)
+                    self.assertEqual(int(group["retained_gaps"]), 2)
+                    self.assertEqual(int(group["ruled_out"]), int(accepted == 0))
+                    self.assertEqual(int(group["individual_checks"]), 2 if accepted else 0)
+                    self.assertEqual(int(group["accepted"]), accepted)
+
     def test_first_impossible_gap_skips_only_the_remaining_lookups(self):
         board = [["."] * 15 for _ in range(15)]
         board[0][:2], board[1][0] = ["A", "X"], "A"

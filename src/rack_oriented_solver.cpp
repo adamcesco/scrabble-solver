@@ -273,21 +273,60 @@ struct CachedRowCheckSets : RowCheckSets {
 };
 #endif
 
-struct GapChecks {
+struct GapDescriptors {
     struct Gap {
         uint8_t offset;
         uint32_t letters;
     };
-    Gap gaps[MAX_RACK_TILES];
+    Gap entries[MAX_RACK_TILES];
+
+    void set(uint8_t i, uint8_t offset, uint32_t letters) { entries[i] = {offset, letters}; }
+    uint8_t offset_at(uint8_t i) const { return entries[i].offset; }
+    uint32_t letters_at(uint8_t i) const { return entries[i].letters; }
+};
+
+#ifdef SCRABBLE_WINDOW_VARIANTS
+struct Uint32Gaps {
+    static constexpr unsigned offset_shift = 28;
+    static_assert(BOARD_SIZE <= 16 && PerpendicularCheckTable::all_letters < (1u << offset_shift));
+    uint32_t entries[MAX_RACK_TILES];
+
+    void set(uint8_t i, uint8_t offset, uint32_t letters)
+    {
+        entries[i] = (uint32_t(offset) << offset_shift) | letters;
+    }
+    uint8_t offset_at(uint8_t i) const { return entries[i] >> offset_shift; }
+    uint32_t letters_at(uint8_t i) const { return entries[i] & PerpendicularCheckTable::all_letters; }
+};
+
+struct GapArrays {
+    uint8_t offsets[MAX_RACK_TILES];
+    uint32_t masks[MAX_RACK_TILES];
+
+    void set(uint8_t i, uint8_t offset, uint32_t letters)
+    {
+        offsets[i] = offset;
+        masks[i] = letters;
+    }
+    uint8_t offset_at(uint8_t i) const { return offsets[i]; }
+    uint32_t letters_at(uint8_t i) const { return masks[i]; }
+};
+#endif
+
+template <typename Layout = GapDescriptors>
+struct GapChecks {
+    Layout gaps;
     uint8_t gap_count = 0;
+
+    void append(uint8_t offset, uint32_t letters) { gaps.set(gap_count++, offset, letters); }
 
     bool accepts(const char *word) const
     {
         trace_individual_check();
         for (uint8_t i = 0; i < gap_count; ++i) {
-            const Gap &gap = gaps[i];
-            if (gap.letters != PerpendicularCheckTable::all_letters &&
-                !(gap.letters & (1u << (word[gap.offset] - 'A')))) {
+            const uint32_t letters = gaps.letters_at(i);
+            if (letters != PerpendicularCheckTable::all_letters &&
+                !(letters & (1u << (word[gaps.offset_at(i)] - 'A')))) {
                 return false;
             }
         }
@@ -307,7 +346,8 @@ struct GroupWords {
         return accepted ? size : 0;
     }
 
-    size_t check_words(const GapChecks &checks) const
+    template <typename Layout>
+    size_t check_words(const GapChecks<Layout> &checks) const
     {
         size_t count = 0;
         for (size_t i = 0; i < size; ++i) {
@@ -324,8 +364,8 @@ struct AllLetters {
     bool unrestricted(uint32_t eligible) const { return eligible == PerpendicularCheckTable::all_letters; }
 };
 
-template <bool stop_at_impossible, bool constrained_only>
-struct WindowMasks : GapChecks {
+template <bool stop_at_impossible, bool constrained_only, typename Layout = GapDescriptors>
+struct WindowMasks : GapChecks<Layout> {
     bool ruled_out = false;
 
     template <typename Checks, typename Alphabet = AllLetters>
@@ -366,7 +406,7 @@ struct WindowMasks : GapChecks {
 
     void add_gap(uint8_t offset, uint32_t letters)
     {
-        gaps[gap_count++] = {offset, letters};
+        this->append(offset, letters);
         ruled_out |= letters == 0;
     }
 };
@@ -419,7 +459,7 @@ enum class MaskPolicy { lazy, eager, stop_gap, stop_window };
 enum class WindowCounting { all_gaps_per_word, constrained_per_word, bulk_unrestricted };
 
 template <GapTraversal traversal, MaskPolicy policy = MaskPolicy::lazy,
-          WindowCounting counting = WindowCounting::all_gaps_per_word>
+          WindowCounting counting = WindowCounting::all_gaps_per_word, typename Layout = GapDescriptors>
 struct WindowCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
@@ -439,7 +479,7 @@ struct WindowCounter {
         size_t count = 0;
         constexpr bool stop_at_impossible = policy == MaskPolicy::stop_gap || policy == MaskPolicy::stop_window;
         constexpr bool constrained_only = counting != WindowCounting::all_gaps_per_word;
-        std::optional<WindowMasks<stop_at_impossible, constrained_only>> masks;
+        std::optional<WindowMasks<stop_at_impossible, constrained_only, Layout>> masks;
         auto build_masks = [&] {
             if constexpr (traversal == GapTraversal::scan) {
                 masks.emplace(window, checks);
@@ -471,7 +511,9 @@ struct WindowCounter {
     }
 };
 
-using PackedCounter = WindowCounter<GapTraversal::scan>;
+template <typename Layout>
+using LayoutCounter = WindowCounter<GapTraversal::scan, MaskPolicy::lazy, WindowCounting::all_gaps_per_word, Layout>;
+using PackedCounter = LayoutCounter<GapDescriptors>;
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
 struct OneGapCounter : PackedCounter {
@@ -512,13 +554,13 @@ struct RackAlphabet {
 
 enum class SubsetPolicy { none, alphabet, capacity, capacity_multi };
 
-static bool has_tile_capacity(const GapChecks &checks, PatternBytes key, uint8_t tile_count)
+static bool has_tile_capacity(const GapChecks<> &checks, PatternBytes key, uint8_t tile_count)
 {
     for (uint8_t i = 1; i < checks.gap_count; ++i) {
-        const uint32_t letters = checks.gaps[i].letters;
+        const uint32_t letters = checks.gaps.letters_at(i);
         unsigned needed = 1;
         for (uint8_t j = 0; j < i; ++j) {
-            needed += checks.gaps[j].letters == letters;
+            needed += checks.gaps.letters_at(j) == letters;
         }
         if (needed > 1) {
             unsigned available = 0;
@@ -535,18 +577,17 @@ static bool has_tile_capacity(const GapChecks &checks, PatternBytes key, uint8_t
 }
 
 template <SubsetPolicy policy>
-static size_t count_subset_words(const GroupWords &words, const GapChecks &window, PatternBytes key, uint8_t tile_count)
+static size_t count_subset_words(const GroupWords &words, const GapChecks<> &window, PatternBytes key, uint8_t tile_count)
 {
     uint32_t alphabet = 0;
     for (uint8_t i = 0; i < tile_count; ++i) {
         alphabet |= 1u << (get_byte_128(key, i, BOARD_SIZE) - 'A');
     }
 
-    GapChecks subset;
+    GapChecks<> subset;
     unsigned removed = 0;
     for (uint8_t i = 0; i < window.gap_count; ++i) {
-        const auto &gap = window.gaps[i];
-        const uint32_t eligible = gap.letters & alphabet;
+        const uint32_t eligible = window.gaps.letters_at(i) & alphabet;
         if (!eligible) {
             trace_subset(removed, benchmark::SubsetRejection::disjoint);
             return words.decide(false);
@@ -554,7 +595,7 @@ static size_t count_subset_words(const GroupWords &words, const GapChecks &windo
         if (eligible == alphabet) {
             ++removed;
         } else {
-            subset.gaps[subset.gap_count++] = {gap.offset, eligible};
+            subset.append(window.gaps.offset_at(i), eligible);
         }
     }
     if constexpr (policy != SubsetPolicy::alphabet) {
@@ -644,6 +685,8 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
 {
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
+        {"gap-u32", measure_solve<LayoutCounter<Uint32Gaps>>},
+        {"gap-arrays", measure_solve<LayoutCounter<GapArrays>>},
         {"eager", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::eager>>},
         {"stop-gap", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_gap>>},
         {"stop-window", measure_solve<StoppingCounter<WindowCounting::all_gaps_per_word>>},

@@ -278,6 +278,47 @@ done
 python3 -m bench.window_counters.window_profile > build/window-workload.json
 ```
 
+### Compare gap data layouts
+
+Separate offset and letter-mask arrays saved **3.64 µs/solve** against the current packed solver on the 30 development games. A single 32-bit descriptor tied packed at the measured precision. Each layout has its own paired baseline.
+
+| Layout paired with `packed` | Packed µs/solve | Layout µs/solve | Paired saving µs/solve (95% CI) | Raw pairs |
+| --- | ---: | ---: | ---: | --- |
+| `gap-u32` | 419.73 | 417.74 | +1.99 (−3.75 to +9.59) | [CSV](results/window-gap-layouts/packed-gap-u32.csv.gz) |
+| `gap-arrays` | 398.06 | 394.43 | +3.64 (+1.13 to +5.69) | [CSV](results/window-gap-layouts/packed-gap-arrays.csv.gz) |
+
+Each row used the same Clang 18.1.3 worker at `-O2 -march=x86-64` on logical CPU 2 of the i7-6700K with the full 191,852-word dictionary. Each of the 30 development games ran 40 pairs, 20 in each order, with two warm-ups per counter per pair. Positive savings favor the alternative. The interval resamples whole-game paired means within stage (20,000 draws, seed 15) and weights the three stages equally. On the six pilot games, paired savings were −4.72 µs for the 32-bit layout and +2.82 µs for separate arrays. On the other 24 games they were +3.67 and +3.84 µs, respectively.
+
+All three counters build their masks on the first matching rack subset. They store every gap from left to right, finish construction even after an empty mask, and reject the resulting impossible window's groups. For viable windows each candidate skips unrestricted gaps and exits at the first failed letter check. Each layout matched the independent validator on 72,530 candidate decisions, including multiplicity, in both board views. All timed directional counts agreed. The 15-letter fixture puts A and Z at word offset 14 under empty, unrestricted, A-only and Z-only masks.
+
+| Layout | Bytes per gap | Storage for seven gaps | `sizeof(WindowMasks)` | `sizeof(std::optional<WindowMasks>)` |
+| --- | ---: | ---: | ---: | ---: |
+| `packed` (descriptor array) | 8 | 56 | 60 | 64 |
+| `gap-u32` (offset in bits 28–31) | 4 | 28 | 32 | 36 |
+| `gap-arrays` (separate arrays) | 1 + 4 | 36 | 40 | 44 |
+
+Clang's record layouts show three padding bytes in each baseline descriptor. The separate arrays share one padding byte between the seven offsets and the seven aligned masks. The window also stores the gap count and the ruled-out flag. The final column includes the engagement flag and padding for lazy construction.
+
+In the linked worker the packed and separate-array candidate loops have the same instructions and branches apart from addressing. The mask load at `0xefe7` uses an eight-byte stride in packed. The load at `0x7f37` uses a four-byte stride in the mask array. Both compare with `0x03ffffff` and skip the offset and word-byte loads for an unrestricted gap. A constrained gap needs one additional byte load from the offsets (stride eight or one) before the word-byte load and `bt`. Construction writes one byte and one 32-bit mask to the stack-resident window in both layouts.
+
+The `gap-u32` loop at `0x7807` loads one 32-bit descriptor, masks off the offset to test for unrestricted letters, then shifts right by 28 on the constrained path. This eliminates the separate offset load. The constructor advances the high offset bits by `0x10000000` per scanned column and ORs them into the mask before one store. Across the construction loop, the group visitor saves and restores two pointers in stack slots for `gap-u32` and one for each other layout. None of the three candidate loops spills registers. The production solver translation unit's `.text` matched revision `66ddfa2` byte for byte with the measured flags.
+
+To reproduce the paired solves, type sizes and linked-loop inspection from the repository root, run
+
+```sh
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+window_tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
+python3 -m bench.window_counters.window_games --export development build/window-development
+for layout in gap-u32 gap-arrays; do
+    taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$window_tools" \
+        --variants packed "$layout" --cases build/window-development/cases.csv \
+        --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > "build/packed-$layout.csv" || break
+done
+clang++ $flags -DSCRABBLE_WINDOW_VARIANTS -Ibench/window_counters -Ibench/measurement_support \
+    -Xclang -fdump-record-layouts -fsyntax-only src/rack_oriented_solver.cpp > build/gap-layouts.txt
+objdump -d -C -M intel "$window_tools/window_worker" > build/gap-layouts.asm
+```
+
 ### Profile the development workload and export reserved games
 
 Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator. For each game, counter and direction, the words in visited groups plus the words in any skipped groups must account for all of the validator’s candidate records.
