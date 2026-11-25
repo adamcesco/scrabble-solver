@@ -10,5 +10,6 @@ void trace_square_lookup(uint8_t row, uint8_t col);
 void trace_window(uint8_t row, uint8_t start, uint8_t length, uint8_t empty, bool pattern_match);
 void trace_group(size_t words);
 void trace_individual_check();
+void trace_cache_hit();
 
 #endif

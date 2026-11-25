@@ -44,6 +44,7 @@ struct VisitedWindow {
     bool pattern_match;
     std::vector<VisitedGroup> groups;
     unsigned lookups = 0;
+    unsigned cache_hits = 0;
 };
 
 struct WindowWorkload {
@@ -69,7 +70,7 @@ struct WindowWorkload {
                 output.stream << output.position << ',' << variant << ',' << down << ',' << +w.row << ','
                               << +w.start << ',' << +w.length << ',' << +w.empty << ',' << constrained << ','
                               << w.pattern_match << ',' << group.words << ',' << group.individual_checks << ','
-                              << w.lookups << '\n';
+                              << w.lookups << ',' << w.cache_hits << '\n';
             };
             if (w.groups.empty()) {
                 emit({0});
@@ -99,6 +100,13 @@ void trace_individual_check()
 {
     if (active_trace && active_trace->workload) {
         ++active_trace->workload->windows.back().groups.back().individual_checks;
+    }
+}
+
+void trace_cache_hit()
+{
+    if (active_trace && active_trace->workload) {
+        ++active_trace->workload->windows.back().cache_hits;
     }
 }
 
@@ -174,6 +182,7 @@ ViewDecisions PlacementComparison::compare_board(
     std::array<size_t, 2> expected_counts;
     std::array<LookupCounts, 2> packed_lookups;
     std::array<LookupCounts, 2> neighbor_lookups{};
+    std::array<LookupCounts, 2> cached_lookups;
     ViewDecisions sorted_reference;
     for (bool down : {false, true}) {
         check_view(name, down ? "down" : "across", words, original, board);
@@ -186,6 +195,7 @@ ViewDecisions PlacementComparison::compare_board(
         for (int row = 0; row < BOARD_SIZE; ++row) {
             const unsigned adjacent = ((1u << row) >> 1) | (1u << (row + 1));
             for (int col = 0; col < BOARD_SIZE; ++col) {
+                cached_lookups[down][row][col] = packed_lookups[down][row][col] != 0;
                 if (board.perpendicularRows[col].occupiedMask & adjacent) {
                     neighbor_lookups[down][row][col] = packed_lookups[down][row][col];
                 }
@@ -225,6 +235,8 @@ ViewDecisions PlacementComparison::compare_board(
                 assert(actual.lookups[down] == packed_lookups[down]);
             } else if (variant == &benchmark::window_variant("neighbor-bits")) {
                 assert(actual.lookups[down] == neighbor_lookups[down]);
+            } else if (variant == &benchmark::window_variant("row-cache")) {
+                assert(actual.lookups[down] == cached_lookups[down]);
             }
         }
         if (profile) {

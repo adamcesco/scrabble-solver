@@ -98,6 +98,40 @@ done
 python3 -m bench.window_counters.window_profile > build/window-workload.json
 ```
 
+### Reuse perpendicular-check sets across overlapping windows
+
+On 30 development games, `row-cache` saved **11.14 µs per complete solve (2.7%)** against `packed`. Both counters scan every gap when a window first reaches a matching group. The cache stores the first result for each queried column in the current row and board view. A separate validity bit lets it reuse an empty set. The timed worker initializes the validity mask for each row and tests it on every request. [Raw paired solves](results/window-packed-row-cache.csv.gz)
+
+| Stage | Packed (µs/solve) | Row cache (µs/solve) | Paired saving (µs/solve) |
+| --- | ---: | ---: | ---: |
+| Early | 357.40 | 347.86 | 9.54 |
+| Middle | 514.20 | 498.73 | 15.47 |
+| Late | 369.95 | 361.53 | 8.41 |
+| **Equal-stage mean** | **413.85** | **402.71** | **11.14** |
+
+The 95% game-level interval for the saving was **6.21 to 16.36 µs**. The six pilot games saved 20.42 µs (95% CI 11.18 to 29.66), and the 24 additional games saved 8.82 µs (3.60 to 14.33). Each game contributed 40 pairs, 20 in each order, on logical CPU 2 of the i7-6700K with Clang 18.1.3 at `-O2 -march=x86-64` and the full project dictionary. Intervals resample mean paired differences by game within each stage, sorted by case name, with 20,000 draws and seed 15. Both counters agreed with place-and-restore on all 72,530 candidate decisions and all release runs returned the qualified directional counts.
+
+The separate diagnostic run counted **23,539 hits on 28,639 requests (82.2%)**. Each miss was the first request for its square in that row and view. Both counters visited the same 49,421 matching groups and performed the same 40,724 individual word checks. Reuse removes repeated lookups during mask construction, which accounts for one part of the solve. [Per-row distributions by stage and direction](results/window-workload.json)
+
+| Stage | Requests | Distinct squares summed over rows | Mean distinct squares per row | Cache hits | Rows with zero requests |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Early | 9,151 | 1,434 | 4.78 | 7,717 | 136 / 300 |
+| Middle | 11,127 | 1,816 | 6.05 | 9,311 | 66 / 300 |
+| Late | 8,361 | 1,850 | 6.17 | 6,511 | 31 / 300 |
+| **All** | **28,639** | **5,100** | **5.67** | **23,539** | **233 / 900** |
+
+To repeat the comparison and collect the untimed profile, run these commands from the repository root.
+
+```sh
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+window_tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
+python3 -m bench.window_counters.window_games --export development build/window-development
+taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$window_tools" \
+    --variants packed row-cache --cases build/window-development/cases.csv \
+    --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > build/window-packed-row-cache.csv
+python3 -m bench.window_counters.window_profile > build/window-workload.json
+```
+
 ### Profile the development workload and export reserved games
 
 Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator and reconciles the sum of visited group sizes with the oracle's candidate records separately for each game, counter and direction.

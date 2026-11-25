@@ -212,6 +212,34 @@ struct MatchedWindow {
 
 enum class GapTraversal { scan, empty_bits, neighbor_bits };
 
+struct DirectCheckSets {
+    static uint32_t get(const Board &board, uint8_t row, uint8_t col)
+    {
+        return board.perpendicular_check_set(row, col);
+    }
+};
+
+#ifdef SCRABBLE_WINDOW_VARIANTS
+struct CachedRowCheckSets {
+    uint16_t valid = 0;
+    uint32_t letters[BOARD_SIZE];
+
+    uint32_t get(const Board &board, uint8_t row, uint8_t col)
+    {
+        const uint16_t bit = bit_at_u16(col);
+        if (valid & bit) {
+#ifdef SCRABBLE_TRACE_PLACEMENTS
+            trace_cache_hit();
+#endif
+            return letters[col];
+        }
+        letters[col] = board.perpendicular_check_set(row, col);
+        valid |= bit;
+        return letters[col];
+    }
+};
+#endif
+
 struct WindowMasks {
     struct Gap {
         uint8_t offset;
@@ -221,12 +249,13 @@ struct WindowMasks {
     uint8_t gap_count = 0;
     bool ruled_out = false;
 
-    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window)
+    template <typename Checks>
+    WindowMasks(Checks &checks, const Board &board, uint8_t row, const MatchedWindow &window)
     {
         for (uint8_t offset = 0; offset < window.length; ++offset) {
             uint8_t col = window.start + offset;
             if (!(board.rows[row].occupiedMask & bit_at_u16(col))) {
-                add_gap(offset, board.perpendicular_check_set(row, col));
+                add_gap(offset, checks.get(board, row, col));
             }
         }
     }
@@ -261,7 +290,7 @@ struct WindowMasks {
     }
 };
 
-template <typename CountWindow>
+template <typename Checks = DirectCheckSets, typename CountWindow>
 size_t count_rack_windows(
     const WordPatternTable *word_patterns,
     const RackSubsetKeys *rack_subset_keys,
@@ -287,6 +316,7 @@ size_t count_rack_windows(
                 }
             }
         );
+        Checks checks;
         for (uint8_t empty_count = 1; empty_count <= rack_length; ++empty_count) {
             for (uint8_t index = 0; index < counts[empty_count]; ++index) {
                 const MatchedWindow &window = by_empty_count[empty_count][index];
@@ -297,7 +327,7 @@ size_t count_rack_windows(
                         rack_subset_keys->keys[empty_count], rack_subset_keys->counts[empty_count], visit
                     );
                 };
-                count += count_window(row_index, neighbors, window, empty_count, visit_groups);
+                count += count_window(checks, row_index, neighbors, window, empty_count, visit_groups);
             }
         }
     }
@@ -313,15 +343,16 @@ struct WindowCounter {
     WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns, const Board &board)
         : dictionary(dictionary), patterns(patterns), board(board) {}
 
-    template <typename VisitGroups>
-    size_t operator()(uint8_t row, uint16_t neighbors, const MatchedWindow &window, uint8_t, VisitGroups visit_groups) const
+    template <typename Checks, typename VisitGroups>
+    size_t operator()(Checks &checks, uint8_t row, uint16_t neighbors, const MatchedWindow &window,
+                      uint8_t, VisitGroups visit_groups) const
     {
         size_t count = 0;
         std::optional<WindowMasks> masks;
         visit_groups([&](const WordPatternAnagramGroup &group) {
             if (!masks) {
                 if constexpr (traversal == GapTraversal::scan) {
-                    masks.emplace(board, row, window);
+                    masks.emplace(checks, board, row, window);
                 } else if constexpr (traversal == GapTraversal::empty_bits) {
                     masks.emplace(board, row, window, UINT16_MAX);
                 } else {
@@ -350,11 +381,11 @@ struct OneGapCounter : PackedCounter {
     using PackedCounter::PackedCounter;
 
     template <typename VisitGroups>
-    size_t operator()(uint8_t row, uint16_t neighbors, const MatchedWindow &window, uint8_t empty_count,
-                      VisitGroups visit_groups) const
+    size_t operator()(DirectCheckSets &checks, uint8_t row, uint16_t neighbors, const MatchedWindow &window,
+                      uint8_t empty_count, VisitGroups visit_groups) const
     {
         if (empty_count != 1) {
-            return PackedCounter::operator()(row, neighbors, window, empty_count, visit_groups);
+            return PackedCounter::operator()(checks, row, neighbors, window, empty_count, visit_groups);
         }
         std::optional<uint32_t> letters;
         size_t count = 0;
@@ -375,7 +406,7 @@ struct OneGapCounter : PackedCounter {
     }
 };
 
-template <typename Counter>
+template <typename Counter, typename Checks = DirectCheckSets>
 benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTable &patterns,
                                      Board &board, const benchmark::Rack &rack)
 {
@@ -386,7 +417,7 @@ benchmark::WindowSolve measure_solve(const WordTable &words, const WordPatternTa
     auto keys = rack_subset_keys_for_rack(rack.tiles, rack.length);
     Counter counter(words, patterns, board);
     auto counts = count_both_views(board, [&] {
-        return count_rack_windows(&patterns, &keys, &board, rack.length, counter);
+        return count_rack_windows<Checks>(&patterns, &keys, &board, rack.length, counter);
     });
 #ifdef SCRABBLE_TRACE_PLACEMENTS
     return {counts, 0};
@@ -403,6 +434,7 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
 {
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
+        {"row-cache", measure_solve<PackedCounter, CachedRowCheckSets>},
         {"one-gap", measure_solve<OneGapCounter>},
         {"empty-bits", measure_solve<WindowCounter<GapTraversal::empty_bits>>},
         {"neighbor-bits", measure_solve<WindowCounter<GapTraversal::neighbor_bits>>},
@@ -439,7 +471,7 @@ size_t rack_oriented_full_board_solver(
 {
     const Board original_board = *board;
     return count_rack_windows(word_patterns, rack_subset_keys, board, rack_length,
-        [&](uint8_t row, uint16_t, const MatchedWindow &window, uint8_t, auto visit_groups) {
+        [&](DirectCheckSets &, uint8_t row, uint16_t, const MatchedWindow &window, uint8_t, auto visit_groups) {
             size_t count = 0;
             visit_groups([&](const WordPatternAnagramGroup &group) {
                 count += validate_rack_window_words(

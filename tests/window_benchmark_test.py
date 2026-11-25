@@ -100,6 +100,23 @@ class WindowBenchmarkTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "RT packed across"):
             summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
 
+    def test_row_cache_profile_includes_overlaps_and_rows_without_requests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "words").write_text("AX\nAT\nCAT\nTO\n")
+            board = [["."] * 15 for _ in range(15)]
+            board[0][:2] = ["A", "X"]
+            with (root / "board.csv").open("w") as stream:
+                csv.writer(stream, lineterminator="\n").writerows(board)
+            output = subprocess.check_output(
+                [window_build() / "placement_equivalence_test", root / "words", root / "cache",
+                 "--profile", root / "visits", "row-cache"], input=f"{root / 'board.csv'}\tACT\n", text=True)
+            counts = {k: int(v) for k, v in next(csv.DictReader(io.StringIO(output))).items()}
+            with (root / "visits").open() as stream:
+                stage = summarize(stream, [{"case": "AX", "stage": "early"}], ["row-cache"], [counts])["early"]
+        self.assertEqual(stage["variants"]["row-cache"]["row_cache"]["across"],
+                         dict(requests=10, hits=6, distinct_squares_per_row={0: 14, 4: 1}))
+
     def test_neighbor_lookups_at_both_edges_in_both_views(self):
         variants = ("packed", "empty-bits", "neighbor-bits")
         with tempfile.TemporaryDirectory() as directory:

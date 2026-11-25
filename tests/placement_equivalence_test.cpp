@@ -129,6 +129,41 @@ static void compare_gap_keys_at_the_board_edge(const WindowVariants &variants)
     words.destroy();
 }
 
+static void reuse_check_sets_across_overlapping_windows()
+{
+    WordTable words = load_dictionary("AX\nAT\nCAT\nTO\n");
+    {
+        PlacementComparison fixture{words};
+        Board board = board_at(0, 0, {"AX"});
+        const auto &cached = benchmark::window_variant("row-cache");
+        const auto &packed = benchmark::window_variant("packed");
+        board.prepare_perpendicular_checks(fixture.lookup);
+        const SolverBoardSnapshot snapshot{board};
+        assert(board.perpendicular_check_set(1, 0) != 0); // Below A, T and X are allowed.
+        assert(board.perpendicular_check_set(1, 1) == 0); // No word starts with X.
+
+        const std::array<benchmark::Rack, 2> racks{benchmark::Rack("ACT"), benchmark::Rack("OT")};
+        const ViewDecisions expected[] = {
+            fixture.compare_board("AT and CAT below AX", board, "ACT", {&cached}),
+            fixture.compare_board("TO below AX", board, "OT", {&cached}),
+        };
+        for (const auto &rack : racks) {
+            PlacementTrace baseline{words, board, snapshot};
+            baseline.solve(packed, fixture.patterns, rack);
+            // AT and CAT start at 0 and 1 below AX. The second rack matches only TO.
+            assert(baseline.lookups[0][1][0] == (rack.length == 3 ? 2u : 1u));
+            assert(baseline.lookups[0][1][1] == (rack.length == 3 ? 4u : 2u));
+        }
+        for (size_t i = 0; i < racks.size(); ++i) {
+            PlacementTrace reuse{words, board, snapshot};
+            reuse.solve(cached, fixture.patterns, racks[i]);
+            assert(reuse.decisions == expected[i]);
+            assert(reuse.lookups[0][1][0] == 1 && reuse.lookups[0][1][1] == 1);
+        }
+    }
+    words.destroy();
+}
+
 static std::filesystem::path qualifier_project(const char *executable)
 {
     // Keep the invocation path so a symlink staged under build/ belongs to that project.
@@ -185,7 +220,7 @@ static void qualify_inputs(const char *dictionary_path, const std::filesystem::p
             }
             visits.exceptions(std::ios::failbit | std::ios::badbit);
             visits.open(profile_path);
-            visits << "position,variant,down,row,start,length,empty,constrained,pattern_match,group_size,individual_checks,lookups\n";
+            visits << "position,variant,down,row,start,length,empty,constrained,pattern_match,group_size,individual_checks,lookups,cache_hits\n";
         }
         std::cout << "across,across_candidates,down,down_candidates\n";
         std::string line;
@@ -249,6 +284,7 @@ int main(int argc, char **argv)
             variants.push_back(&benchmark::window_variant("packed"));
         }
         compare_gap_keys_at_the_board_edge(variants);
+        reuse_check_sets_across_overlapping_windows();
         compare_rt_orders(true, variants);
         compare_rt_orders(false, variants);
         compare_rack_groups_and_ruled_out_windows(variants);
