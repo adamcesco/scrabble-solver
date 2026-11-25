@@ -134,7 +134,7 @@ python3 -m bench.window_counters.window_profile > build/window-workload.json
 
 ### Mask construction and stopping impossible windows
 
-Each comparison changes one decision in the packed scan. `eager` constructs the mask as soon as the dictionary contains the window’s word pattern. `packed` waits for the first matching rack subset. `stop-gap` keeps that lazy construction and ends the scan at the first empty perpendicular-check set. `stop-window` also ends the search for matching groups in that window. A group whose words all fail can still be followed by a group that produces a move.
+The first three comparisons isolate construction timing, ending the scan, and ending the group search. The fourth measures both early exits together against packed. `eager` constructs the mask as soon as the dictionary contains the window’s word pattern. `packed` waits for the first matching rack subset. `stop-gap` keeps that lazy construction and ends the scan at the first empty perpendicular-check set. `stop-window` also ends the search for matching groups in that window. A group whose words all fail can still be followed by a group that produces a move.
 
 | Control → challenger | Control µs/solve | Challenger µs/solve | Paired saving µs/solve (95% CI) | Raw pairs |
 | --- | ---: | ---: | ---: | --- |
@@ -143,7 +143,7 @@ Each comparison changes one decision in the packed scan. `eager` constructs the 
 | `stop-gap` → `stop-window` | 404.29 | 361.88 | +42.40 (+33.53 to +51.32) | [CSV](results/window-stop-gap-stop-window.csv.gz) |
 | `packed` → `stop-window` | 403.09 | 349.14 | +53.94 (+43.57 to +63.86) | [CSV](results/window-packed-stop-window.csv.gz) |
 
-Eager construction and stopping only the scan both tied packed at this precision. Clang inlined the eager group visitor and emitted a call to the packed visitor in both matching loops. Ending the group search saved 42.40 µs per solve against its immediate control. This saving was 33.23 µs on the six pilot games and 44.70 µs on the other 24 development games. The direct comparison with packed saved 13.4%. Each row uses its own paired differences before rounding.
+The intervals for eager construction and for stopping only the scan include zero, leaving both tied with packed at the measured precision. Clang inlined the eager group visitor and emitted a call to the packed visitor in both matching loops. Ending the group search saved 42.40 µs per solve against its immediate control. This saving was 33.23 µs on the six pilot games and 44.70 µs on the other 24 development games. The direct comparison with packed saved 13.4%. Each row uses its own paired differences before rounding.
 
 The four runs used the full project dictionary, Clang 18.1.3 with `-O2 -march=x86-64`, and logical CPU 2 of the i7-6700K. Each row summarizes 1,200 pairs over 30 development games, with two warm-ups per counter and 20 measured pairs per game in each order. For each interval, games are sorted by case name within stage. The bootstrap resamples their paired means within stage, gives each stage equal weight, and uses 20,000 draws with seed 15. Every release observation returned the qualified across and down counts.
 
@@ -175,7 +175,7 @@ python3 -m bench.window_counters.window_profile > build/window-workload.json
 
 ### Profile the development workload and export reserved games
 
-Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator and reconciles the sum of visited group sizes with the oracle's candidate records separately for each game, counter and direction.
+Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator. For each game, counter and direction, the words in visited groups plus the words in any skipped groups must account for all of the validator’s candidate records.
 
 ```sh
 mkdir -p build
