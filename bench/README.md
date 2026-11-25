@@ -62,15 +62,15 @@ Order affected these warm solves. Mean packed minus one-gap on the pilot was +1.
 
 | Paired comparison | Baseline mean (µs/solve) | Challenger mean (µs/solve) | Paired saving (µs/solve) | 95% CI on saving |
 | --- | ---: | ---: | ---: | ---: |
-| Packed scan → empty bits | 387.36 | 385.95 | +1.41 | −0.46 to +3.32 |
-| Packed scan → neighbor bits | 395.08 | 377.24 | +17.84 | +13.79 to +22.41 |
-| Empty bits → neighbor bits | 384.78 | 375.59 | +9.19 | +6.52 to +11.92 |
+| Packed scan → empty bits | 394.42 | 392.60 | +1.82 | −0.13 to +3.87 |
+| Packed scan → neighbor bits | 392.72 | 371.39 | +21.32 | +17.76 to +25.27 |
+| Empty bits → neighbor bits | 402.34 | 382.92 | +19.43 | +15.09 to +23.81 |
 
-Each row comes from its own paired run. Positive savings favor the challenger. Empty-bit iteration alone tied the packed scan at this precision. Filtering saved 2.4% against unfiltered bit iteration. The direct saving was 7.27 µs on the six pilot games (95% CI 4.02 to 10.52) and 9.67 µs on the 24 additional development games (6.53 to 12.89). The direct means were positive in both run orders and in all three stages. [Scan vs. empty-bit pairs](results/window-packed-empty-bits.csv.gz) · [Scan vs. filtered pairs](results/window-packed-neighbor-bits.csv.gz) · [Direct filter pairs](results/window-empty-bits-neighbor-bits.csv.gz)
+Each row comes from its own paired run. Positive savings favor the challenger. Empty-bit iteration alone tied the packed scan at this precision. Filtering saved 4.8% against unfiltered bit iteration. The direct saving was 17.63 µs on the six pilot games (95% CI 10.68 to 24.57) and 19.88 µs on the 24 additional development games (14.89 to 24.99). An earlier build at `278b049` saved 9.19 µs in the direct comparison on the same games. [Scan vs. empty-bit pairs](results/window-packed-empty-bits.csv.gz) · [Scan vs. filtered pairs](results/window-packed-neighbor-bits.csv.gz) · [Direct filter pairs](results/window-empty-bits-neighbor-bits.csv.gz)
 
 The full-dictionary run used Clang 18.1.3 at `-O2 -march=x86-64` on logical CPU 2 of the i7-6700K. Each pairing has 40 repetitions per game, 20 in each order. Each game contributes its mean paired difference. Confidence intervals resample whole games within each stage (sorted by case name, 20,000 draws, seed 15) and weight early, middle and late equally. The 30 development games include the six pilot games and 24 separate Quackle games. The timing covers rack subsets, both views and restoration on a prepared board.
 
-The separate trace counted calls during mask construction. The last column counts only windows that reached at least one matching rack group. Every other visited window already avoided construction in all three variants.
+The separate trace counted calls during mask construction. The last column counts only windows that reached at least one matching rack group. The 14,578 windows with no matching group already avoided construction in all three variants. Including them, 17,003 of 23,762 visited windows made zero filtered lookups.
 
 | Stage | Packed or empty-bit lookups | Filtered lookups | Calls eliminated | Matched windows with zero filtered lookups |
 | --- | ---: | ---: | ---: | ---: |
@@ -86,12 +86,12 @@ The production solver translation unit’s `.text` section matched the pre-exper
 These commands reproduce the timings and the separate lookup profile from the repository root.
 
 ```sh
-export CXX=clang++
-export CXXFLAGS='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+window_tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
 python3 -m bench.window_counters.window_games --export development build/window-development
 for pair in 'packed empty-bits' 'packed neighbor-bits' 'empty-bits neighbor-bits'; do
     set -- $pair
-    taskset -c 2 python3 -m bench.window_counters.window_benchmark --variants "$1" "$2" \
+    taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$window_tools" --variants "$1" "$2" \
         --cases build/window-development/cases.csv --dictionary data/dictionaries/sample_dictionary.txt \
         --repetitions 40 > "build/window-$1-$2.csv" || break
 done

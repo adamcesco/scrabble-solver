@@ -203,11 +203,15 @@ struct MatchedWindow {
     uint8_t start;
     uint8_t length;
     const WordPattern *match;
+
+    uint16_t empty_columns(uint16_t occupied) const
+    {
+        return (low_bit_mask_u16(length) << start) & ~occupied;
+    }
 };
 
 enum class GapTraversal { scan, empty_bits, neighbor_bits };
 
-template <GapTraversal traversal>
 struct WindowMasks {
     struct Gap {
         uint8_t offset;
@@ -217,28 +221,30 @@ struct WindowMasks {
     uint8_t gap_count = 0;
     bool ruled_out = false;
 
-    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window, uint16_t eligible_columns = UINT16_MAX)
+    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window)
     {
-        auto add_gap = [&](uint8_t offset, uint32_t letters) {
-            gaps[gap_count++] = {offset, letters};
-            ruled_out |= letters == 0;
-        };
-        if constexpr (traversal == GapTraversal::scan) {
-            for (uint8_t offset = 0; offset < window.length; ++offset) {
-                uint8_t col = window.start + offset;
-                if (!(board.rows[row].occupiedMask & bit_at_u16(col))) {
-                    add_gap(offset, board.perpendicular_check_set(row, col));
-                }
-            }
-        } else {
-            const uint16_t span = low_bit_mask_u16(window.length) << window.start;
-            uint16_t remaining = span & ~board.rows[row].occupiedMask & eligible_columns;
-            while (remaining) {
-                const uint8_t col = __builtin_ctz(remaining);
-                add_gap(col - window.start, board.perpendicular_check_set(row, col));
-                remaining &= remaining - 1u;
+        for (uint8_t offset = 0; offset < window.length; ++offset) {
+            uint8_t col = window.start + offset;
+            if (!(board.rows[row].occupiedMask & bit_at_u16(col))) {
+                add_gap(offset, board.perpendicular_check_set(row, col));
             }
         }
+    }
+
+    WindowMasks(const Board &board, uint8_t row, const MatchedWindow &window, uint16_t eligible_columns)
+    {
+        uint16_t columns = window.empty_columns(board.rows[row].occupiedMask) & eligible_columns;
+        while (columns) {
+            const uint8_t col = __builtin_ctz(columns);
+            add_gap(col - window.start, board.perpendicular_check_set(row, col));
+            columns &= columns - 1u;
+        }
+    }
+
+    void add_gap(uint8_t offset, uint32_t letters)
+    {
+        gaps[gap_count++] = {offset, letters};
+        ruled_out |= letters == 0;
     }
 
     bool accepts(const char *word) const
@@ -311,13 +317,15 @@ struct WindowCounter {
     size_t operator()(uint8_t row, uint16_t neighbors, const MatchedWindow &window, uint8_t, VisitGroups visit_groups) const
     {
         size_t count = 0;
-        std::optional<WindowMasks<traversal>> masks;
+        std::optional<WindowMasks> masks;
         visit_groups([&](const WordPatternAnagramGroup &group) {
             if (!masks) {
-                if constexpr (traversal == GapTraversal::neighbor_bits) {
-                    masks.emplace(board, row, window, neighbors);
-                } else {
+                if constexpr (traversal == GapTraversal::scan) {
                     masks.emplace(board, row, window);
+                } else if constexpr (traversal == GapTraversal::empty_bits) {
+                    masks.emplace(board, row, window, UINT16_MAX);
+                } else {
+                    masks.emplace(board, row, window, neighbors);
                 }
             }
             const uint32_t *ids = patterns.word_indices.data() + group.word_indices.start;
@@ -352,8 +360,7 @@ struct OneGapCounter : PackedCounter {
         size_t count = 0;
         visit_groups([&](const WordPatternAnagramGroup &group) {
             if (!letters) {
-                const auto span = low_bit_mask_u16(window.length) << window.start;
-                const auto gap = span & ~board.rows[row].occupiedMask;
+                const auto gap = window.empty_columns(board.rows[row].occupiedMask);
                 letters = board.perpendicular_check_set(row, __builtin_ctz(gap));
             }
             const auto tile = get_byte_128(group.rack_letters, 0, BOARD_SIZE);
