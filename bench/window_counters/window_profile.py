@@ -63,13 +63,14 @@ def summarize(visits, cases, variants, qualified, *, gap_checks=False):
         for row in chain((window,), groups):
             size = int(row["group_size"])
             if size:
+                individual_checks = int(row["individual_checks"])
                 candidates += size
                 accepted += int(row["accepted"])
-                checked += int(row["individual_checks"])
+                checked += individual_checks
                 if gap_checks:
                     evaluation = profile["gap_evaluation"]
                     evaluation["candidates"] += size
-                    evaluation["checked_candidates"] += int(row["individual_checks"])
+                    evaluation["checked_candidates"] += individual_checks
                     evaluation["gap_checks"] += int(row["gap_checks"])
                     for position in range(1, empty + 1):
                         failures = int(row[f"first_failure_{position}"])
@@ -82,7 +83,7 @@ def summarize(visits, cases, variants, qualified, *, gap_checks=False):
                 bucket = profile["groups_by_size"][size]
                 bucket["groups"] += 1
                 bucket["candidate_words"] += size
-                bucket["individual_checks"] += int(row["individual_checks"])
+                bucket["individual_checks"] += individual_checks
                 if name in RACK_POLICIES:
                     bucket.update(subset_checks=int(row["subset_checked"]),
                                   subset_gaps_removed=int(row["subset_gaps_removed"]),

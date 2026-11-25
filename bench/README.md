@@ -400,7 +400,7 @@ The fixed one- and two-gap paths tied the general scalar loop on the 30 developm
 
 All four experimental counters prepare the same constrained gaps in offset order. They stop group traversal at an impossible gap and count an unrestricted window's groups in bulk. `scalar-general` checks each remaining word with a variable-length early-exit loop. `scalar-1-2` selects a fixed bound of one or two checks at the group boundary and uses the general loop for longer counts.
 
-In a separate comparison, `singleton-mask` and `singleton-byte` prepare a required character once when a window has exactly one constrained gap and its mask has one bit. Both select a single check for every group in that window and use the general loop elsewhere. The matched pair differs only in whether it tests the character's bit or compares the character directly.
+In a separate comparison, `singleton-mask` and `singleton-byte` prepare a required character once when a window has exactly one constrained gap and its mask has one bit. Each matching group branches on the prepared character before it enters its word loop. The timings include this per-group dispatch and the general loop used by other windows. The matched pair differs only in whether it tests the character's bit or compares the character directly.
 
 | Control | Challenger | Control / challenger (µs/solve) | Saving (95% CI) | Saving on 24 games outside pilot (95% CI) |
 | --- | --- | ---: | ---: | ---: |
