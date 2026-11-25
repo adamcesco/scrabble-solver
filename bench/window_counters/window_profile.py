@@ -23,7 +23,7 @@ def window_histograms():
     return dict(windows=0, by_empty_squares=Counter(), by_constrained_gaps=Counter(), by_candidates=Counter())
 
 
-def variant_profile(name):
+def variant_profile(name, gap_checks):
     profile = dict(
         windows={kind: window_histograms() for kind in ("no_dictionary_match", "no_matching_group", "matching_groups")},
         lookup_counts={direction: dict(calls=0, matched_windows=0, matched_windows_without_lookups=0)
@@ -34,12 +34,14 @@ def variant_profile(name):
                                 for direction in ("across", "down")}
     if name in MASK_POLICIES:
         profile["mask_search"] = {kind: Counter() for kind in ("accepted", "all_rejected", "no_matching_group")}
+    if gap_checks:
+        profile["gap_evaluation"] = dict(candidates=0, checked_candidates=0, gap_checks=0, first_failures=Counter())
     return profile
 
 
-def summarize(visits, cases, variants, qualified):
+def summarize(visits, cases, variants, qualified, *, gap_checks=False):
     stages = {stage: dict(games=0, qualified_candidates=Counter(),
-                          variants={name: variant_profile(name) for name in variants}) for stage in STAGES}
+                          variants={name: variant_profile(name, gap_checks) for name in variants}) for stage in STAGES}
     observed = Counter()
     # Qualification checks that a cache miss occurs exactly once per requested square.
     row_misses = Counter()
@@ -56,6 +58,15 @@ def summarize(visits, cases, variants, qualified):
             if size:
                 candidates += size
                 accepted += int(row["accepted"])
+                if gap_checks:
+                    evaluation = profile["gap_evaluation"]
+                    evaluation["candidates"] += size
+                    evaluation["checked_candidates"] += int(row["individual_checks"])
+                    evaluation["gap_checks"] += int(row["gap_checks"])
+                    for position in range(1, empty + 1):
+                        failures = int(row[f"first_failure_{position}"])
+                        if failures:
+                            evaluation["first_failures"][position] += failures
                 if row["skipped_group"] == "1":
                     skipped_groups += 1
                     skipped_words += size
@@ -128,6 +139,8 @@ def summarize(visits, cases, variants, qualified):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--variants", nargs="+", default=[*MASK_POLICIES, "one-gap", "empty-bits", "neighbor-bits", "row-cache"])
+    parser.add_argument("--gap-checks", action="store_true", help="include gap visits and first failures in evaluation order")
+    parser.add_argument("--build-dir", type=Path, help="use the qualifier and worker from this window-tools build")
     parser.add_argument("--dictionary", type=Path, default=ROOT / "data/dictionaries/sample_dictionary.txt")
     args = parser.parse_args()
     if len(set(args.variants)) != len(args.variants):
@@ -137,7 +150,7 @@ def main():
     if fingerprint != development[0]["dictionary_sha256"]:
         parser.error("dictionary differs from the recorded development corpus")
 
-    build = window_build()
+    build = args.build_dir or window_build()
     with tempfile.TemporaryDirectory() as tmp:
         directory = Path(tmp)
         write_benchmark(directory, development, paired=False)
@@ -148,7 +161,7 @@ def main():
         visits = directory / "visits.csv"
         counts = qualify_positions(args.dictionary, cache, positions, args.variants, build, profile=visits)
         with visits.open(newline="") as stream:
-            stages = summarize(stream, cases, args.variants, (counts[pos] for pos in positions))
+            stages = summarize(stream, cases, args.variants, (counts[pos] for pos in positions), gap_checks=args.gap_checks)
     json.dump(dict(game_set="development", dictionary_sha256=fingerprint, stages=stages),
               sys.stdout, sort_keys=True, indent=2)
     print()

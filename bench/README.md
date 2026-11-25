@@ -322,6 +322,76 @@ objdump -d -C -M intel "$window_tools/window_worker" > build/gap-layouts.asm
 )
 ```
 
+### Compare early exit, accumulation and gap order
+
+Checking every gap in offset order saved **17.26 µs/solve** against early exit with the same letter test and **10.25 µs/solve** against production `packed`. On the six pilot games within the development run, accumulation saved 13.06 µs/solve against matched early exit. On the other 24 games it saved 18.31 µs/solve. Ordering by selectivity reduced gap visits by 19.9%, but tied the original order on complete solve time once sorting was included.
+
+| Control | Challenger | Control µs/solve | Challenger µs/solve | Paired saving µs/solve (95% CI) | Raw pairs |
+| --- | --- | ---: | ---: | ---: | --- |
+| `packed` | `early-exit` | 396.18 | 402.48 | -6.30 (-9.68 to -3.17) | [CSV](results/window-gap-order/packed-early-exit.csv.gz) |
+| `early-exit` | `all-checks` | 410.60 | 393.34 | +17.26 (+12.09 to +22.47) | [CSV](results/window-gap-order/early-exit-all-checks.csv.gz) |
+| `early-exit` | `selective-first` | 401.21 | 401.40 | -0.19 (-4.01 to +3.45) | [CSV](results/window-gap-order/early-exit-selective-first.csv.gz) |
+| `packed` | `all-checks` | 388.79 | 378.54 | +10.25 (+5.98 to +14.61) | [CSV](results/window-gap-order/packed-all-checks.csv.gz) |
+| `packed` | `selective-first` | 399.57 | 402.87 | -3.30 (-6.54 to -0.16) | [CSV](results/window-gap-order/packed-selective-first.csv.gz) |
+
+All four counters build the packed descriptors once, on the first matching group, and retain every gap. A window with an empty mask rejects whole groups before word inspection. The production `packed` loop skips the word-byte load when the mask permits every letter. The `early-exit` control reads the letter and tests its bit at every visited gap. Both `all-checks` and `selective-first` use this same membership test. The former accumulates all results in offset order. The latter uses early exit after a stable insertion sort by number of allowed letters, breaking ties by original offset. The timed solve pays for ordering each constructed window, including impossible windows.
+
+The initial run used six pilot games with four pairs per game. Each row above compares the same 30 development positions (including the pilot six) on logical CPU 2 of the i7-6700K, using Clang 18.1.3 at `-O2 -march=x86-64` and the full 191,852-word dictionary. Each position ran 40 pairs, 20 in each order, with two warm-ups per counter per pair. Savings subtract the challenger from its paired control. The 95% interval resamples game means within stage (20,000 draws, seed 15) and gives early, middle and late games equal weight. [Initial pilot pairs](results/window-gap-order/pilot.csv.gz)
+
+The paired mean savings against `early-exit` varied by game stage.
+
+| Challenger | Early µs/solve | Middle µs/solve | Late µs/solve |
+| --- | ---: | ---: | ---: |
+| `all-checks` | +16.14 | +28.22 | +7.42 |
+| `selective-first` | +2.90 | +1.28 | -4.75 |
+
+#### Untimed gap checks
+
+The independent place-and-restore validator qualified 72,530 candidate decisions per counter across both views, including duplicates. The window masks ruled out 31,806 candidates before any word check. Of the 40,724 candidates that entered the gap loop, 12,939 passed and 27,785 failed. All release observations returned the qualified directional counts. The crossing fixture exercises a word that passes every gap, failures only at the first or last gap, and a word that fails both. [Development diagnostics by stage](results/window-gap-order/profile.json)
+
+| Counter | Gap visits | Visits per candidate | Visits per candidate entering the loop |
+| --- | ---: | ---: | ---: |
+| `packed` and `early-exit` | 82,087 | 1.132 | 2.016 |
+| `all-checks` | 124,022 | 1.710 | 3.045 |
+| `selective-first` | 65,766 | 0.907 | 1.615 |
+
+Each visit counts one gap descriptor inspected, including an unrestricted mask. First failure is the one-based position in the counter's evaluation order. A word that fails multiple masks contributes only its earliest failure, including when the loop evaluates every mask.
+
+| Evaluation order | Gap 1 | Gap 2 | Gap 3 | Gap 4 | Gap 5 | Gap 6 | Gap 7 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Original offset order | 15,556 | 6,967 | 3,692 | 1,244 | 269 | 57 | 0 |
+| Fewest allowed letters first | 24,923 | 2,620 | 223 | 19 | 0 | 0 | 0 |
+
+Ordering moved first-gap rejections from 56.0% to 89.7% of the words that failed inside the loop. It saved 16,321 descriptor visits. Of 9,184 constructed windows, 7,990 had two or more gaps to sort, including 3,082 whose empty mask later ruled out every candidate. Accumulation made 41,935 additional visits compared with early exit in the same order.
+
+#### Branches in the timed worker
+
+In `packed`, Clang compares the mask with `0x03ffffff` at `0x1098c` and branches over the letter load for an unrestricted gap. At a restricted gap, `bt` tests membership and `jb` continues on success. In `early-exit`, Clang hoists the first mask and offset outside the word loop. The first `bt`/`jae` at `0x7a4b` exits on failure. Later gaps use `bt`/`jb` at `0x7a7f` to continue on success. The ordered loop has the same decisions at `0x884f` and `0x887f`. Mask cardinalities are computed during construction with shifts, masks and a multiply in this portable build.
+
+In `all-checks`, the linked loop starting at `0x8190` handles two gaps per iteration with `bt`, `setb` and `and`. Its conditional branches select the loop length and odd tail. Letter results feed the accumulator directly. The production solver translation unit's compiled `.text` matched the starting revision `0b4702a` byte for byte with these flags.
+
+To reproduce the development pairs, diagnostic JSON and linked disassembly, run
+
+```sh
+(
+set -e
+flags='-std=c++17 -O2 -march=x86-64 -Wall -Wextra -Iinclude'
+window_tools=$(make -s window-tools CXX=clang++ CXXFLAGS="$flags")
+python3 -m bench.window_counters.window_games --export development build/window-development
+for pair in 'packed early-exit' 'early-exit all-checks' 'early-exit selective-first' \
+            'packed all-checks' 'packed selective-first'; do
+    set -- $pair
+    taskset -c 2 python3 -m bench.window_counters.window_benchmark --build-dir "$window_tools" \
+        --variants "$1" "$2" --cases build/window-development/cases.csv \
+        --dictionary data/dictionaries/sample_dictionary.txt --repetitions 40 > "build/$1-$2.csv"
+done
+python3 -m bench.window_counters.window_profile --build-dir "$window_tools" \
+    --variants packed early-exit all-checks selective-first --gap-checks > build/gap-checks.json
+cmp bench/results/window-gap-order/profile.json build/gap-checks.json
+objdump -d -C -M intel "$window_tools/window_worker" > build/gap-checks.asm
+)
+```
+
 ### Profile the development workload and export reserved games
 
 Run the untimed qualifier on the development set with the full project dictionary. It checks each named counter against the place-and-restore validator. For each game, counter and direction, the words in visited groups plus the words in any skipped groups must account for all of the validator’s candidate records.

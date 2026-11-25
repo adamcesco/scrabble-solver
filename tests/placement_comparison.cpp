@@ -38,6 +38,8 @@ struct VisitedGroup {
     bool skipped = false;
     unsigned accepted = 0;
     size_t individual_checks = 0;
+    size_t gap_checks = 0;
+    std::array<size_t, MAX_RACK_TILES> first_failures{};
     bool subset_checked = false;
     unsigned subset_gaps_removed = 0;
     benchmark::SubsetRejection subset_rejection = benchmark::SubsetRejection::none;
@@ -64,7 +66,11 @@ void WorkloadOutput::write_header() const
     stream << "position,variant,down,row,start,length,empty,constrained,pattern_match,"
               "group_size,individual_checks,lookups,cache_hits,masks,retained_gaps,ruled_out,skipped_group,accepted,"
               "probes_avoided,merge_comparisons_avoided,rack_gaps_removed,rack_restricted_removed,"
-              "subset_checked,subset_gaps_removed,subset_disjoint,subset_insufficient_capacity\n";
+              "subset_checked,subset_gaps_removed,subset_disjoint,subset_insufficient_capacity,gap_checks";
+    for (int position = 1; position <= MAX_RACK_TILES; ++position) {
+        stream << ",first_failure_" << position;
+    }
+    stream << '\n';
 }
 
 struct WindowWorkload {
@@ -86,7 +92,7 @@ struct WindowWorkload {
                     ++constrained;
                 }
             }
-            auto emit = [&](VisitedGroup group) {
+            auto emit = [&](const VisitedGroup &group) {
                 output.stream << output.position << ',' << variant << ',' << down << ',' << +w.row << ','
                               << +w.start << ',' << +w.length << ',' << +w.empty << ',' << constrained << ','
                               << w.pattern_match << ',' << group.words << ',' << group.individual_checks << ','
@@ -97,7 +103,12 @@ struct WindowWorkload {
                               << w.rack_restricted_removed << ',' << group.subset_checked << ','
                               << group.subset_gaps_removed << ','
                               << (group.subset_rejection == benchmark::SubsetRejection::disjoint) << ','
-                              << (group.subset_rejection == benchmark::SubsetRejection::capacity) << '\n';
+                              << (group.subset_rejection == benchmark::SubsetRejection::capacity) << ','
+                              << group.gap_checks;
+                for (auto failures : group.first_failures) {
+                    output.stream << ',' << failures;
+                }
+                output.stream << '\n';
             };
             if (w.groups.empty()) {
                 emit({0});
@@ -132,6 +143,15 @@ void trace_individual_check()
 {
     if (auto *window = current_workload_window()) {
         ++window->groups.back().individual_checks;
+    }
+}
+
+void trace_gap_check(uint8_t index, bool first_failure)
+{
+    if (auto *window = current_workload_window()) {
+        auto &group = window->groups.back();
+        ++group.gap_checks;
+        group.first_failures[index] += first_failure;
     }
 }
 

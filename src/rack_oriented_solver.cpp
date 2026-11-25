@@ -23,6 +23,7 @@ static inline void trace_group(size_t, bool) {}
 static inline void trace_skipped_subset_probe() {}
 static inline void trace_skipped_merge_comparison() {}
 static inline void trace_individual_check() {}
+static inline void trace_gap_check(uint8_t, bool) {}
 static inline void trace_mask_built(bool, unsigned) {}
 #ifdef SCRABBLE_WINDOW_VARIANTS
 static inline void trace_subset(unsigned, benchmark::SubsetRejection) {}
@@ -283,6 +284,28 @@ struct GapDescriptors {
     void set(uint8_t i, uint8_t offset, uint32_t letters) { entries[i] = {offset, letters}; }
     uint8_t offset_at(uint8_t i) const { return entries[i].offset; }
     uint32_t letters_at(uint8_t i) const { return entries[i].letters; }
+
+    void order_by_selectivity(uint8_t count)
+    {
+        if (count < 2) {
+            return;
+        }
+        // Stable insertion sort of at most seven gaps, counting each mask's letters once.
+        unsigned char sizes[MAX_RACK_TILES];
+        sizes[0] = __builtin_popcount(entries[0].letters);
+        for (uint8_t i = 1; i < count; ++i) {
+            const Gap gap = entries[i];
+            const auto size = __builtin_popcount(gap.letters);
+            uint8_t j = i;
+            while (j > 0 && sizes[j - 1] > size) {
+                entries[j] = entries[j - 1];
+                sizes[j] = sizes[j - 1];
+                --j;
+            }
+            entries[j] = gap;
+            sizes[j] = size;
+        }
+    }
 };
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
@@ -313,6 +336,9 @@ struct GapArrays {
 };
 #endif
 
+enum class GapEvaluation { skip_unrestricted, early_exit, accumulate };
+enum class GapOrder { offset, selectivity };
+
 template <typename Layout = GapDescriptors>
 struct GapChecks {
     Layout gaps;
@@ -320,17 +346,24 @@ struct GapChecks {
 
     void append(uint8_t offset, uint32_t letters) { gaps.set(gap_count++, offset, letters); }
 
+    template <GapEvaluation evaluation>
     bool accepts(const char *word) const
     {
         trace_individual_check();
+        bool accepted = true;
         for (uint8_t i = 0; i < gap_count; ++i) {
             const uint32_t letters = gaps.letters_at(i);
-            if (letters != PerpendicularCheckTable::all_letters &&
-                !(letters & (1u << (word[gaps.offset_at(i)] - 'A')))) {
+            const bool passes = (evaluation == GapEvaluation::skip_unrestricted &&
+                                 letters == PerpendicularCheckTable::all_letters) ||
+                                (letters & (1u << (word[gaps.offset_at(i)] - 'A')));
+            trace_gap_check(i, accepted && !passes);
+            if constexpr (evaluation == GapEvaluation::accumulate) {
+                accepted &= passes;
+            } else if (!passes) {
                 return false;
             }
         }
-        return true;
+        return accepted;
     }
 };
 
@@ -346,12 +379,12 @@ struct GroupWords {
         return accepted ? size : 0;
     }
 
-    template <typename Layout>
+    template <GapEvaluation evaluation = GapEvaluation::skip_unrestricted, typename Layout>
     size_t check_words(const GapChecks<Layout> &checks) const
     {
         size_t count = 0;
         for (size_t i = 0; i < size; ++i) {
-            const bool accepted = checks.accepts(dictionary.words[ids[i]]);
+            const bool accepted = checks.template accepts<evaluation>(dictionary.words[ids[i]]);
             count += accepted;
             trace_placements(row, start, ids + i, 1, accepted);
         }
@@ -459,7 +492,8 @@ enum class MaskPolicy { lazy, eager, stop_gap, stop_window };
 enum class WindowCounting { all_gaps_per_word, constrained_per_word, bulk_unrestricted };
 
 template <GapTraversal traversal, MaskPolicy policy = MaskPolicy::lazy,
-          WindowCounting counting = WindowCounting::all_gaps_per_word, typename Layout = GapDescriptors>
+          WindowCounting counting = WindowCounting::all_gaps_per_word, typename Layout = GapDescriptors,
+          GapEvaluation evaluation = GapEvaluation::skip_unrestricted, GapOrder order = GapOrder::offset>
 struct WindowCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
@@ -469,7 +503,10 @@ struct WindowCounter {
 
 #ifdef SCRABBLE_WINDOW_VARIANTS
     template <typename OtherLayout>
-    using WithGapLayout = WindowCounter<traversal, policy, counting, OtherLayout>;
+    using WithGapLayout = WindowCounter<traversal, policy, counting, OtherLayout, evaluation, order>;
+
+    template <GapEvaluation other, GapOrder other_order = order>
+    using WithGapEvaluation = WindowCounter<traversal, policy, counting, Layout, other, other_order>;
 
     WindowCounter(const WordTable &dictionary, const WordPatternTable &patterns, const benchmark::Rack &)
         : WindowCounter(dictionary, patterns) {}
@@ -491,6 +528,9 @@ struct WindowCounter {
             } else {
                 masks.emplace(checks, window, neighbors);
             }
+            if constexpr (order == GapOrder::selectivity) {
+                masks->gaps.order_by_selectivity(masks->gap_count);
+            }
             trace_mask_built(masks->ruled_out, masks->gap_count);
         };
         if constexpr (policy == MaskPolicy::eager) {
@@ -507,7 +547,7 @@ struct WindowCounter {
                 return policy == MaskPolicy::stop_window ? GroupSearch::stop_window : GroupSearch::keep_going;
             }
             const bool bulk = counting == WindowCounting::bulk_unrestricted && !masks->gap_count;
-            count += bulk ? words.decide(true) : words.check_words(*masks);
+            count += bulk ? words.decide(true) : words.check_words<evaluation>(*masks);
             return GroupSearch::keep_going;
         });
         return count;
@@ -686,6 +726,9 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
 {
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
+        {"early-exit", measure_solve<PackedCounter::WithGapEvaluation<GapEvaluation::early_exit>>},
+        {"all-checks", measure_solve<PackedCounter::WithGapEvaluation<GapEvaluation::accumulate>>},
+        {"selective-first", measure_solve<PackedCounter::WithGapEvaluation<GapEvaluation::early_exit, GapOrder::selectivity>>},
         {"gap-u32", measure_solve<PackedCounter::WithGapLayout<Uint32Gaps>>},
         {"gap-arrays", measure_solve<PackedCounter::WithGapLayout<GapArrays>>},
         {"eager", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::eager>>},

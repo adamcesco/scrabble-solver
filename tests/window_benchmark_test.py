@@ -120,6 +120,12 @@ class WindowBenchmarkTest(unittest.TestCase):
         self.assertEqual(stage["variants"]["one-gap"]["groups_by_size"][2],
                          {"groups": 2, "candidate_words": 4, "individual_checks": 2})
         self.assertEqual(stage["variants"]["packed"]["windows"]["matching_groups"]["by_candidates"], {1: 1, 2: 4})
+        gap_stage = summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 4, "down_candidates": 5}],
+                              gap_checks=True)["early"]["variants"]
+        self.assertEqual(gap_stage["packed"]["gap_evaluation"],
+                         dict(candidates=9, checked_candidates=5, gap_checks=7, first_failures={1: 1, 2: 1}))
+        self.assertEqual(gap_stage["one-gap"]["gap_evaluation"],
+                         dict(candidates=9, checked_candidates=2, gap_checks=4, first_failures={2: 1}))
         # Matching the combined total is insufficient if either direction is wrong.
         with self.assertRaisesRegex(ValueError, "RT packed across"):
             summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
@@ -153,6 +159,30 @@ class WindowBenchmarkTest(unittest.TestCase):
                     self.assertEqual(int(group["ruled_out"]), int(accepted == 0))
                     self.assertEqual(int(group["individual_checks"]), 2 if accepted else 0)
                     self.assertEqual(int(group["accepted"]), accepted)
+
+    def test_first_failure_in_candidate_gap_order(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[1][0], board[0][1], board[0][3] = "A", "X", "Y"
+        # At A... the gaps admit RS, any letter, and T. ARST passes, AUST fails
+        # only at X, ARTS fails only at Y, and ATSR fails at both crossings.
+        words = ["XR", "XS", "YT", "ARST", "AUST", "ARTS", "ATSR"]
+        expected = {
+            "packed": {3: (7, [1, 0, 1]), 1: (1, [1, 0, 0])},
+            "early-exit": {3: (7, [1, 0, 1]), 1: (1, [1, 0, 0])},
+            "all-checks": {3: (9, [1, 0, 1]), 1: (3, [1, 0, 0])},
+            "selective-first": {3: (5, [2, 0, 0]), 1: (2, [0, 1, 0])},
+        }
+        _, visits = profile_board(board, words, "RSTU", list(expected))
+        groups = window_groups(visits, row=1, start=0, length=4)
+        for variant, by_size in expected.items():
+            with self.subTest(variant=variant):
+                observed = [r for r in groups if r["variant"] == variant]
+                self.assertEqual(sorted(int(r["group_size"]) for r in observed), [1, 3])
+                for group in observed:
+                    size = int(group["group_size"])
+                    self.assertEqual(int(group["accepted"]), int(size == 3))
+                    failures = [int(group[f"first_failure_{i}"]) for i in range(1, 4)]
+                    self.assertEqual((int(group["gap_checks"]), failures), by_size[size])
 
     def test_first_impossible_gap_skips_only_the_remaining_lookups(self):
         board = [["."] * 15 for _ in range(15)]
