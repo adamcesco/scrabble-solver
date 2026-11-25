@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from bench.window_counters.window_profile import summarize
 
 
-def profile_board(board, words, rack, variants):
+def profile_board(board, words, rack, variants, *, check_release=False):
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         (root / "words").write_text("\n".join(sorted(words)) + "\n")
@@ -28,6 +28,11 @@ def profile_board(board, words, rack, variants):
             [window_build() / "placement_equivalence_test", root / "words", root / "cache",
              "--profile", root / "visits", *variants], input=f"{root / 'board.csv'}\t{rack}\n", text=True)
         counts = {k: int(v) for k, v in next(csv.DictReader(io.StringIO(output))).items()}
+        if check_release:
+            # The paired runner checks both release counts against the independent qualifier.
+            subprocess.run([*WINDOW, "--build-dir", window_build(), "--variants", *variants,
+                            "--board", root / "board.csv", "--rack", rack, "--dictionary", root / "words",
+                            "--cache", root / "cache", "--repetitions", "1"], check=True, stdout=subprocess.DEVNULL)
         return counts, (root / "visits").read_text()
 
 
@@ -112,6 +117,48 @@ class WindowBenchmarkTest(unittest.TestCase):
         # Matching the combined total is insufficient if either direction is wrong.
         with self.assertRaisesRegex(ValueError, "RT packed across"):
             summarize(io.StringIO(raw_visits), cases, variants, [{"across_candidates": 5, "down_candidates": 4}])
+
+    def test_eager_masks_for_dictionary_pattern_with_no_rack_group(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[1][0] = "A"
+        _, visits = profile_board(board, ["ART"], "ZZ", ["packed", "eager"])
+        target = [r for r in csv.DictReader(io.StringIO(visits))
+                  if (r["down"], r["row"], r["start"], r["length"]) == ("0", "1", "0", "3")]
+        self.assertEqual([(r["variant"], r["pattern_match"], r["group_size"], r["masks"], r["lookups"])
+                          for r in target], [("packed", "1", "0", "0", "0"), ("eager", "1", "0", "1", "2")])
+
+    def test_first_impossible_gap_skips_only_the_remaining_lookups(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[0][:2], board[1][0] = ["A", "X"], "A"
+        _, visits = profile_board(board, ["AX", "AA", "ART", "AST"], "RST", ["packed", "stop-gap"])
+        target = [r for r in csv.DictReader(io.StringIO(visits))
+                  if (r["down"], r["row"], r["start"], r["length"]) == ("0", "1", "0", "3")]
+        self.assertEqual([(r["variant"], r["lookups"], r["group_size"]) for r in target],
+                         [("packed", "2", "1"), ("packed", "2", "1"),
+                          ("stop-gap", "1", "1"), ("stop-gap", "1", "1")])
+
+    def test_window_stop_and_later_matching_groups_in_both_traversals(self):
+        board = [["."] * 15 for _ in range(15)]
+        board[0][:2], board[1][0] = ["A", "X"], "A"
+        for binary in (False, True):
+            for impossible in (False, True):
+                with self.subTest(binary=binary, impossible=impossible):
+                    words = {"AA", "AX", "ARS", "ART", "ATR", "AST", "ATS"}
+                    if binary:
+                        # More than four groups per two-letter rack subset selects binary probes.
+                        words.update("A" + c + c for c in "BCDEFGHIJKLM")
+                    if not impossible:
+                        words.add("XT")  # RS fails, then RT and ST each have a passing word.
+                    variants = ["stop-gap", "stop-window"]
+                    _, visits = profile_board(board, words, "RST", variants, check_release=True)
+                    groups = [r for r in csv.DictReader(io.StringIO(visits)) if r["variant"] == "stop-window"
+                              and (r["down"], r["row"], r["start"], r["length"]) == ("0", "1", "0", "3")]
+                    self.assertEqual([int(r["group_size"]) for r in groups], [1, 2, 2])
+                    self.assertEqual([int(r["skipped_group"]) for r in groups], [0, impossible, impossible])
+                    self.assertEqual([int(r["accepted"]) for r in groups],
+                                     [0, int(not impossible), int(not impossible)])
+                    self.assertEqual(int(groups[0]["probes_avoided"]), 2 if binary and impossible else 0)
+                    self.assertEqual(int(groups[0]["merge_comparisons_avoided"]), 2 if not binary and impossible else 0)
 
     def test_row_cache_profile_includes_overlaps_and_rows_without_requests(self):
         board = [["."] * 15 for _ in range(15)]

@@ -19,8 +19,11 @@
 #else
 static inline void trace_placements(uint8_t, uint8_t, const uint32_t *, size_t, bool) {}
 static inline void trace_window(uint8_t, uint8_t, uint8_t, uint8_t, bool) {}
-static inline void trace_group(size_t) {}
+static inline void trace_group(size_t, bool) {}
+static inline void trace_skipped_subset_probe() {}
+static inline void trace_skipped_merge_comparison() {}
 static inline void trace_individual_check() {}
+static inline void trace_mask_built(bool) {}
 #endif
 
 static inline int canonical_rack_subset_mask(uint8_t duplicate_follow_mask, uint8_t mask)
@@ -156,48 +159,6 @@ static inline int validate_rack_window_words(
     return count;
 }
 
-template <typename Visitor>
-static void visit_matching_anagrams(
-    const WordPatternTable &word_patterns,
-    const WordPattern &match,
-    const uint64_t *rack_subsets,
-    uint8_t rack_subset_count,
-    Visitor visit
-)
-{
-    const WordPatternRange anagrams = match.anagrams;
-    if (anagrams.count > (uint32_t)rack_subset_count * 4u) {
-        for (uint8_t index = 0; index < rack_subset_count; ++index) {
-            const WordPatternAnagramGroup *group = word_patterns.get_anagram(match, rack_subsets[index]);
-            if (group != nullptr) {
-                trace_group(group->word_indices.count);
-                visit(*group);
-            }
-        }
-        return;
-    }
-
-    const WordPatternAnagramGroup *groups = word_patterns.anagram_groups.data() + anagrams.start;
-    uint32_t group_index = 0;
-    uint8_t rack_subset_index = 0;
-
-    while (group_index < anagrams.count && rack_subset_index < rack_subset_count) {
-        const PatternBytes group_key = groups[group_index].rack_letters;
-        const PatternBytes rack_key = rack_subsets[rack_subset_index];
-
-        if (group_key < rack_key) {
-            ++group_index;
-        } else if (rack_key < group_key) {
-            ++rack_subset_index;
-        } else {
-            trace_group(groups[group_index].word_indices.count);
-            visit(groups[group_index]);
-            ++group_index;
-            ++rack_subset_index;
-        }
-    }
-}
-
 namespace {
 struct MatchedWindow {
     uint8_t start;
@@ -209,6 +170,72 @@ struct MatchedWindow {
         return (low_bit_mask_u16(length) << start) & ~occupied;
     }
 };
+
+enum class GroupSearch { keep_going, stop_window };
+
+template <typename Visitor>
+static void visit_matching_anagrams(
+    const WordPatternTable &word_patterns,
+    uint8_t row, const MatchedWindow &window,
+    const uint64_t *rack_subsets,
+    uint8_t rack_subset_count,
+    Visitor visit
+)
+{
+    bool stopped = false;
+    auto should_stop = [&](const WordPatternAnagramGroup &group) {
+        trace_group(group.word_indices.count, stopped);
+        if (stopped) {
+            const uint32_t *ids = word_patterns.word_indices.data() + group.word_indices.start;
+            trace_placements(row, window.start, ids, group.word_indices.count, false);
+        } else if (visit(group) == GroupSearch::stop_window) {
+#ifdef SCRABBLE_TRACE_PLACEMENTS
+            // Enumerate the remaining matches solely to qualify their rejections.
+            stopped = true;
+#else
+            return true;
+#endif
+        }
+        return false;
+    };
+    const WordPatternRange anagrams = window.match->anagrams;
+    if (anagrams.count > (uint32_t)rack_subset_count * 4u) {
+        for (uint8_t index = 0; index < rack_subset_count; ++index) {
+            if (stopped) {
+                trace_skipped_subset_probe();
+            }
+            const WordPatternAnagramGroup *group = word_patterns.get_anagram(*window.match, rack_subsets[index]);
+            if (group != nullptr && should_stop(*group)) {
+                return;
+            }
+        }
+        return;
+    }
+
+    const WordPatternAnagramGroup *groups = word_patterns.anagram_groups.data() + anagrams.start;
+    uint32_t group_index = 0;
+    uint8_t rack_subset_index = 0;
+
+    while (group_index < anagrams.count && rack_subset_index < rack_subset_count) {
+        if (stopped) {
+            trace_skipped_merge_comparison();
+        }
+        const PatternBytes group_key = groups[group_index].rack_letters;
+        const PatternBytes rack_key = rack_subsets[rack_subset_index];
+
+        if (group_key < rack_key) {
+            ++group_index;
+        } else if (rack_key < group_key) {
+            ++rack_subset_index;
+        } else {
+            if (should_stop(groups[group_index])) {
+                return;
+            }
+            ++group_index;
+            ++rack_subset_index;
+        }
+    }
+}
 
 enum class GapTraversal { scan, empty_bits, neighbor_bits };
 
@@ -243,6 +270,7 @@ struct CachedRowCheckSets : RowCheckSets {
 };
 #endif
 
+template <bool stop_at_impossible>
 struct WindowMasks {
     struct Gap {
         uint8_t offset;
@@ -259,6 +287,9 @@ struct WindowMasks {
             uint8_t col = window.start + offset;
             if (!(checks.occupied() & bit_at_u16(col))) {
                 add_gap(offset, checks.get(col));
+                if (stop_at_impossible && ruled_out) {
+                    break;
+                }
             }
         }
     }
@@ -327,7 +358,7 @@ size_t count_rack_windows(
                 trace_window(row_index, window.start, window.length, empty_count, true);
                 auto visit_groups = [&](auto visit) {
                     visit_matching_anagrams(
-                        *word_patterns, *window.match,
+                        *word_patterns, row_index, window,
                         rack_subset_keys->keys[empty_count], rack_subset_keys->counts[empty_count], visit
                     );
                 };
@@ -338,7 +369,9 @@ size_t count_rack_windows(
     return count;
 }
 
-template <GapTraversal traversal>
+enum class MaskPolicy { lazy, eager, stop_gap, stop_window };
+
+template <GapTraversal traversal, MaskPolicy policy = MaskPolicy::lazy>
 struct WindowCounter {
     const WordTable &dictionary;
     const WordPatternTable &patterns;
@@ -351,27 +384,36 @@ struct WindowCounter {
                       uint8_t, VisitGroups visit_groups) const
     {
         size_t count = 0;
-        std::optional<WindowMasks> masks;
+        constexpr bool stop_at_impossible = policy == MaskPolicy::stop_gap || policy == MaskPolicy::stop_window;
+        std::optional<WindowMasks<stop_at_impossible>> masks;
+        auto build_masks = [&] {
+            if constexpr (traversal == GapTraversal::scan) {
+                masks.emplace(checks, window);
+            } else if constexpr (traversal == GapTraversal::empty_bits) {
+                masks.emplace(checks, window, UINT16_MAX);
+            } else {
+                masks.emplace(checks, window, neighbors);
+            }
+            trace_mask_built(masks->ruled_out);
+        };
+        if constexpr (policy == MaskPolicy::eager) {
+            build_masks();
+        }
         visit_groups([&](const WordPatternAnagramGroup &group) {
-            if (!masks) {
-                if constexpr (traversal == GapTraversal::scan) {
-                    masks.emplace(checks, window);
-                } else if constexpr (traversal == GapTraversal::empty_bits) {
-                    masks.emplace(checks, window, UINT16_MAX);
-                } else {
-                    masks.emplace(checks, window, neighbors);
-                }
+            if (policy != MaskPolicy::eager && !masks) {
+                build_masks();
             }
             const uint32_t *ids = patterns.word_indices.data() + group.word_indices.start;
             if (masks->ruled_out) {
                 trace_placements(checks.row, window.start, ids, group.word_indices.count, false);
-                return;
+                return policy == MaskPolicy::stop_window ? GroupSearch::stop_window : GroupSearch::keep_going;
             }
             for (size_t i = 0; i < group.word_indices.count; ++i) {
                 bool accepted = masks->accepts(dictionary.words[ids[i]]);
                 count += accepted;
                 trace_placements(checks.row, window.start, ids + i, 1, accepted);
             }
+            return GroupSearch::keep_going;
         });
         return count;
     }
@@ -404,6 +446,7 @@ struct OneGapCounter : PackedCounter {
             }
             trace_placements(checks.row, window.start, patterns.word_indices.data() + group.word_indices.start,
                              group.word_indices.count, accepted);
+            return GroupSearch::keep_going;
         });
         return count;
     }
@@ -437,6 +480,9 @@ const benchmark::WindowVariant &benchmark::window_variant(std::string_view name)
 {
     static constexpr WindowVariant variants[] = {
         {"packed", measure_solve<PackedCounter>},
+        {"eager", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::eager>>},
+        {"stop-gap", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_gap>>},
+        {"stop-window", measure_solve<WindowCounter<GapTraversal::scan, MaskPolicy::stop_window>>},
         {"row-cache", measure_solve<PackedCounter, CachedRowCheckSets>},
         {"one-gap", measure_solve<OneGapCounter>},
         {"empty-bits", measure_solve<WindowCounter<GapTraversal::empty_bits>>},
@@ -481,6 +527,7 @@ size_t rack_oriented_full_board_solver(
                     dictionary, word_patterns, word_start_rows, board,
                     checks.row, window.start, window.length, group, &original_board
                 );
+                return GroupSearch::keep_going;
             });
             return count;
         });

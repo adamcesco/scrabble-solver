@@ -15,6 +15,8 @@ from bench.measurement_support.benchmark_inputs import ROOT, Position, qualify_p
 from bench.window_counters.window_benchmark import window_build
 from bench.window_counters.window_games import reserved_cases
 
+MASK_POLICIES = ("packed", "eager", "stop-gap", "stop-window")
+
 
 def window_histograms():
     return dict(windows=0, by_empty_squares=Counter(), by_constrained_gaps=Counter(), by_candidates=Counter())
@@ -29,6 +31,8 @@ def variant_profile(name):
     if name == "row-cache":
         profile["row_cache"] = {direction: dict(requests=0, hits=0, distinct_squares_per_row=Counter())
                                 for direction in ("across", "down")}
+    if name in MASK_POLICIES:
+        profile["mask_search"] = {kind: Counter() for kind in ("accepted", "all_rejected", "no_matching_group")}
     return profile
 
 
@@ -45,7 +49,7 @@ def summarize(visits, cases, variants, qualified):
         empty, lookups = int(window["empty"]), int(window["lookups"])
         case = cases[index]
         profile = stages[case["stage"]]["variants"][name]
-        candidates = 0
+        candidates = accepted = skipped_groups = skipped_words = 0
         for row in chain((window,), groups):
             size = int(row["group_size"])
             if size:
@@ -54,6 +58,10 @@ def summarize(visits, cases, variants, qualified):
                 bucket["candidate_words"] += size
                 bucket["individual_checks"] += int(row["individual_checks"])
                 candidates += size
+                accepted += int(row["accepted"])
+                if row["skipped_group"] == "1":
+                    skipped_groups += 1
+                    skipped_words += size
                 if empty == 1:
                     profile["one_gap_groups"] += 1
                     profile["one_gap_candidates"] += size
@@ -62,6 +70,15 @@ def summarize(visits, cases, variants, qualified):
         direction = "down" if down else "across"
         lookup_counts = profile["lookup_counts"][direction]
         lookup_counts["calls"] += lookups
+        if name in MASK_POLICIES and window["pattern_match"] == "1":
+            outcome = "no_matching_group" if not candidates else ("accepted" if accepted else "all_rejected")
+            masks = int(window["masks"])
+            profile["mask_search"][outcome].update(
+                windows=1, masks=masks, ruled_out=int(window["ruled_out"]),
+                lookups=lookups, lookups_skipped=masks * empty - lookups,
+                probes_avoided=int(window["probes_avoided"]),
+                merge_comparisons_avoided=int(window["merge_comparisons_avoided"]),
+                skipped_groups=skipped_groups, skipped_words=skipped_words)
         if name == "row-cache":
             board_row, hits = int(window["row"]), int(window["cache_hits"])
             requests = hits + lookups
@@ -99,7 +116,7 @@ def summarize(visits, cases, variants, qualified):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--variants", nargs="+", default=["packed", "one-gap", "empty-bits", "neighbor-bits", "row-cache"])
+    parser.add_argument("--variants", nargs="+", default=[*MASK_POLICIES, "one-gap", "empty-bits", "neighbor-bits", "row-cache"])
     parser.add_argument("--dictionary", type=Path, default=ROOT / "data/dictionaries/sample_dictionary.txt")
     args = parser.parse_args()
     if len(set(args.variants)) != len(args.variants):
