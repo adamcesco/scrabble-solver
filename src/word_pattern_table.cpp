@@ -92,6 +92,42 @@ static void build_pattern_bucket(WordPatternTable &table, const std::vector<Pack
     }
 }
 
+bool WordPatternTable::build_anagram_hashes()
+{
+    try {
+        for (auto &length : buckets_by_length) {
+            for (size_t mask = 0; mask < length.size(); ++mask) {
+                if (__builtin_popcount(static_cast<unsigned>(mask)) > 1) {
+                    continue;
+                }
+                for (auto &pattern : length[mask]) {
+                    const auto range = pattern.anagrams;
+                    if (range.count < 128) {
+                        continue;
+                    }
+                    size_t capacity = 1;
+                    while (capacity < 2 * size_t(range.count)) {
+                        capacity *= 2;
+                    }
+                    auto &slots = anagram_hashes.emplace_back(capacity, 0);
+                    pattern.hash_index = static_cast<uint32_t>(anagram_hashes.size());
+                    for (uint32_t i = 0; i < range.count; ++i) {
+                        const uint32_t ordinal = range.start + i;
+                        size_t slot = fmix64(anagram_groups[ordinal].rack_letters) & (capacity - 1);
+                        while (slots[slot]) {
+                            slot = (slot + 1) & (capacity - 1);
+                        }
+                        slots[slot] = ordinal + 1;
+                    }
+                }
+            }
+        }
+    } catch (...) {
+        return false;
+    }
+    return true;
+}
+
 WordPatternTable WordPatternTable::from_words(const WordTable &words)
 {
     WordPatternTable table;
@@ -152,6 +188,9 @@ WordPatternTable WordPatternTable::from_words(const WordTable &words)
         return {};
     }
 
+    if (!table.build_anagram_hashes()) {
+        return {};
+    }
     table.dictionary_fingerprint = words.fingerprint();
     table.dictionary_word_count = words.count;
     return table;
@@ -473,7 +512,7 @@ WordPatternTable WordPatternTable::load(const WordTable &words, const char *cach
 
     fclose(file);
 
-    if (!ok) {
+    if (!ok || !table.build_anagram_hashes()) {
         return WordPatternTable{};
     }
 

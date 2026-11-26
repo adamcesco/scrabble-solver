@@ -19,6 +19,7 @@ struct WordPatternRange {
 struct WordPattern {
     PatternBytes fixed_tiles = 0;
     WordPatternRange anagrams;
+    uint32_t hash_index = 0; // One-based index into the table's anagram hashes.
 };
 
 struct WordPatternAnagramGroup {
@@ -64,6 +65,19 @@ struct WordPatternTable {
     // Unsafe to call with a null cache_path.
     int save(const WordTable &words, const char *cache_path) const;
     void print(const WordTable &words) const;
+
+private:
+    std::vector<std::vector<uint32_t>> anagram_hashes;
+    bool build_anagram_hashes();
+
+    static uint64_t fmix64(uint64_t key)
+    {
+        key ^= key >> 33;
+        key *= UINT64_C(0xff51afd7ed558ccd);
+        key ^= key >> 33;
+        key *= UINT64_C(0xc4ceb9fe1a85ec53);
+        return key ^ (key >> 33);
+    }
 };
 
 inline const WordPattern *WordPatternTable::get(const PatternRow &pattern) const
@@ -88,6 +102,20 @@ inline const WordPattern *WordPatternTable::get(const PatternRow &pattern) const
 
 inline const WordPatternAnagramGroup *WordPatternTable::get_anagram(const WordPattern &entry, uint64_t anagram) const
 {
+    if (entry.hash_index) {
+        const auto &slots = anagram_hashes[entry.hash_index - 1];
+        const size_t mask = slots.size() - 1;
+        size_t slot = fmix64(anagram) & mask;
+        while (uint32_t ordinal = slots[slot]) {
+            const auto &group = anagram_groups[ordinal - 1];
+            if (group.rack_letters == anagram) {
+                return &group;
+            }
+            slot = (slot + 1) & mask;
+        }
+        return nullptr;
+    }
+
     auto begin = anagram_groups.begin() + entry.anagrams.start;
     auto end = begin + entry.anagrams.count;
     auto iter = std::lower_bound(

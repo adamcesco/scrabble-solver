@@ -1,4 +1,5 @@
 #include "dictionary.h"
+#include "selective_anagram_fixture.h"
 #include "utils.h"
 
 #include <assert.h>
@@ -115,6 +116,36 @@ static void returns_words_matching_fixed_position_wildcards_and_anagram_letters(
     assert_anagram_words(&patterns, &words, get_anagram_entry(&patterns, " PPL ", "AE"), ae_expected, 1);
     assert_anagram_words(&patterns, &words, get_anagram_entry(&patterns, " PPL ", "AY"), ay_expected, 1);
 
+    words.destroy();
+}
+
+static void finds_every_group_in_a_large_pattern_before_and_after_v3_load()
+{
+    auto words = load_dictionary(selective_anagram_dictionary().c_str());
+    auto built = WordPatternTable::from_words(words);
+    assert(built.save(words, temp_cache_path));
+    auto loaded = WordPatternTable::load(words, temp_cache_path);
+    for (const auto *table : {&built, &loaded}) {
+        const auto *pattern = table->get(pattern_row_for_pattern("A  "));
+        assert(pattern);
+        // Includes the displaced BI hit and the GZ miss behind an occupied slot.
+        for (char first = 'A'; first <= 'Z'; ++first) {
+            for (char second = first; second <= 'Z'; ++second) {
+                const char letters[] = {first, second, '\0'};
+                const auto *group = table->get_anagram(*pattern, packed_letters(letters));
+                if (second == 'Z') {
+                    assert(!group);
+                } else if (first == 'B' && second == 'C') {
+                    const char *expected[] = {"ACB", "ABC"};
+                    assert_anagram_words(table, &words, group, expected, 2);
+                } else {
+                    const char word[] = {'A', first, second, '\0'};
+                    const char *expected[] = {word};
+                    assert_anagram_words(table, &words, group, expected, 1);
+                }
+            }
+        }
+    }
     words.destroy();
 }
 
@@ -379,6 +410,7 @@ static void run_test(const char *name, void (*test)(void))
 
 int main(void)
 {
+    run_test("finds_every_group_in_a_large_pattern_before_and_after_v3_load", finds_every_group_in_a_large_pattern_before_and_after_v3_load);
     run_test("rejects_v3_keys_with_data_outside_the_seven_rack_slots", rejects_v3_keys_with_data_outside_the_seven_rack_slots);
     run_test("returns_words_matching_fixed_position_wildcards_and_anagram_letters", returns_words_matching_fixed_position_wildcards_and_anagram_letters);
     run_test("enforces_exact_pattern_length", enforces_exact_pattern_length);
