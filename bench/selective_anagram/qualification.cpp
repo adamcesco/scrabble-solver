@@ -1,64 +1,44 @@
-#include "placement_comparison.h"
+#include "placement_trace.h"
+#include "perpendicular_checks.h"
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <stdexcept>
 
 namespace fs = std::filesystem;
 
 static void qualify(const WordTable &words, const char *cache, const fs::path &inputs, const fs::path &output)
 {
-    PlacementComparison tables{words, WordPatternTable::load(words, cache)};
-    if (tables.patterns.is_empty() || tables.rows.count != words.count) {
-        throw std::runtime_error("could not load the dictionary and v3 cache");
-    }
+    auto patterns = std::string_view(cache) == "-" ? WordPatternTable::from_words(words)
+                                                  : WordPatternTable::load(words, cache);
+    if (patterns.is_empty()) throw std::runtime_error("could not prepare word pattern table");
+    PerpendicularCheckTable lookup(words);
 
-    std::cout << "board,solver,across,down\n";
-    std::string name, board_file, letters;
-    while (std::cin >> name >> board_file >> letters) {
+    std::cout << "board,across,down\n";
+    std::string board_file, letters;
+    while (std::cin >> board_file >> letters) {
         Board board = board_from_csv((inputs / board_file).c_str());
-        board.prepare_perpendicular_checks(tables.lookup);
-        const SolverBoardSnapshot snapshot{board};
-        const benchmark::Rack rack(letters);
-
-        auto record = [&](const char *solver, auto solve) {
-            try {
-                PlacementTrace trace{words, board, snapshot};
-                const auto counts = trace.solve(solve);
-                std::ofstream out;
-                out.exceptions(std::ios::badbit | std::ios::failbit);
-                out.open(output / solver / board_file);
-                out << "direction,row,column,word,accepted\n";
-                for (const auto &view : trace.decisions) {
-                    for (const auto &[down, row, start, word, accepted] : view) {
-                        out << (down ? "down" : "across") << ',' << (down ? start : row) << ','
-                            << (down ? row : start) << ',' << word << ',' << accepted << '\n';
-                    }
-                }
-                out.close();
-                std::cout << board_file << ',' << solver << ',' << counts.across << ',' << counts.down << '\n';
-            } catch (const std::exception &error) {
-                throw std::runtime_error(name + " " + solver + ": " + error.what());
+        board.prepare_perpendicular_checks(lookup);
+        const auto trace = trace_moves(words, patterns, board, SortedRack(letters));
+        std::ofstream out;
+        out.exceptions(std::ios::badbit | std::ios::failbit);
+        out.open(output / board_file);
+        out << "direction,row,column,word,accepted\n";
+        for (const auto &view : trace.decisions) {
+            for (const auto &[down, row, start, word, accepted] : view) {
+                out << (down ? "down" : "across") << ',' << (down ? start : row) << ','
+                    << (down ? row : start) << ',' << word << ',' << accepted << '\n';
             }
-        };
-
-        record("rack-neighbor", [&] {
-            return rack_neighbor_both_directions(words, tables.patterns, board, rack.tiles, rack.length);
-        });
-        record("packed", [&] {
-            return packed_both_directions(words, tables.patterns, board, rack.tiles, rack.length);
-        });
-        record("place-and-restore", [&] {
-            return place_and_restore_both_directions(words, tables.patterns, tables.rows, board, rack.tiles, rack.length);
-        });
+        }
+        out.close();
+        std::cout << board_file << ',' << trace.counts.across << ',' << trace.counts.down << '\n';
     }
 }
 
 int main(int argc, char **argv)
 {
     if (argc != 5) {
-        std::cerr << "usage: qualification DICTIONARY CACHE INPUTS OUTPUT\n";
+        std::cerr << "usage: qualification DICTIONARY CACHE|- INPUTS OUTPUT\n";
         return 1;
     }
     try {

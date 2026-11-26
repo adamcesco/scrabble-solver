@@ -1,4 +1,4 @@
-#include "dictionary.h"
+#include "word_pattern_table.h"
 #include "selective_anagram_fixture.h"
 #include "utils.h"
 
@@ -102,7 +102,6 @@ static void assert_anagram_words(const WordPatternTable *patterns, const WordTab
 
         assert(word != NULL);
         assert(strcmp(word, expected[word_index]) == 0);
-        assert(patterns->anagram_contains_word(*words, *entry, expected[word_index]));
     }
 }
 
@@ -268,16 +267,6 @@ static void returns_empty_table_for_empty_word_tables(void)
     assert(patterns.is_empty());
 }
 
-static void returns_largest_binary_search_domain(void)
-{
-    WordTable words = load_dictionary("CAT\nTAC\nACT\nBAR\n");
-    WordPatternTable patterns = WordPatternTable::from_words(words);
-
-    assert(patterns.largest_binary_search_domain() == 4);
-
-    words.destroy();
-}
-
 static void saves_and_loads_word_pattern_cache(void)
 {
     WordTable words = load_dictionary("FLEE\nFELT\nFEEL\nABCDEFGHIJKLMNO\n");
@@ -422,7 +411,6 @@ int main(void)
     run_test("returns_null_for_no_packed_match", returns_null_for_no_packed_match);
     run_test("encodes_pattern_blanks_as_zero_bytes", encodes_pattern_blanks_as_zero_bytes);
     run_test("returns_empty_table_for_empty_word_tables", returns_empty_table_for_empty_word_tables);
-    run_test("returns_largest_binary_search_domain", returns_largest_binary_search_domain);
     run_test("saves_and_loads_word_pattern_cache", saves_and_loads_word_pattern_cache);
     run_test("rejects_cache_for_different_dictionary", rejects_cache_for_different_dictionary);
     run_test("returns_empty_table_for_missing_or_invalid_cache", returns_empty_table_for_missing_or_invalid_cache);

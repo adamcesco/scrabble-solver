@@ -1,19 +1,30 @@
 #include "perpendicular_checks.h"
-#include "validation_hot.h"
 
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
-
-#ifdef SCRABBLE_TRACE_PLACEMENTS
-#include "placement_trace.h"
-#endif
 
 namespace {
 constexpr uint32_t absent_prefix = 0x1FFFF;
 constexpr uint32_t absent_suffix = 0x7FFF;
 constexpr uint32_t ineligible = UINT32_MAX;
 constexpr std::string_view alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// Locate the first tile in the contiguous prefix ending at last_tile.
+uint16_t prefix_start_bit(uint16_t occupied, uint16_t last_tile)
+{
+    if ((occupied & last_tile) == 0) {
+        return 0;
+    }
+
+    uint16_t z = (uint16_t)(~occupied & (last_tile - 1u));
+    z |= z >> 1;
+    z |= z >> 2;
+    z |= z >> 4;
+    z |= z >> 8;
+
+    return (uint16_t)(z + 1u);
+}
 
 constexpr uint32_t packed_pair(uint32_t prefix, uint32_t suffix)
 {
@@ -115,14 +126,11 @@ void Board::prepare_perpendicular_checks(const PerpendicularCheckTable &lookup)
 
 uint32_t Board::perpendicular_check_set(uint8_t row, uint8_t col) const
 {
-#ifdef SCRABBLE_TRACE_PLACEMENTS
-    trace_square_lookup(row, col);
-#endif
     if (!perpendicular_runs) {
         throw std::logic_error("Prepare perpendicular checks before querying the board");
     }
     uint16_t occupied = perpendicularRows[col].occupiedMask;
-    uint16_t start = hot_start_pos_mask_of_housing_perpendicular_word(occupied, (1u << row) >> 1);
+    uint16_t start = prefix_start_bit(occupied, (1u << row) >> 1);
     uint32_t prefix = start ? perpendicular_runs->prefixes[col][__builtin_ctz(start)] : absent_prefix;
     uint32_t suffix = (occupied & (1u << (row + 1))) ? perpendicular_runs->suffixes[col][row + 1] : absent_suffix;
     return perpendicular_runs->lookup.letters_for(prefix, suffix);

@@ -41,14 +41,10 @@ struct WordPatternTable {
 
     static WordPatternTable from_words(const WordTable &words);
 
-    // Check the header against the normalized dictionary without loading the payload.
-    static bool cache_matches_dictionary(const WordTable &words, const char *cache_path);
-
     // Unsafe to call with a null cache_path.
     static WordPatternTable load(const WordTable &words, const char *cache_path);
 
     int is_empty() const;
-    size_t largest_binary_search_domain() const;
 
     // Unsafe unless pattern.length is 1..BOARD_SIZE and occupiedMask fits that length.
     const WordPattern *get(const PatternRow &pattern) const;
@@ -58,9 +54,6 @@ struct WordPatternTable {
 
     // Unsafe unless entry belongs to this table, offset is in range, and words is the source dictionary.
     const char *word_at(const WordTable &words, const WordPatternAnagramGroup &entry, size_t offset) const;
-
-    // Unsafe unless entry belongs to this table, words is the source dictionary, and word is non-null.
-    int anagram_contains_word(const WordTable &words, const WordPatternAnagramGroup &entry, const char *word) const;
 
     // Unsafe to call with a null cache_path.
     int save(const WordTable &words, const char *cache_path) const;

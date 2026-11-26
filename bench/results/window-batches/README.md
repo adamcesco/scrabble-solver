@@ -1,5 +1,7 @@
 # Bounded SIMD gap checks and batched candidate loads
 
+Reproduce this historical result from checkout `2dde5e1` using the revisions identified below.
+
 On the 30 development games, bounded SIMD saved **5.87 µs/solve** against the native scalar `all-checks` control (95% CI 3.21 to 8.89) and **19.56 µs/solve** against native `packed` (14.09 to 25.23). On the 24 games outside the pilot, the savings were 6.88 and 20.10 µs/solve, respectively. The direct comparison with `all-checks` isolates the four-gap SIMD path because both counters evaluate every gap.
 
 On the portable build, staging two pointers tied `packed`. Staging four cost 5.78 µs/solve (95% CI 3.68 to 7.95), with only 5.3% of checked words reaching a full batch. Prefetching saved 4.15 µs/solve against the plain four-pointer batch (1.23 to 7.01) and tied `packed` in its direct comparison. At width two, prefetching tied both controls. The interleave hint tied its immediate control at each width, and Clang emitted the same batch-loop instructions.

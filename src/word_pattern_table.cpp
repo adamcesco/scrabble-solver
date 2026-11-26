@@ -206,32 +206,6 @@ int WordPatternTable::is_empty() const
     return 1;
 }
 
-size_t WordPatternTable::largest_binary_search_domain() const
-{
-    size_t largest = 0;
-
-    for (const WordPatternBucketsByMask &length_buckets : buckets_by_length) {
-        for (const WordPatternBucket &bucket : length_buckets) {
-            if (bucket.size() > largest) {
-                largest = bucket.size();
-            }
-        }
-    }
-
-    return largest;
-}
-
-int WordPatternTable::anagram_contains_word(const WordTable &words, const WordPatternAnagramGroup &entry, const char *word) const
-{
-    for (size_t offset = 0; offset < entry.word_indices.count; ++offset) {
-        if (strcmp(word_at(words, entry, offset), word) == 0) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
 static int write_pattern_bytes(FILE *file, PatternBytes value)
 {
     uint64_t low = (uint64_t)value;
@@ -454,18 +428,6 @@ static bool read_matching_cache_header(FILE *file, const WordTable &words, Patte
         header.bucket_count <= (uint64_t)std::numeric_limits<uint32_t>::max() &&
         header.anagram_count <= (uint64_t)std::numeric_limits<uint32_t>::max() &&
         header.word_index_count <= (uint64_t)std::numeric_limits<uint32_t>::max();
-}
-
-bool WordPatternTable::cache_matches_dictionary(const WordTable &words, const char *cache_path)
-{
-    FILE *file = fopen(cache_path, "rb");
-    if (file == NULL) {
-        return false;
-    }
-    PatternCacheHeader header;
-    bool matches = read_matching_cache_header(file, words, header);
-    fclose(file);
-    return matches;
 }
 
 WordPatternTable WordPatternTable::load(const WordTable &words, const char *cache_path)

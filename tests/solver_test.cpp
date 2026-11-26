@@ -1,4 +1,5 @@
-#include "rack_oriented_solver.h"
+#include "solver.h"
+#include "perpendicular_checks.h"
 
 #include <assert.h>
 #include <string.h>
@@ -31,23 +32,16 @@ static size_t solve_with_dictionary(Board *board, const char *dictionary_content
 
     WordTable dictionary = WordTable::from_file(temp_dictionary_path);
     WordPatternTable patterns = WordPatternTable::from_words(dictionary);
-    WordIndexStartRowTable rows = WordIndexStartRowTable::from_words(dictionary);
     uint64_t packed_rack = 0;
     uint8_t rack_length = (uint8_t)strlen(rack);
     memcpy(&packed_rack, rack, rack_length);
-    const auto reference = place_and_restore_both_directions(dictionary, patterns, rows, *board, packed_rack, rack_length);
-
-    {
-        PerpendicularCheckTable lookup(dictionary);
-        Board prepared = *board;
-        prepared.prepare_perpendicular_checks(lookup);
-        const auto packed = packed_both_directions(dictionary, patterns, prepared, packed_rack, rack_length);
-        assert(packed.across == reference.across && packed.down == reference.down);
-    }
-    rows.destroy();
+    PerpendicularCheckTable lookup(dictionary);
+    Board prepared = *board;
+    prepared.prepare_perpendicular_checks(lookup);
+    const auto counts = count_moves(dictionary, patterns, prepared, packed_rack, rack_length);
     dictionary.destroy();
 
-    return reference.across;
+    return counts.across;
 }
 
 static void counts_words_matching_board_pattern_and_rack_subset(void)

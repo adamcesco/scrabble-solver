@@ -120,7 +120,6 @@ static void loads_perpendicular_rows_from_csv_board(void)
         Row expected_row = make_row(expected_tiles);
 
         assert(board.perpendicularRows[col_index].tiles == expected_row.tiles);
-        assert(board.perpendicularRows[col_index].careMask == expected_row.careMask);
         assert(board.perpendicularRows[col_index].occupiedMask == expected_row.occupiedMask);
     }
 }

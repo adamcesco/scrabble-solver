@@ -1,5 +1,7 @@
 # Prepared rack-neighbor solve time
 
+Reproduce this historical result from checkout `2dde5e1` using the revisions identified below.
+
 **Pass.** Production saved **83.83 µs per prepared solve** on the 96 held-out
 games. Its mean was 279.16 µs, down 23.09% from 363.00 µs at `823763c`. The
 paired 95% interval for mean time saved was **76.53 to 91.27 µs**. Its lower

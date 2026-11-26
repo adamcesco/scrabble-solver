@@ -18,8 +18,8 @@ from statistics import fmean
 
 from bench.measurement_support.benchmark_inputs import sha256
 from bench.measurement_support.paired_timings import DRAWS, SEED, Pair, summarize
-from bench.measurement_support.rack_neighbor_build import SOURCE_DIRS, build_worker
-from bench.selective_anagram.reference import CACHE, DICTIONARY, REVISION, ROOT
+from bench.measurement_support.revision_build import BASELINE, build_worker
+from bench.selective_anagram.reference import CACHE, DICTIONARY
 
 STAGES = ("early", "middle", "late")
 REPETITIONS = 40
@@ -67,30 +67,17 @@ def report(reference, directory):
         group = []
         for (s, _), pairs in sorted(games.items()):
             if s == stage:
-                group.append(Pair(fmean(p.original for p in pairs), fmean(p.packed for p in pairs)))
+                group.append(Pair(fmean(p.baseline for p in pairs), fmean(p.production for p in pairs)))
         groups.append(group)
     result = summarize(groups)
-    summary = dict(games=len(games), pairs=len(games) * REPETITIONS, baseline_us=result.original,
-                   production_us=result.packed, saving_us=result.saving, low95_us=result.low,
-                   high95_us=result.high, passed=result.low > 0)
+    summary = dict(games=len(games), pairs=len(games) * REPETITIONS, baseline_us=result.baseline,
+                   production_us=result.production, saving_us=result.saving, low95_us=result.low,
+                   high95_us=result.high, passed=result.high >= 0)
     print(json.dumps(summary, indent=2))
     return summary
 
 
-HERE = Path(__file__).resolve().parent
 DICT_SHA256 = "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd"
-
-
-def git(*args):
-    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
-
-
-def build(revision, target):
-    revision = git("rev-parse", "--verify", revision + "^{commit}")
-    command = build_worker(target, revision, HERE / "timing.cpp")
-    trees = {path: git("rev-parse", f"{revision}:{path}") for path in SOURCE_DIRS}
-    return dict(revision=revision, source_trees=trees, binary_sha256=sha256(target / "worker"),
-                command=command)
 
 
 @contextmanager
@@ -183,7 +170,7 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=2) + "\n")
 
 
-def measure(data, reference, directory, production, cpu):
+def measure(data, reference, directory, baseline, production, cpu):
     data, reference, directory = data.resolve(), reference.resolve(), directory.resolve()
     cases = held_out(reference)
     for case in cases:
@@ -194,11 +181,12 @@ def measure(data, reference, directory, production, cpu):
     directory.mkdir(parents=True, exist_ok=False)
     with tempfile.TemporaryDirectory() as tmp:
         temp = Path(tmp)
-        builds = {"A": build(REVISION, temp / "A"), "B": build(production, temp / "B")}
+        builds = {"A": build_worker(temp / "A", baseline, "timing"),
+                  "B": build_worker(temp / "B", production, "timing")}
         model = next(line.split(":", 1)[1].strip() for line in Path("/proc/cpuinfo").read_text().splitlines()
                      if line.startswith("model name"))
         manifest = dict(builds=builds, compiler=subprocess.check_output(["clang++", "--version"], text=True),
-                        driver_sha256=sha256(HERE / "timing.cpp"), coordinator_sha256=sha256(Path(__file__)),
+                        coordinator_sha256=sha256(Path(__file__)),
                         kernel=platform.release(), python=platform.python_version(), cpu_model=model,
                         worker_cpu=cpu, coordinator_cpu_affinity=sorted(os.sched_getaffinity(0)),
                         cases_sha256=MANIFEST_SHA256, dictionary_sha256=DICT_SHA256,
@@ -220,7 +208,9 @@ def measure(data, reference, directory, production, cpu):
                 print("Running preflight and paired blocks", file=sys.stderr, flush=True)
                 manifest["paging"] = run_pairs(workers, cases, directory)
         write_json(directory / "manifest.json", manifest)
-        write_json(directory / "summary.json", report(reference, directory))
+        summary = report(reference, directory)
+        write_json(directory / "summary.json", summary)
+        return summary
 
 
 def main():
@@ -233,13 +223,16 @@ def main():
     run.add_argument("data", type=Path)
     run.add_argument("reference", type=Path)
     run.add_argument("directory", type=Path, help="new output directory")
-    run.add_argument("--production", required=True, help="git revision of the production solver")
+    run.add_argument("--baseline", default=BASELINE, help="git revision before the change")
+    run.add_argument("--production", default="HEAD", help="git revision of the production solver")
     run.add_argument("--cpu", type=int, default=2)
     args = parser.parse_args()
     if args.mode == "measure":
-        measure(args.data, args.reference, args.directory, args.production, args.cpu)
+        result = measure(args.data, args.reference, args.directory, args.baseline, args.production, args.cpu)
     else:
-        report(args.reference, args.directory)
+        result = report(args.reference, args.directory)
+    if not result["passed"]:
+        raise SystemExit("paired 95% interval shows a slowdown")
 
 
 if __name__ == "__main__":

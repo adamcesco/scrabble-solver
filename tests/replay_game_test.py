@@ -1,4 +1,5 @@
 """Replay the saved game through the command used to select benchmark positions."""
+import csv
 import json
 import subprocess
 import sys
@@ -79,16 +80,20 @@ class ReplayGameTest(unittest.TestCase):
     def test_solver_accepts_the_recorded_plays_on_recovered_positions(self):
         requests = []
         with tempfile.TemporaryDirectory() as directory:
-            for number, (down, row, start, word) in RECORDED_PLAYS.items():
+            inputs = Path(directory)
+            output = inputs / "decisions"
+            output.mkdir()
+            for number in RECORDED_PLAYS:
                 board = Path(directory) / f"{number}.csv"
                 turn = json.loads(replay("--turn", str(number), "--board-csv", board))
-                # Change the order while preserving every tile in the recorded rack.
-                rack = turn["rack"][::-1]
-                requests.append(f"{board}\t{rack}\t{down} {row} {start} {word}\n")
-            result = subprocess.run(["build/placement_equivalence_test", FIXTURE / "words.txt",
-                                     Path(directory) / "cache"], input="".join(requests),
-                                    text=True, capture_output=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
+                requests.append(f"{board.name} {''.join(sorted(turn['rack']))}\n")
+            subprocess.run(["build/qualification_worker", FIXTURE / "words.txt", "-", inputs, output],
+                           input="".join(requests), text=True, capture_output=True, check=True)
+            for number, (down, row, start, word) in RECORDED_PLAYS.items():
+                with (output / f"{number}.csv").open() as stream:
+                    decisions = list(csv.DictReader(stream))
+                self.assertIn(dict(direction="down" if down else "across", row=str(start if down else row),
+                                   column=str(row if down else start), word=word, accepted="1"), decisions)
 
 
 if __name__ == "__main__":

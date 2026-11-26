@@ -194,33 +194,13 @@ def sample(games, dictionary, seed, size=None) -> Corpus:
     return Corpus(seed=seed, case_count=size, stage_counts=quotas, cases=repaired)
 
 
-def add_companion_racks_and_boards(rows, cases):
-    boards = [solver_board(case) for case in cases]
-    for stage in STAGES:
-        group = [i for i, row in enumerate(rows) if row["stage"] == stage]
-        if len(group) < 2:
-            raise ValueError(f"paired benchmark needs two distinct boards in stage {stage}")
-        for position, index in enumerate(group):
-            for offset in range(1, len(group)):
-                companion = group[(position + offset) % len(group)]
-                other = rows[companion]
-                if boards[companion] != boards[index] and len(other["rack"]) >= 2:
-                    rows[index].update(new_board=other["board"], new_board_rack=other["rack"],
-                                       additional_rack=other["rack"][:-1])
-                    break
-            else:
-                raise ValueError(f"{rows[index]['case']}: no distinct {stage} board with a reusable rack")
-
-
 def case_name(case):
     return f"{case['game']}#{case['turn']}"
 
 
-def write_benchmark(directory, cases, *, paired=True):
+def write_benchmark(directory, cases):
     rows = [dict(case=case_name(c), stage=c["stage"],
                  board=f"board-{i}.csv", rack=c["rack"]) for i, c in enumerate(cases, 1)]
-    if paired:
-        add_companion_racks_and_boards(rows, cases)
     directory.mkdir(parents=True, exist_ok=True)
     for row, case in zip(rows, cases, strict=True):
         write_board_csv(directory / row["board"], case["board"])
@@ -251,9 +231,7 @@ def main():
     parser.add_argument("--seed", type=int, help="selection seed (default: 10)")
     parser.add_argument("--size", type=int, help="number of distinct games to sample (default: all)")
     parser.add_argument("--verify", type=Path, help="reproduce and check an ordered saved corpus (.json or .json.gz)")
-    export = parser.add_mutually_exclusive_group()
-    export.add_argument("--benchmark-dir", type=Path, help="also export boards and a paired-benchmark manifest")
-    export.add_argument("--window-dir", type=Path, help="also export boards and a window-benchmark manifest")
+    parser.add_argument("--benchmark-dir", type=Path, help="also export boards and a case manifest")
     args = parser.parse_args()
     try:
         if args.verify:
@@ -263,9 +241,8 @@ def main():
         else:
             seed = 10 if args.seed is None else args.seed
             corpus = sample(args.games, args.dictionary, seed, args.size)
-        directory = args.window_dir or args.benchmark_dir
-        if directory:
-            write_benchmark(directory, corpus["cases"], paired=args.benchmark_dir is not None)
+        if args.benchmark_dir:
+            write_benchmark(args.benchmark_dir, corpus["cases"])
     except (ValueError, OSError, KeyError) as error:
         parser.error(str(error))
     if args.verify:

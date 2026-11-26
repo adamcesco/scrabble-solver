@@ -1,9 +1,8 @@
-"""Compare the three production solvers with the archived independent decision traces."""
+"""Compare the solver with the archived independent decision traces."""
 
 import argparse
 import csv
 import json
-import shutil
 import subprocess
 import tempfile
 from collections import Counter
@@ -11,10 +10,11 @@ from pathlib import Path
 
 from bench.measurement_support.benchmark_inputs import sha256
 
+from bench.measurement_support.revision_build import build_worker, git
+
 from .reference import CACHE, COHORTS, DICTIONARY, REVISION, ROOT, check_decisions
 
 
-SOLVERS = ("rack-neighbor", "packed", "place-and-restore")
 REFERENCE_ARCHIVE = ROOT / "bench/results/selective-anagram/reference.tar.gz"
 
 
@@ -46,24 +46,6 @@ def compare_direction(label, reference, production, archived_accepted, returned_
     return accepted
 
 
-def build_worker(source, production):
-    source.mkdir()
-    archive = source.parent / "production.tar"
-    subprocess.run(["git", "archive", "--output", archive, production,
-                    "Makefile", "src", "include", "tests", "bench/window_counters", "bench/measurement_support"],
-                   cwd=ROOT, check=True)
-    subprocess.run(["tar", "-xf", archive, "-C", source], check=True)
-    # Use the current qualifier with the selected revision's production sources and make rule.
-    for name in ("placement_comparison.cpp", "placement_comparison.h"):
-        shutil.copyfile(ROOT / "tests" / name, source / "tests" / name)
-    shutil.copyfile(Path(__file__).with_suffix(".cpp"), source / "tests/qualification.cpp")
-    target = "build/decision_qualification"
-    subprocess.run(["make", "-s", target, f"PLACEMENT_EQUIVALENCE_TEST_TARGET={target}",
-                    "PLACEMENT_EQUIVALENCE_TEST_SRC=tests/qualification.cpp $(COMPARISON_SRC)"],
-                   cwd=source, check=True)
-    return source / target
-
-
 def verify_reference(reference, data):
     provenance = json.loads((reference / "provenance.json").read_text())
     if (provenance["revision"], provenance["solver"]) != (REVISION, "place-and-restore"):
@@ -91,45 +73,43 @@ def verify_reference(reference, data):
 def compare_cases(cases, reference, actual):
     with (actual / "counts.csv").open() as stream:
         rows = list(csv.DictReader(stream))
-    counts = {(row["board"], row["solver"]): row for row in rows}
-    expected = {(case["board"], solver) for case in cases for solver in SOLVERS}
+    counts = {row["board"]: row for row in rows}
+    expected = {case["board"] for case in cases}
     if len(rows) != len(expected) or counts.keys() != expected:
-        raise ValueError(f"incorrect solver count records: missing {expected - counts.keys()}, "
+        raise ValueError(f"incorrect board count records: missing {expected - counts.keys()}, "
                          f"extra {counts.keys() - expected}, repeated {len(rows) - len(counts)}")
 
     for case in cases:
         board = case["board"]
         pinned = read_decisions(reference / "decisions" / board)
-        for solver in SOLVERS:
-            captured = read_decisions(actual / solver / board)
-            for direction in ("across", "down"):
-                returned = int(counts[board, solver][direction])
-                accepted = compare_direction(f"{case['cohort']} {case['case']} {solver} {direction}",
-                                             pinned[direction], captured[direction], case[direction], returned)
-                yield dict(cohort=case["cohort"], case=case["case"], stage=case["stage"], board=board,
-                           solver=solver, direction=direction, reference_decisions=pinned[direction].total(),
-                           production_decisions=captured[direction].total(), reference_accepted=case[direction],
-                           production_accepted=accepted, returned_accepted=returned, multiset="match",
-                           normal_board_restored=True, perpendicular_board_restored=True)
+        captured = read_decisions(actual / board)
+        for direction in ("across", "down"):
+            returned = int(counts[board][direction])
+            accepted = compare_direction(f"{case['cohort']} {case['case']} {direction}",
+                                         pinned[direction], captured[direction], case[direction], returned)
+            yield dict(cohort=case["cohort"], case=case["case"], stage=case["stage"], board=board,
+                       direction=direction, reference_decisions=pinned[direction].total(),
+                       production_decisions=captured[direction].total(), reference_accepted=case[direction],
+                       production_accepted=accepted, returned_accepted=returned, multiset="match",
+                       normal_board_restored=True, perpendicular_board_restored=True)
 
 
 def qualify(data, output, revision):
     if output.exists():
         raise ValueError(f"output directory already exists: {output}")
     output.parent.mkdir(parents=True, exist_ok=True)
-    production = subprocess.check_output(["git", "rev-parse", "--verify", revision + "^{commit}"],
-                                         cwd=ROOT, text=True).strip()
+    production = git("rev-parse", "--verify", revision + "^{commit}")
     with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
         temp = Path(temporary)
         subprocess.run(["tar", "-xf", REFERENCE_ARCHIVE, "-C", temp], check=True)
         reference = temp / "reference"
         cases, provenance = verify_reference(reference, data)
-        worker = build_worker(temp / "source", production)
+        build = build_worker(temp / "source", production, "qualification")
+        worker = temp / "source/worker"
         actual = temp / "actual"
-        for solver in SOLVERS:
-            for cohort in COHORTS:
-                (actual / solver / cohort).mkdir(parents=True)
-        requests = "".join(f"{c['case']} {c['board']} {c['rack']}\n" for c in cases)
+        for cohort in COHORTS:
+            (actual / cohort).mkdir(parents=True)
+        requests = "".join(f"{c['board']} {c['rack']}\n" for c in cases)
         with (actual / "counts.csv").open("w") as counts:
             subprocess.run([worker, data / DICTIONARY, data / CACHE, reference / "inputs", actual],
                            input=requests, text=True, stdout=counts, check=True)
@@ -144,7 +124,7 @@ def qualify(data, output, revision):
         details = dict(production_revision=production, reference_revision=provenance["revision"],
                        reference_solver=provenance["solver"], dictionary_sha256=provenance["dictionary_sha256"],
                        reference_archive_sha256=sha256(REFERENCE_ARCHIVE),
-                       solvers=SOLVERS, games=len(cases), comparisons=len(results))
+                       build=build, games=len(cases), comparisons=len(results))
         (report / "provenance.json").write_text(json.dumps(details, indent=2) + "\n")
         report.rename(output)
         print(f"Matched {len(results)} directional multisets, counts and board checks in {output}")
@@ -154,6 +134,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("data", type=Path, help="full dictionary and v3 cache data directory")
     parser.add_argument("output", type=Path, help="new directory for per-case results")
-    parser.add_argument("--production", default="HEAD", help="git revision of the production solvers")
+    parser.add_argument("--production", default="HEAD", help="git revision of the production solver")
     args = parser.parse_args()
     qualify(args.data.resolve(), args.output.resolve(), args.production)

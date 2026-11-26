@@ -1,5 +1,7 @@
 # Selective anagram lookup release qualification
 
+Reproduce this historical result from checkout `2dde5e1` using the revisions identified below.
+
 The production rack-neighbor solver saved **83.83 µs per prepared solve** against `823763c` on the 96 held-out games. The paired 95% interval was **76.53–91.27 µs**, passing the release criterion. The measured production revision was `afaba84`. [Raw paired blocks](timing/blocks.csv.gz) · [Method and reproduction](timing/README.md)
 
 | Prepared solve measurement | Result |

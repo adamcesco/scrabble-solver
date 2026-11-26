@@ -8,12 +8,12 @@ SEED = 15
 
 
 class Pair(NamedTuple):
-    original: float
-    packed: float
+    baseline: float
+    production: float
 
     @property
     def saving(self):
-        return self.original - self.packed
+        return self.baseline - self.production
 
 
 def stage_mean(groups, field):
@@ -21,8 +21,8 @@ def stage_mean(groups, field):
 
 
 class Estimate(NamedTuple):
-    original: float
-    packed: float
+    baseline: float
+    production: float
     saving: float
     low: float
     high: float
@@ -36,5 +36,5 @@ def summarize(groups):
     draws = [fmean(fmean(rng.choices(stage, k=len(stage))) for stage in savings)
              for _ in range(DRAWS)]
     percentiles = quantiles(draws, n=1000, method="inclusive")
-    return Estimate(stage_mean(groups, "original"), stage_mean(groups, "packed"),
+    return Estimate(stage_mean(groups, "baseline"), stage_mean(groups, "production"),
                     stage_mean(groups, "saving"), percentiles[24], percentiles[974])

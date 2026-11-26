@@ -1,5 +1,7 @@
 # Full-dictionary v3 compatibility
 
+Reproduce this historical result from checkout `2dde5e1` using the revisions identified below.
+
 Production and the pinned reader returned **254 across and 102 down** on all
 four paths using the sample board and rack `ABFHIKU`. Building from the full
 dictionary took 49.77 s and saving took 45.65 s. The build process peaked at

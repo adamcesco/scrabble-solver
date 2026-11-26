@@ -1,4 +1,4 @@
-#include "dictionary.h"
+#include "word_table.h"
 
 #include <assert.h>
 #include <stdio.h>

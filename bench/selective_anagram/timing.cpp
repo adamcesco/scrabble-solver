@@ -1,5 +1,5 @@
-#include "benchmark_solver.h"
-#include "solvers/rack_neighbor.h"
+#include "sorted_rack.h"
+#include "perpendicular_checks.h"
 
 #include <chrono>
 #include <iostream>
@@ -8,7 +8,7 @@
 
 struct Position {
     Board board;
-    benchmark::Rack rack;
+    SortedRack rack;
 };
 
 // One process per revision. Relative board paths are from the frozen reference inputs.
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         if (!(std::cin >> path >> letters)) return 1;
         auto board = board_from_csv(path.c_str());
         board.prepare_perpendicular_checks(checks);
-        positions.push_back({std::move(board), benchmark::Rack(letters)});
+        positions.push_back({std::move(board), SortedRack(letters)});
     }
     std::cout << "ready " << positions.size() << std::endl;
 
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     while (std::cin >> i) {
         auto &position = positions.at(i);
         const auto start = Clock::now();
-        const auto counts = rack_neighbor_both_directions(words, patterns, position.board,
+        const auto counts = count_moves(words, patterns, position.board,
                                                           position.rack.tiles, position.rack.length);
         const auto end = Clock::now();
         const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();

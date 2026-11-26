@@ -2,7 +2,6 @@
 import csv
 import gzip
 import hashlib
-import io
 import json
 import subprocess
 import sys
@@ -50,15 +49,12 @@ class SampleTurnsTest(unittest.TestCase):
                 rows = list(csv.DictReader(stream))
             with gzip.open(MASS / "corpus.json.gz", "rt") as stream:
                 cases = json.load(stream)["cases"]
-            companions = {row["board"]: case for row, case in zip(rows, cases, strict=True)}
             for row, case in zip(rows, cases, strict=True):
                 self.assertEqual((row["case"], row["rack"], row["stage"]),
                                  (f"{case['game']}#{case['turn']}", case["rack"], case["stage"]))
-                other = companions[row["new_board"]]
-                self.assertNotEqual("".join(case["board"]).upper(), "".join(other["board"]).upper())
-                self.assertEqual((other["stage"], other["rack"]), (row["stage"], row["new_board_rack"]))
-                self.assertTrue(row["additional_rack"])
-                self.assertEqual(row["additional_rack"], other["rack"][:-1])
+                with (export / row["board"]).open() as stream:
+                    self.assertEqual(["".join(line) for line in csv.reader(stream)],
+                                     [line.upper() for line in case["board"]])
 
     def test_selects_the_requested_number_of_games(self):
         corpus = json.loads(sample("--size", "4"))
@@ -160,41 +156,16 @@ class SampleTurnsTest(unittest.TestCase):
                             "middle" if case["turn"] <= middle_end else "late")
                 self.assertEqual(case["stage"], expected, case["game"])
 
-    def test_one_sampled_turn_can_be_timed_without_a_companion(self):
+    def test_one_sampled_turn_can_be_exported(self):
         with tempfile.TemporaryDirectory() as directory:
-            corpus = json.loads(sample("--size", "1", "--window-dir", directory))
+            corpus = json.loads(sample("--size", "1", "--benchmark-dir", directory))
             case, = corpus["cases"]
             manifest = Path(directory) / "cases.csv"
             with manifest.open() as stream:
                 exported, = csv.DictReader(stream)
             self.assertEqual(set(exported), {"case", "stage", "board", "rack"})
-            timings = subprocess.check_output(
-                [sys.executable, "-m", "bench.window_counters.window_benchmark", "--cases", manifest,
-                 "--dictionary", PILOT / "words.txt", "--repetitions", "1"], text=True)
-            row, = csv.DictReader(io.StringIO(timings))
-            self.assertEqual((row["case"], row["stage"], row["rack"]),
-                             (f"{case['game']}#{case['turn']}", case["stage"], "".join(sorted(case["rack"]))))
-
-    def test_exports_the_pilot_for_all_paired_workloads(self):
-        with tempfile.TemporaryDirectory() as directory:
-            corpus = json.loads(sample("--benchmark-dir", directory))
-            manifest = Path(directory) / "cases.csv"
-            with manifest.open() as stream:
-                rows = list(csv.DictReader(stream))
-            self.assertEqual(len(rows), len(corpus["cases"]))
-            for row, case in zip(rows, corpus["cases"], strict=True):
-                self.assertEqual((row["stage"], row["rack"]), (case["stage"], case["rack"]))
-                with (manifest.parent / row["board"]).open() as stream:
-                    self.assertEqual(["".join(line) for line in csv.reader(stream)],
-                                     [line.upper() for line in case["board"]])
-                companion = next(other for other in rows if other["board"] == row["new_board"])
-                self.assertNotEqual(row["board"], companion["board"])
-                self.assertEqual((row["stage"], row["new_board_rack"]),
-                                 (companion["stage"], companion["rack"]))
-            timings = subprocess.check_output(
-                [sys.executable, "-m", "bench.validator_comparison.paired_benchmark", "--cases", manifest,
-                 "--dictionary", PILOT / "words.txt", "--repetitions", "1"], text=True)
-            self.assertEqual(len(list(csv.DictReader(io.StringIO(timings)))), 36)
+            self.assertEqual((exported["case"], exported["stage"], exported["rack"]),
+                             (f"{case['game']}#{case['turn']}", case["stage"], case["rack"]))
 
 
 if __name__ == "__main__":

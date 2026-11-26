@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 from bench.measurement_support.benchmark_inputs import sha256
-from bench.measurement_support.rack_neighbor_build import FLAGS, build_worker
+from bench.measurement_support.revision_build import build_worker
 
 from .reference import CACHE, DICTIONARY, REVISION, ROOT
 
@@ -17,7 +17,6 @@ EXPECTED_INPUTS = {
     DICTIONARY: "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
     BOARD: "8caacd03aa304f12e83c0eb527d3520144d779dfa555c92ed7f7d304bde56a47",
 }
-DRIVER = Path(__file__).with_suffix(".cpp")
 
 
 def qualify(data, output, production):
@@ -31,8 +30,8 @@ def qualify(data, output, production):
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
         temp = Path(temporary)
-        build_worker(temp / "production", production, DRIVER)
-        build_worker(temp / "pinned", REVISION, DRIVER)
+        builds = {"production": build_worker(temp / "production", production, "cache"),
+                  "pinned": build_worker(temp / "pinned", REVISION, "cache")}
         prod = temp / "production/worker"
         old = temp / "pinned/worker"
         fresh = temp / "fresh.cache"
@@ -60,7 +59,7 @@ def qualify(data, output, production):
             "caches": {name: {"bytes": path.stat().st_size, "sha256": sha256(path)}
                        for name, path in [("existing", existing), ("fresh", fresh)]},
             "compiler": subprocess.check_output(["clang++", "--version"], text=True).splitlines()[0],
-            "flags": FLAGS, "driver_sha256": sha256(DRIVER),
+            "builds": builds,
         }
         report = temp / "report"
         report.mkdir()

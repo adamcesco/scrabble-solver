@@ -1,7 +1,8 @@
-#include "benchmark_solver.h"
-#include "solvers/rack_neighbor.h"
+#include "sorted_rack.h"
+#include "perpendicular_checks.h"
 
 #include <chrono>
+#include <filesystem>
 #include <iostream>
 
 using Clock = std::chrono::steady_clock;
@@ -54,8 +55,8 @@ int main(int argc, char **argv)
     const PerpendicularCheckTable checks(words);
     auto board = board_from_csv(argv[4]);
     board.prepare_perpendicular_checks(checks);
-    const benchmark::Rack rack("ABFHIKU");
-    const auto counts = rack_neighbor_both_directions(words, patterns, board, rack.tiles, rack.length);
+    const SortedRack rack("ABFHIKU");
+    const auto counts = count_moves(words, patterns, board, rack.tiles, rack.length);
     std::cout << counts.across << ',' << counts.down << '\n';
     words.destroy();
 }

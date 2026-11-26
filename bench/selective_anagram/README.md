@@ -1,27 +1,13 @@
-# Selective anagram lookup qualification
+# Frozen candidate decisions
 
-## Independent candidate decisions
+The [reference archive](../results/selective-anagram/reference.tar.gz) contains 126 board/rack inputs with directional candidate decisions, including repeated acceptances and rejections. The provenance identifies the place-and-restore implementation at `823763c` that supplied those decisions. Each CSV records direction, zero-based starting row and column on the normal board, word, and acceptance.
 
-From a checkout containing commit `823763c`, pass the data directory with
-`dictionaries/sample_dictionary.txt` and its existing v3
-`caches/pattern_and_rack_anagram_to_words.cache`, followed by a new output path.
+To regenerate the archive, run the original capture driver in a checkout at `2dde5e1`. It extracts `823763c` itself and checks dictionary, board and manifest identities.
 
 ```sh
-python3 -m bench.selective_anagram.reference /path/to/data /tmp/reference
+git worktree add --detach ../scrabble-reference 2dde5e1
+cd ../scrabble-reference
+python3 -m bench.selective_anagram.reference /path/to/data /tmp/new-reference
 ```
 
-The runner extracts the pinned revision and uses its compiler settings, corpus
-exporter and placement-comparison harness. It checks the dictionary, each board
-SHA-256, rack, stage and case identity against the archived finalist manifests.
-The place-and-restore trace supplies the decisions. The harness checks the
-directional counts and restoration of both board views. The runner reads back the
-decision files and verifies the accepted and total candidate counts in both
-directions for each game.
-
-In the output, `cases.csv` identifies the position, rack and counts for each
-cohort-relative board path. For example, `inputs/development/board-1.csv` holds
-the first board, and `decisions/development/board-1.csv` holds its trace.
-Each decision gives the direction, zero-based row and column of the starting
-square on the normal board, word, and acceptance (1 or 0). Repeated decisions
-occupy separate rows. Compare each file as a multiset. The JSON provenance
-records the full solver revision and dictionary SHA-256.
+Use the archived decisions to qualify the current solver. [Qualification](QUALIFICATION.md)

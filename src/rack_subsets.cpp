@@ -1,4 +1,4 @@
-#include "solvers/shared.h"
+#include "rack_subsets.h"
 #include "utils.h"
 
 #include <algorithm>
@@ -56,9 +56,9 @@ static inline uint8_t duplicate_follow_mask_for_rack(uint64_t sorted_rack, uint8
     return duplicate_follow_mask;
 }
 
-RackSubsetKeys rack_subset_keys_for_rack(uint64_t sorted_rack, uint8_t rack_length)
+RackSubsets rack_subsets(uint64_t sorted_rack, uint8_t rack_length)
 {
-    RackSubsetKeys subset_keys = {};
+    RackSubsets subset_keys = {};
     const uint8_t duplicate_follow_mask = duplicate_follow_mask_for_rack(sorted_rack, rack_length);
     const uint8_t subset_count = (uint8_t)(UINT8_C(1) << rack_length);
 

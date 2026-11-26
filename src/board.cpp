@@ -36,19 +36,6 @@ static RowTiles pack_tiles(const char tiles[BOARD_SIZE + 1])
     return packed;
 }
 
-static RowTiles make_care_mask(const char tiles[BOARD_SIZE + 1])
-{
-    RowTiles care = 0;
-
-    for (int col_index = 0; col_index < BOARD_SIZE; ++col_index) {
-        if (isalpha((unsigned char)tiles[col_index])) {
-            care |= row_tile_mask_at_col(col_index);
-        }
-    }
-
-    return care;
-}
-
 static uint16_t make_occupied_mask(const char tiles[BOARD_SIZE + 1])
 {
     uint16_t occupied = 0;
@@ -67,83 +54,9 @@ Row make_row(const char tiles[BOARD_SIZE + 1])
     Row row = {};
 
     row.tiles = pack_tiles(tiles);
-    row.careMask = make_care_mask(tiles);
     row.occupiedMask = make_occupied_mask(tiles);
 
     return row;
-}
-
-/* starting positions for words configurations map */
-
-static void set_config_start_positions(uint16_t config, uint8_t start_positions[MAX_NUMBER_OF_WORDS_PER_ROW + 1])
-{
-    size_t position_count = 0;
-
-    for (uint16_t start = 0; start < BOARD_SIZE; ++start) {
-        if ((config & (uint16_t)(1u << start)) == 0) {
-            continue;
-        }
-
-        if (position_count >= MAX_NUMBER_OF_WORDS_PER_ROW) {
-            return;
-        }
-
-        position_count++;
-        start_positions[position_count] = (uint8_t)start;
-    }
-
-    start_positions[0] = (uint8_t)position_count;
-}
-
-static void add_config(
-    uint16_t config,
-    size_t *config_count,
-    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
-)
-{
-    if (*config_count >= MAX_NUMBER_OF_START_CONFIGS) {
-        return;
-    }
-
-    set_config_start_positions(config, config_to_start_positions[config]);
-    (*config_count)++;
-}
-
-static void generate_configs_from(
-    int min_start,
-    uint16_t current_config,
-    size_t *config_count,
-    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
-)
-{
-    add_config(current_config, config_count, config_to_start_positions);
-
-    for (int start = min_start; start <= MAX_START_CONFIG; start++) {
-        uint16_t next_config = current_config | (uint16_t)(1u << start);
-
-        generate_configs_from(
-            start + NEXT_START_CONFIG_OFFSET,
-            next_config,
-            config_count,
-            config_to_start_positions
-        );
-    }
-}
-
-void init_config_map(
-    uint8_t config_to_start_positions[WORD_START_CONFIG_LOOKUP_SIZE][MAX_NUMBER_OF_WORDS_PER_ROW + 1]
-)
-{
-    size_t config_count = 0;
-
-    for (size_t i = 0; i < WORD_START_CONFIG_LOOKUP_SIZE; i++) {
-        config_to_start_positions[i][0] = 0;
-        for (size_t j = 1; j <= MAX_NUMBER_OF_WORDS_PER_ROW; j++) {
-            config_to_start_positions[i][j] = WORD_START_POSITION_UNUSED;
-        }
-    }
-
-    generate_configs_from(0, 0, &config_count, config_to_start_positions);
 }
 
 /* CSV parsing and board loading */

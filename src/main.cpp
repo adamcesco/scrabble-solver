@@ -1,6 +1,6 @@
 #include "board.h"
-#include "dictionary.h"
-#include "solvers/rack_neighbor.h"
+#include "perpendicular_checks.h"
+#include "solver.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -29,19 +29,15 @@ static void solve_board(const WordTable &dictionary, const char *board_file_path
     printf("\n");
 
     // solving
-    clock_t rack_oriented_start = clock();
-    DirectionalCounts counts = rack_neighbor_both_directions(
+    clock_t solve_start = clock();
+    DirectionalCounts counts = count_moves(
         dictionary, pattern_and_rack_anagram_to_words, board, rack, rack_length
     );
-    clock_t rack_oriented_end = clock();
-    double rack_oriented_seconds = (double)(rack_oriented_end - rack_oriented_start) / CLOCKS_PER_SEC;
+    clock_t solve_end = clock();
+    double solve_seconds = (double)(solve_end - solve_start) / CLOCKS_PER_SEC;
     
     // statistics
-    printf("Solver statistics\n");
-    printf("-----------------\n");
-    printf("%-28s %10s %14s\n", "Solver", "Moves", "Seconds");
-    printf("%-28s %10zu %14.6f\n", "rack-neighbor", counts.across + counts.down, rack_oriented_seconds);
-    printf("\n");
+    printf("Moves: %zu\nSeconds: %.6f\n\n", counts.across + counts.down, solve_seconds);
 
     // sanity print to insure that the original board was not modified
     board_print(board);
