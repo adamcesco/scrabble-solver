@@ -22,9 +22,11 @@ struct WordPattern {
 };
 
 struct WordPatternAnagramGroup {
-    PatternBytes rack_letters = 0;
+    uint64_t rack_letters = 0;
     WordPatternRange word_indices;
 };
+
+static_assert(sizeof(WordPatternAnagramGroup) == 16);
 
 typedef std::vector<WordPattern> WordPatternBucket;
 typedef std::vector<WordPatternBucket> WordPatternBucketsByMask;
@@ -51,7 +53,7 @@ struct WordPatternTable {
     const WordPattern *get(const PatternRow &pattern) const;
 
     // Unsafe unless entry belongs to this table.
-    const WordPatternAnagramGroup *get_anagram(const WordPattern &entry, PatternBytes anagram) const;
+    const WordPatternAnagramGroup *get_anagram(const WordPattern &entry, uint64_t anagram) const;
 
     // Unsafe unless entry belongs to this table, offset is in range, and words is the source dictionary.
     const char *word_at(const WordTable &words, const WordPatternAnagramGroup &entry, size_t offset) const;
@@ -84,7 +86,7 @@ inline const WordPattern *WordPatternTable::get(const PatternRow &pattern) const
     return &*iter;
 }
 
-inline const WordPatternAnagramGroup *WordPatternTable::get_anagram(const WordPattern &entry, PatternBytes anagram) const
+inline const WordPatternAnagramGroup *WordPatternTable::get_anagram(const WordPattern &entry, uint64_t anagram) const
 {
     auto begin = anagram_groups.begin() + entry.anagrams.start;
     auto end = begin + entry.anagrams.count;
@@ -92,7 +94,7 @@ inline const WordPatternAnagramGroup *WordPatternTable::get_anagram(const WordPa
         begin,
         end,
         anagram,
-        [](const WordPatternAnagramGroup &anagram_entry, PatternBytes value) {
+        [](const WordPatternAnagramGroup &anagram_entry, uint64_t value) {
             return anagram_entry.rack_letters < value;
         }
     );

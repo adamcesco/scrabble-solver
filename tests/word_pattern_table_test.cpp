@@ -71,12 +71,12 @@ static PatternRow pattern_row_for_pattern(const char *pattern)
     return row;
 }
 
-static PatternBytes packed_letters(const char *letters)
+static uint64_t packed_letters(const char *letters)
 {
-    PatternBytes packed = 0;
+    uint64_t packed = 0;
 
     for (uint8_t index = 0; letters[index] != '\0'; ++index) {
-        packed |= test_pattern_byte((uint8_t)letters[index], index);
+        packed |= put_byte_64((uint8_t)letters[index], index);
     }
 
     return packed;
@@ -249,15 +249,21 @@ static void returns_largest_binary_search_domain(void)
 
 static void saves_and_loads_word_pattern_cache(void)
 {
-    WordTable words = load_dictionary("CAT\nTAC\nACT\nBAR\n");
-    WordPatternTable patterns = WordPatternTable::from_words(words);
-    const char *expected[] = {"CAT", "TAC", "ACT"};
-
-    assert(patterns.save(words, temp_cache_path) == 1);
-
-    WordPatternTable loaded = WordPatternTable::load(words, temp_cache_path);
+    WordTable words = load_dictionary("FLEE\nFELT\nFEEL\nABCDEFGHIJKLMNO\n");
+    auto built = WordPatternTable::from_words(words);
+    assert(built.save(words, temp_cache_path));
+    auto loaded = WordPatternTable::load(words, temp_cache_path);
     assert(!loaded.is_empty());
-    assert_anagram_words(&loaded, &words, get_anagram_entry(&loaded, "   ", "ACT"), expected, 3);
+
+    const char *eel[] = {"FLEE", "FEEL"};
+    const char *elt[] = {"FELT"};
+    const char *long_word[] = {"ABCDEFGHIJKLMNO"};
+    for (const auto *table : {&built, &loaded}) {
+        assert_anagram_words(table, &words, get_anagram_entry(table, "F   ", "EEL"), eel, 2);
+        assert_anagram_words(table, &words, get_anagram_entry(table, "F   ", "ELT"), elt, 1);
+        assert_anagram_words(table, &words, get_anagram_entry(table, "       HIJKLMNO", "ABCDEFG"), long_word, 1);
+        assert(!get_anagram_entry(table, "F   ", "AEL"));
+    }
 
     words.destroy();
 }
@@ -342,6 +348,27 @@ static void rejects_previous_zero_space_cache_version(void)
     words.destroy();
 }
 
+static void rejects_v3_keys_with_data_outside_the_seven_rack_slots()
+{
+    // The one-word table ends with one v3 group (16-byte key and 8-byte range)
+    // followed by its single four-byte dictionary ID.
+    WordTable words = load_dictionary("A\n");
+    auto patterns = WordPatternTable::from_words(words);
+    for (PatternBytes extra : {test_pattern_byte('X', 7), PatternBytes{1} << 127}) {
+        assert(patterns.save(words, temp_cache_path));
+        FILE *file = fopen(temp_cache_path, "r+b");
+        assert(file != NULL);
+        assert(fseek(file, -(16 + 8 + 4), SEEK_END) == 0);
+        PatternBytes key = test_pattern_byte('A', 0) | extra;
+        test_write_u64(file, static_cast<uint64_t>(key));
+        test_write_u64(file, static_cast<uint64_t>(key >> 64));
+        assert(fclose(file) == 0);
+
+        assert(WordPatternTable::load(words, temp_cache_path).is_empty());
+    }
+    words.destroy();
+}
+
 static void run_test(const char *name, void (*test)(void))
 {
     setup();
@@ -352,6 +379,7 @@ static void run_test(const char *name, void (*test)(void))
 
 int main(void)
 {
+    run_test("rejects_v3_keys_with_data_outside_the_seven_rack_slots", rejects_v3_keys_with_data_outside_the_seven_rack_slots);
     run_test("returns_words_matching_fixed_position_wildcards_and_anagram_letters", returns_words_matching_fixed_position_wildcards_and_anagram_letters);
     run_test("enforces_exact_pattern_length", enforces_exact_pattern_length);
     run_test("returns_all_words_that_share_a_pattern_and_anagram_key_in_dictionary_order", returns_all_words_that_share_a_pattern_and_anagram_key_in_dictionary_order);

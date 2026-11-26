@@ -3,13 +3,15 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <stdio.h>
 #include <string.h>
+#include <tuple>
 
 struct PatternRecord {
-    PatternRow fixed_tiles;
-    PatternBytes rack_letters;
+    PatternBytes fixed_tiles;
+    uint64_t rack_letters;
     uint32_t word_index;
 };
 
@@ -27,260 +29,131 @@ static int init_word_pattern_buckets(WordPatternTable *table)
     return 1;
 }
 
-static size_t pattern_record_count_for_word(const char *word)
-{
-    size_t word_length = strlen(word);
-    size_t count = 0;
+struct PackedWord {
+    PatternBytes letters;
+    uint32_t index;
+};
 
-    if (word_length == 0 || word_length > BOARD_SIZE) {
-        return 0;
-    }
-
-    for (uint16_t pattern_mask = 1; pattern_mask < (uint16_t)(UINT16_C(1) << word_length); ++pattern_mask) {
-        if (__builtin_popcount(pattern_mask) <= 7) {
-            count++;
-        }
-    }
-
-    return count;
-}
-
-static int reserve_pattern_records_for_words(std::vector<PatternRecord> *records, const WordTable &words)
-{
-    size_t record_count = 0;
-
-    for (size_t word_index = 0; word_index < words.count; ++word_index) {
-        size_t word_record_count = pattern_record_count_for_word(words.words[word_index]);
-
-        if (record_count > SIZE_MAX - word_record_count) {
-            return 0;
-        }
-
-        record_count += word_record_count;
-    }
-
-    if (record_count > (size_t)std::numeric_limits<uint32_t>::max()) {
-        return 0;
-    }
-
-    try {
-        records->reserve(record_count);
-    } catch (...) {
-        return 0;
-    }
-
-    return 1;
-}
-
-static PatternRow make_pattern_row_for_mask(PatternBytes packed_word, uint16_t occupied_mask, uint8_t word_length)
-{
-    PatternRow row = {};
-
-    row.occupiedMask = occupied_mask;
-    row.length = word_length;
-
-    for (uint8_t index = 0; index < word_length; ++index) {
-        if ((occupied_mask & bit_at_u16(index)) == 0) {
-            continue;
-        }
-
-        row.tiles |= put_byte_128(get_byte_128(packed_word, index, BOARD_SIZE), index, BOARD_SIZE);
-    }
-
-    return row;
-}
-
-static PatternBytes sorted_anagram_key_for_mask(PatternBytes packed_word, uint16_t pattern_mask, uint8_t word_length)
+static uint64_t sorted_rack_key(PatternBytes word, const uint8_t *slots, uint8_t count)
 {
     uint8_t letters[7];
-    uint8_t letter_count = 0;
-    PatternBytes key = 0;
-
-    for (uint8_t index = 0; index < word_length; ++index) {
-        if ((pattern_mask & bit_at_u16(index)) == 0) {
-            continue;
-        }
-
-        uint8_t letter = get_byte_128(packed_word, index, BOARD_SIZE);
-        uint8_t insert_at = letter_count;
-
+    for (uint8_t i = 0; i < count; ++i) {
+        const uint8_t letter = get_byte_128(word, slots[i], BOARD_SIZE);
+        uint8_t insert_at = i;
         while (insert_at > 0 && letters[insert_at - 1] > letter) {
             letters[insert_at] = letters[insert_at - 1];
-            insert_at--;
+            --insert_at;
         }
-
         letters[insert_at] = letter;
-        letter_count++;
     }
 
-    for (uint8_t index = 0; index < letter_count; ++index) {
-        key |= put_byte_128(letters[index], index, BOARD_SIZE);
+    uint64_t key = 0;
+    for (uint8_t i = 0; i < count; ++i) {
+        key |= put_byte_64(letters[i], i);
     }
-
     return key;
 }
 
-static int append_pattern_records_for_word(std::vector<PatternRecord> *records, const char *word, uint32_t word_index)
+static void build_pattern_bucket(WordPatternTable &table, const std::vector<PackedWord> &words,
+                                 uint8_t length, uint16_t fixed_mask, std::vector<PatternRecord> &records)
 {
-    uint8_t word_length = strlen(word);
-    PatternBytes packed_word = 0;
-
-    if (word_length == 0 || word_length > BOARD_SIZE) {
-        return 1;
-    }
-
-    uint16_t pattern_count = (uint16_t)(UINT16_C(1) << word_length);
-    uint16_t active_bits = low_bit_mask_u16(word_length);
-    memcpy(&packed_word, word, word_length + 1);
-
-    for (uint16_t pattern_mask = 0; pattern_mask < pattern_count; ++pattern_mask) {
-        uint8_t anagram_length = __builtin_popcount(pattern_mask);
-
-        if (anagram_length > 7 || anagram_length == 0) {
-            continue;
-        }
-
-        uint16_t fixed_mask = (uint16_t)(active_bits & ~pattern_mask);
-        PatternRow pattern_row = make_pattern_row_for_mask(packed_word, fixed_mask, word_length);
-        PatternBytes packed_anagram = sorted_anagram_key_for_mask(packed_word, pattern_mask, word_length);
-
-        try {
-            records->push_back(PatternRecord{
-                pattern_row,
-                packed_anagram,
-                word_index
-            });
-        } catch (...) {
-            return 0;
+    PatternBytes fixed_bytes = 0;
+    uint8_t rack_slots[7];
+    uint8_t rack_count = 0;
+    for (uint8_t i = 0; i < length; ++i) {
+        if (fixed_mask & bit_at_u16(i)) {
+            fixed_bytes |= put_byte_128(0xff, i, BOARD_SIZE);
+        } else {
+            rack_slots[rack_count++] = i;
         }
     }
 
-    return 1;
-}
-
-static int build_pattern_records_from_words(std::vector<PatternRecord> *records, const WordTable &words)
-{
-    if (!reserve_pattern_records_for_words(records, words)) {
-        return 0;
+    records.clear();
+    for (const PackedWord &word : words) {
+        records.push_back({word.letters & fixed_bytes, sorted_rack_key(word.letters, rack_slots, rack_count), word.index});
     }
+    std::sort(records.begin(), records.end(), [](const PatternRecord &a, const PatternRecord &b) {
+        return std::tie(a.fixed_tiles, a.rack_letters, a.word_index) <
+               std::tie(b.fixed_tiles, b.rack_letters, b.word_index);
+    });
 
-    for (size_t word_index = 0; word_index < words.count; ++word_index) {
-        if (!append_pattern_records_for_word(records, words.words[word_index], (uint32_t)word_index)) {
-            return 0;
+    auto &bucket = table.buckets_by_length[length][fixed_mask];
+    for (const PatternRecord &record : records) {
+        if (bucket.empty() || bucket.back().fixed_tiles != record.fixed_tiles) {
+            bucket.push_back({record.fixed_tiles, {static_cast<uint32_t>(table.anagram_groups.size()), 0}});
         }
-    }
-
-    return 1;
-}
-
-static int pattern_record_less(const PatternRecord &left, const PatternRecord &right)
-{
-    if (left.fixed_tiles.length != right.fixed_tiles.length) {
-        return left.fixed_tiles.length < right.fixed_tiles.length;
-    }
-
-    if (left.fixed_tiles.occupiedMask != right.fixed_tiles.occupiedMask) {
-        return left.fixed_tiles.occupiedMask < right.fixed_tiles.occupiedMask;
-    }
-
-    if (left.fixed_tiles.tiles != right.fixed_tiles.tiles) {
-        return left.fixed_tiles.tiles < right.fixed_tiles.tiles;
-    }
-
-    if (left.rack_letters != right.rack_letters) {
-        return left.rack_letters < right.rack_letters;
-    }
-
-    return left.word_index < right.word_index;
-}
-
-static int pattern_record_matches_pattern(const PatternRecord &record, const PatternRow &pattern)
-{
-    return
-        record.fixed_tiles.length == pattern.length &&
-        record.fixed_tiles.occupiedMask == pattern.occupiedMask &&
-        record.fixed_tiles.tiles == pattern.tiles;
-}
-
-static int pack_sorted_pattern_records(WordPatternTable *table, const std::vector<PatternRecord> &records)
-{
-    try {
-        table->word_indices.reserve(records.size());
-    } catch (...) {
-        return 0;
-    }
-
-    for (size_t record_index = 0; record_index < records.size();) {
-        PatternRow pattern = records[record_index].fixed_tiles;
-        WordPatternBucket &bucket = table->buckets_by_length[pattern.length][pattern.occupiedMask];
-        WordPattern pattern_entry = {
-            pattern.tiles,
-            {
-                (uint32_t)table->anagram_groups.size(),
-                0
-            }
-        };
-
-        while (record_index < records.size() && pattern_record_matches_pattern(records[record_index], pattern)) {
-            PatternBytes anagram = records[record_index].rack_letters;
-            WordPatternAnagramGroup anagram_entry = {
-                anagram,
-                {
-                    (uint32_t)table->word_indices.size(),
-                    0
-                }
-            };
-
-            while (
-                record_index < records.size() &&
-                pattern_record_matches_pattern(records[record_index], pattern) &&
-                records[record_index].rack_letters == anagram
-            ) {
-                table->word_indices.push_back(records[record_index].word_index);
-                anagram_entry.word_indices.count++;
-                record_index++;
-            }
-
-            table->anagram_groups.push_back(anagram_entry);
-            pattern_entry.anagrams.count++;
+        auto &groups = bucket.back().anagrams;
+        if (groups.count == 0 || table.anagram_groups.back().rack_letters != record.rack_letters) {
+            table.anagram_groups.push_back({record.rack_letters, {static_cast<uint32_t>(table.word_indices.size()), 0}});
+            ++groups.count;
         }
-
-        bucket.push_back(pattern_entry);
+        ++table.anagram_groups.back().word_indices.count;
+        table.word_indices.push_back(record.word_index);
     }
-
-    return 1;
 }
 
 WordPatternTable WordPatternTable::from_words(const WordTable &words)
 {
-    WordPatternTable table = {};
-    std::vector<PatternRecord> records;
-
-    if (!init_word_pattern_buckets(&table)) {
+    WordPatternTable table;
+    if (words.count > UINT32_MAX || !init_word_pattern_buckets(&table)) {
         return {};
     }
-
     if (words.count == 0) {
         return table;
     }
 
-    if (words.count > (size_t)std::numeric_limits<uint32_t>::max()) {
-        return {};
-    }
+    try {
+        std::array<std::vector<PackedWord>, BOARD_SIZE + 1> by_length;
+        for (size_t i = 0; i < words.count; ++i) {
+            const size_t length = strlen(words.words[i]);
+            if (length == 0 || length > BOARD_SIZE) {
+                continue;
+            }
+            PatternBytes packed = 0;
+            for (size_t slot = 0; slot < length; ++slot) {
+                packed |= put_byte_128(words.words[i][slot], slot, BOARD_SIZE);
+            }
+            by_length[length].push_back({packed, static_cast<uint32_t>(i)});
+        }
 
-    if (!build_pattern_records_from_words(&records, words)) {
-        return {};
-    }
+        uint64_t record_count = 0;
+        for (uint8_t length = 1; length <= BOARD_SIZE; ++length) {
+            if (by_length[length].empty()) {
+                continue;
+            }
+            for (uint16_t gaps = 1; gaps <= low_bit_mask_u16(length); ++gaps) {
+                if (__builtin_popcount(gaps) <= 7) {
+                    record_count += by_length[length].size();
+                }
+            }
+        }
+        if (record_count > UINT32_MAX) {
+            return {};
+        }
+        table.word_indices.reserve(record_count);
+        table.anagram_groups.reserve(record_count);
 
-    std::sort(records.begin(), records.end(), pattern_record_less);
-
-    if (!pack_sorted_pattern_records(&table, records)) {
+        // Group ranges follow v3's bucket order. Sorting one bucket at a time
+        // bounds temporary storage by the number of dictionary words at one length.
+        std::vector<PatternRecord> records;
+        for (uint8_t length = 1; length <= BOARD_SIZE; ++length) {
+            if (by_length[length].empty()) {
+                continue;
+            }
+            records.reserve(by_length[length].size());
+            const uint16_t all_slots = low_bit_mask_u16(length);
+            for (uint16_t fixed_mask = 0; fixed_mask < all_slots; ++fixed_mask) {
+                if (__builtin_popcount(all_slots ^ fixed_mask) <= 7) {
+                    build_pattern_bucket(table, by_length[length], length, fixed_mask, records);
+                }
+            }
+        }
+    } catch (...) {
         return {};
     }
 
     table.dictionary_fingerprint = words.fingerprint();
     table.dictionary_word_count = words.count;
-
     return table;
 }
 
@@ -342,6 +215,28 @@ static int read_pattern_bytes(FILE *file, PatternBytes *value)
 
     *value = (((PatternBytes)high) << 64) | (PatternBytes)low;
     return 1;
+}
+
+// v3 uses board-width keys. Slot zero has a different bit offset in a rack key
+// on big-endian hosts, while successive slots have the same spacing.
+static unsigned v3_rack_shift()
+{
+    return byte_shift_128(0, BOARD_SIZE) - byte_shift_64(0);
+}
+
+static PatternBytes v3_rack_key(uint64_t rack_letters)
+{
+    return static_cast<PatternBytes>(rack_letters) << v3_rack_shift();
+}
+
+static bool read_v3_rack_key(FILE *file, uint64_t &rack_letters)
+{
+    PatternBytes wide;
+    if (!read_pattern_bytes(file, &wide)) {
+        return false;
+    }
+    rack_letters = static_cast<uint64_t>(wide >> v3_rack_shift());
+    return get_byte_64(rack_letters, 7) == 0 && v3_rack_key(rack_letters) == wide;
 }
 
 static int count_serialized_pattern_buckets(const WordPatternTable *table, uint64_t *bucket_count)
@@ -473,7 +368,7 @@ int WordPatternTable::save(const WordTable &words, const char *cache_path) const
     for (size_t index = 0; ok && index < anagram_groups.size(); ++index) {
         const WordPatternAnagramGroup &entry = anagram_groups[index];
         ok =
-            write_pattern_bytes(file, entry.rack_letters) &&
+            write_pattern_bytes(file, v3_rack_key(entry.rack_letters)) &&
             write_u32(file, entry.word_indices.start) &&
             write_u32(file, entry.word_indices.count);
     }
@@ -566,7 +461,7 @@ WordPatternTable WordPatternTable::load(const WordTable &words, const char *cach
     for (size_t index = 0; ok && index < table.anagram_groups.size(); ++index) {
         WordPatternAnagramGroup &entry = table.anagram_groups[index];
         ok =
-            read_pattern_bytes(file, &entry.rack_letters) &&
+            read_v3_rack_key(file, entry.rack_letters) &&
             read_u32(file, &entry.word_indices.start) &&
             read_u32(file, &entry.word_indices.count) &&
             (size_t)entry.word_indices.start + entry.word_indices.count <= table.word_indices.size();
