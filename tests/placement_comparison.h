@@ -4,6 +4,7 @@
 #include "window_variants.h"
 
 #include <array>
+#include <functional>
 #include <iosfwd>
 #include <optional>
 #include <string>
@@ -41,6 +42,7 @@ struct PlacementTrace {
     WindowWorkload *workload = nullptr;
 
     bool down() const { return snapshot.is_down(board); }
+    DirectionalCounts solve(const std::function<DirectionalCounts()> &run);
     DirectionalCounts solve(const benchmark::WindowVariant &variant, const WordPatternTable &patterns,
                             const benchmark::Rack &rack);
 };

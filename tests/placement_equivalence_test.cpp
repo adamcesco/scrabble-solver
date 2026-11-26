@@ -328,6 +328,20 @@ static void reuse_check_sets_across_overlapping_windows()
     words.destroy();
 }
 
+static void report_damaged_perpendicular_board()
+{
+    Board board{};
+    SolverBoardSnapshot snapshot{board};
+    board.perpendicularRows[7].occupiedMask = 4;
+    try {
+        snapshot.check(board, false);
+    } catch (const std::runtime_error &error) {
+        assert(std::string(error.what()).find("down row 7 occupiedMask") != std::string::npos);
+        return;
+    }
+    throw std::runtime_error("board restoration check missed a changed occupied mask");
+}
+
 static std::filesystem::path qualifier_project(const char *executable)
 {
     // Keep the invocation path so a symlink staged under build/ belongs to that project.
@@ -462,6 +476,7 @@ int main(int argc, char **argv)
                 variants.push_back(&benchmark::window_variant(name));
             }
         }
+        report_damaged_perpendicular_board();
         compare_gap_keys_at_the_board_edge(variants);
         compare_each_gap_in_short_words(variants);
         reuse_check_sets_across_overlapping_windows();

@@ -5,26 +5,49 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iomanip>
 #include <ostream>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 
-static void check_rows(const Row (&expected)[BOARD_SIZE], const Row (&actual)[BOARD_SIZE])
+static std::string hex_value(RowTiles value)
 {
-    for (int i = 0; i < BOARD_SIZE; ++i) {
-        assert(actual[i].tiles == expected[i].tiles);
-        assert(actual[i].occupiedMask == expected[i].occupiedMask);
-        assert(actual[i].careMask == expected[i].careMask);
+    std::ostringstream out;
+    out << "0x" << std::hex;
+    if (auto high = static_cast<uint64_t>(value >> 64)) {
+        out << high << std::setfill('0') << std::setw(16);
+    }
+    out << static_cast<uint64_t>(value);
+    return out.str();
+}
+
+static void check_rows(const char *direction, const Row (&expected)[BOARD_SIZE], const Row (&actual)[BOARD_SIZE])
+{
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        auto check = [&](const char *field, RowTiles before, RowTiles after) {
+            if (before != after) {
+                throw std::runtime_error(std::string(direction) + " row " + std::to_string(row) + " " + field +
+                                         ": expected " + hex_value(before) + ", got " + hex_value(after));
+            }
+        };
+        check("tiles", expected[row].tiles, actual[row].tiles);
+        check("occupiedMask", expected[row].occupiedMask, actual[row].occupiedMask);
+        check("careMask", expected[row].careMask, actual[row].careMask);
     }
 }
 
 void SolverBoardSnapshot::check(const Board &board, bool down) const
 {
-    check_rows(down ? original.perpendicularRows : original.rows, board.rows);
-    check_rows(down ? original.rows : original.perpendicularRows, board.perpendicularRows);
+    check_rows(down ? "down" : "across", down ? original.perpendicularRows : original.rows, board.rows);
+    check_rows(down ? "across" : "down", down ? original.rows : original.perpendicularRows, board.perpendicularRows);
     // These pointers identify immutable grids, including IDs that no candidate reads.
-    assert(board.normal_runs == (down ? original.perpendicular_runs : original.normal_runs));
-    assert(board.perpendicular_runs == (down ? original.normal_runs : original.perpendicular_runs));
+    if (board.normal_runs != (down ? original.perpendicular_runs : original.normal_runs)) {
+        throw std::runtime_error(std::string(down ? "down" : "across") + " perpendicular-check grid changed");
+    }
+    if (board.perpendicular_runs != (down ? original.normal_runs : original.perpendicular_runs)) {
+        throw std::runtime_error(std::string(down ? "across" : "down") + " perpendicular-check grid changed");
+    }
 }
 
 bool SolverBoardSnapshot::is_down(const Board &board) const
@@ -209,9 +232,17 @@ void trace_cache_hit()
 DirectionalCounts PlacementTrace::solve(const benchmark::WindowVariant &variant, const WordPatternTable &patterns,
                                         const benchmark::Rack &rack)
 {
+    return solve([&] { return variant.solve(dictionary, patterns, board, rack).counts; });
+}
+
+DirectionalCounts PlacementTrace::solve(const std::function<DirectionalCounts()> &run)
+{
+    struct ResetTrace {
+        PlacementTrace *previous = active_trace;
+        ~ResetTrace() { active_trace = previous; }
+    } reset;
     active_trace = this;
-    auto counts = variant.solve(dictionary, patterns, board, rack).counts;
-    active_trace = nullptr;
+    auto counts = run();
     snapshot.check(board, false);
     return counts;
 }
