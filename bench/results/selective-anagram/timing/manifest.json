@@ -1,0 +1,119 @@
+{
+  "builds": {
+    "A": {
+      "revision": "823763cf735c1930fd357cff0bd5e155aa47341d",
+      "source_trees": {
+        "src": "7e496beed0589493a5607adb68671e775796636d",
+        "include": "8ac8afabab826b08195a7789707ec5206eec1120",
+        "bench/measurement_support": "caddada78f0472cd80168ff273b504f5e149a90d"
+      },
+      "binary_sha256": "1d81aa5493251419439eb8f49d14dab4c584f4dd8bb95af3323239a1e254f2d8",
+      "command": [
+        "clang++",
+        "-std=c++17",
+        "-O2",
+        "-march=x86-64",
+        "-Iinclude",
+        "-Isrc",
+        "-Ibench/measurement_support",
+        "timing.cpp",
+        "src/board.cpp",
+        "src/perpendicular_checks.cpp",
+        "src/word_table.cpp",
+        "src/word_pattern_table.cpp",
+        "src/utils.cpp",
+        "src/solvers/shared/rack_subsets.cpp",
+        "src/solvers/rack_neighbor/solver.cpp",
+        "-o",
+        "worker"
+      ]
+    },
+    "B": {
+      "revision": "ca178f4873e4cec14ad81c5631c0b0553be59442",
+      "source_trees": {
+        "src": "ce4a0be993647340b453e7901e148b64f2170aee",
+        "include": "b482ff1085560f91784e25989ba86b4be3c6f8d0",
+        "bench/measurement_support": "caddada78f0472cd80168ff273b504f5e149a90d"
+      },
+      "binary_sha256": "e52a261742094e664754d7a79bf3985dddff18faf68f1144936f744db0f7dc8e",
+      "command": [
+        "clang++",
+        "-std=c++17",
+        "-O2",
+        "-march=x86-64",
+        "-Iinclude",
+        "-Isrc",
+        "-Ibench/measurement_support",
+        "timing.cpp",
+        "src/board.cpp",
+        "src/perpendicular_checks.cpp",
+        "src/word_table.cpp",
+        "src/word_pattern_table.cpp",
+        "src/utils.cpp",
+        "src/solvers/shared/rack_subsets.cpp",
+        "src/solvers/rack_neighbor/solver.cpp",
+        "-o",
+        "worker"
+      ]
+    }
+  },
+  "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin\n",
+  "driver_sha256": "ecb7b4b18685662fc56fb77bbdfe2eb25c4333a7c76048cd905edb72688360d3",
+  "coordinator_sha256": "1b550c4b135e9696f60156a30f55adaece5055f638cbd63ee5270de3a381a343",
+  "kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "python": "3.12.3",
+  "cpu_model": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+  "worker_cpu": 2,
+  "coordinator_cpu_affinity": [
+    6
+  ],
+  "cases_sha256": "0349591e1aad857ed255c82741cd1b508d21d7f276c896fe94d37b92368afcad",
+  "dictionary_sha256": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+  "shuffle_seed": 15,
+  "warmup_rounds": 2,
+  "repetitions": 40,
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 15,
+  "cache_bytes": 13639098672,
+  "cache_sha256": "66d069142a7cc04278597cf4df70ef03af8295d3b31cff201d2a8425d90689cb",
+  "paging": {
+    "preflight": [
+      {
+        "A_major_faults": 3,
+        "B_major_faults": 10,
+        "pswpin": 1595751,
+        "pswpout": 4162793
+      },
+      {
+        "A_major_faults": 918,
+        "B_major_faults": 10,
+        "pswpin": 1596720,
+        "pswpout": 4162793
+      },
+      {
+        "A_major_faults": 918,
+        "B_major_faults": 10,
+        "pswpin": 1596723,
+        "pswpout": 4162793
+      },
+      {
+        "A_major_faults": 918,
+        "B_major_faults": 10,
+        "pswpin": 1596723,
+        "pswpout": 4162793
+      }
+    ],
+    "before_blocks": {
+      "A_major_faults": 918,
+      "B_major_faults": 10,
+      "pswpin": 1596724,
+      "pswpout": 4162793
+    },
+    "after_blocks": {
+      "A_major_faults": 918,
+      "B_major_faults": 10,
+      "pswpin": 1596816,
+      "pswpout": 4164821
+    }
+  }
+}
