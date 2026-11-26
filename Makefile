@@ -167,6 +167,7 @@ test: check-solver-deps check-bench-imports $(TEST_TARGETS) build/paired_worker 
 	WINDOW_BUILD=$(abspath $(WINDOW_BUILD)) python3 tests/window_benchmark_test.py
 	WINDOW_BUILD=$(abspath $(WINDOW_BUILD)) python3 tests/paired_benchmark_test.py
 	python3 tests/mass_comparison_test.py
+	python3 -m bench.selective_anagram.qualification_test
 	python3 tests/replay_game_test.py
 	python3 tests/sample_turns_test.py
 
