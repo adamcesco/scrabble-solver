@@ -88,6 +88,47 @@ static void compare_rack_groups_and_ruled_out_windows(const WindowVariants &vari
     words.destroy();
 }
 
+static void repeated_rack_letters_survive_cache_round_trip()
+{
+    WordTable words = load_dictionary("FLEE\nFEEL\nEX\n");
+    {
+        auto built = WordPatternTable::from_words(words);
+        char cache[] = "/tmp/scrabble_repeated_rack_XXXXXX";
+        int fd = mkstemp(cache);
+        assert(fd >= 0);
+        close(fd);
+        assert(built.save(words, cache));
+        auto loaded = WordPatternTable::load(words, cache);
+        unlink(cache);
+        assert(!loaded.is_empty());
+
+        auto board = board_at(0, 0, {"F.", ".X"});
+        PerpendicularCheckTable lookup(words);
+        board.prepare_perpendicular_checks(lookup);
+        const SolverBoardSnapshot snapshot{board};
+        const auto &solver = benchmark::window_variant("rack-neighbor");
+        for (const std::string letters : {"EEL", "AEL"}) {
+            const benchmark::Rack rack(letters);
+            PlacementTrace before{words, board, snapshot}, after{words, board, snapshot};
+            auto built_counts = before.solve(solver, built, rack);
+            auto loaded_counts = after.solve(solver, loaded, rack);
+            assert(built_counts.across == loaded_counts.across && built_counts.down == loaded_counts.down);
+            assert(before.decisions == after.decisions);
+
+            // FEEL forms EX next to the X in both directions. FLEE would form LX.
+            for (bool down : {false, true}) {
+                const auto &view = before.decisions[down];
+                assert(accepted_count(view) == (down ? built_counts.down : built_counts.across));
+                for (const Decision &decision : {Decision{down, 0, 0, "FEEL", true},
+                                                 Decision{down, 0, 0, "FLEE", false}}) {
+                    assert(std::count(view.begin(), view.end(), decision) == (letters == "EEL"));
+                }
+            }
+        }
+    }
+    words.destroy();
+}
+
 static void compare_duplicate_group_entries(const WindowVariants &variants)
 {
     WordTable words = load_dictionary("ARS\nART\nATR\n");
@@ -367,6 +408,7 @@ int main(int argc, char **argv)
         compare_rt_orders(true, variants);
         compare_rt_orders(false, variants);
         compare_rack_groups_and_ruled_out_windows(variants);
+        repeated_rack_letters_survive_cache_round_trip();
         compare_duplicate_group_entries(variants);
         one_tile_counts_in_both_directions_and_restores_the_board(variants);
         if (argc >= 3) {

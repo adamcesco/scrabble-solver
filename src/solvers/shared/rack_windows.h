@@ -67,8 +67,8 @@ void visit_matching_anagrams(
         if (stopped) {
             trace_skipped_merge_comparison();
         }
-        const PatternBytes group_key = groups[group_index].rack_letters;
-        const PatternBytes rack_key = rack_subsets[rack_subset_index];
+        const uint64_t group_key = groups[group_index].rack_letters;
+        const uint64_t rack_key = rack_subsets[rack_subset_index];
 
         if (group_key < rack_key) {
             ++group_index;
