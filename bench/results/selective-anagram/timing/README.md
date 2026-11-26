@@ -18,7 +18,7 @@ faults during the timed schedule. Across the host, 92 pages were swapped in and
 
 ## Reproduction
 
-From the repository root on Linux with Python 3.11+ and Clang 18.1.3, extract the
+From the repository root on Linux with Python 3.10+ and Clang 18.1.3, extract the
 frozen reference. Supply the full dictionary and existing v3 cache under the
 same `data/` layout used by the solver.
 

@@ -2,14 +2,14 @@
 
 import argparse
 import csv
-import hashlib
 import json
 import shutil
 import subprocess
-import tarfile
 import tempfile
 from collections import Counter
 from pathlib import Path
+
+from bench.measurement_support.benchmark_inputs import sha256
 
 from .reference import CACHE, COHORTS, DICTIONARY, REVISION, ROOT, check_decisions
 
@@ -52,8 +52,7 @@ def build_worker(source, production):
     subprocess.run(["git", "archive", "--output", archive, production,
                     "Makefile", "src", "include", "tests", "bench/window_counters", "bench/measurement_support"],
                    cwd=ROOT, check=True)
-    with tarfile.open(archive) as package:
-        package.extractall(source, filter="data")
+    subprocess.run(["tar", "-xf", archive, "-C", source], check=True)
     # Use the current qualifier with the selected revision's production sources and make rule.
     for name in ("placement_comparison.cpp", "placement_comparison.h"):
         shutil.copyfile(ROOT / "tests" / name, source / "tests" / name)
@@ -69,7 +68,7 @@ def verify_reference(reference, data):
     provenance = json.loads((reference / "provenance.json").read_text())
     if (provenance["revision"], provenance["solver"]) != (REVISION, "place-and-restore"):
         raise ValueError("expected the pinned place-and-restore reference")
-    if hashlib.sha256((data / DICTIONARY).read_bytes()).hexdigest() != provenance["dictionary_sha256"]:
+    if sha256(data / DICTIONARY) != provenance["dictionary_sha256"]:
         raise ValueError("dictionary differs from the reference")
 
     with (reference / "cases.csv").open() as stream:
@@ -80,7 +79,7 @@ def verify_reference(reference, data):
         if len({(c["cohort"], c[field]) for c in cases}) != len(cases):
             raise ValueError(f"duplicate {field} in a cohort")
     for case in cases:
-        digest = hashlib.sha256((reference / "inputs" / case["board"]).read_bytes()).hexdigest()
+        digest = sha256(reference / "inputs" / case["board"])
         if digest != case["board_sha256"]:
             raise ValueError(f"{case['case']}: board differs from reference")
         for field in ("across", "down", "across_candidates", "down_candidates"):
@@ -122,8 +121,7 @@ def qualify(data, output, revision):
                                          cwd=ROOT, text=True).strip()
     with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
         temp = Path(temporary)
-        with tarfile.open(REFERENCE_ARCHIVE) as package:
-            package.extractall(temp, filter="data")
+        subprocess.run(["tar", "-xf", REFERENCE_ARCHIVE, "-C", temp], check=True)
         reference = temp / "reference"
         cases, provenance = verify_reference(reference, data)
         worker = build_worker(temp / "source", production)
@@ -145,7 +143,7 @@ def qualify(data, output, revision):
             writer.writerows(results)
         details = dict(production_revision=production, reference_revision=provenance["revision"],
                        reference_solver=provenance["solver"], dictionary_sha256=provenance["dictionary_sha256"],
-                       reference_archive_sha256=hashlib.sha256(REFERENCE_ARCHIVE.read_bytes()).hexdigest(),
+                       reference_archive_sha256=sha256(REFERENCE_ARCHIVE),
                        solvers=SOLVERS, games=len(cases), comparisons=len(results))
         (report / "provenance.json").write_text(json.dumps(details, indent=2) + "\n")
         report.rename(output)

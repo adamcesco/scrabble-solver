@@ -2,7 +2,6 @@
 
 import argparse
 import csv
-import hashlib
 import json
 import shutil
 import subprocess
@@ -11,7 +10,8 @@ import tempfile
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+from bench.measurement_support.benchmark_inputs import ROOT, sha256
+
 REVISION = "823763cf735c1930fd357cff0bd5e155aa47341d"
 DICTIONARY = "dictionaries/sample_dictionary.txt"
 CACHE = "caches/pattern_and_rack_anagram_to_words.cache"
@@ -21,7 +21,7 @@ COHORTS = {"development": (30, 72530, 12939), "held-out": (96, 229655, 41494)}
 
 def prepare_cases(source, data, output):
     cases = []
-    dictionary_hash = hashlib.sha256((data / DICTIONARY).read_bytes()).hexdigest()
+    dictionary_hash = sha256(data / DICTIONARY)
     for cohort, (games, _, _) in COHORTS.items():
         inputs = output / "inputs" / cohort
         subprocess.run([sys.executable, "-m", "bench.window_counters.window_games", "--export", cohort, inputs],
@@ -41,7 +41,7 @@ def prepare_cases(source, data, output):
             name = position["case"]
             rack = "".join(sorted(position["rack"]))
             board = inputs / position["board"]
-            digest = hashlib.sha256(board.read_bytes()).hexdigest()
+            digest = sha256(board)
             identity = archive["inputs"][name]
             if (digest, rack, position["stage"]) != (identity["board_sha256"], identity["rack"], identity["stage"]):
                 raise ValueError(f"{name}: board, rack or stage differs from archive")
