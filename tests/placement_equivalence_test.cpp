@@ -1,5 +1,7 @@
 #include "placement_comparison.h"
 #include "perpendicular_fixtures.h"
+#include "selective_anagram_fixture.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <cassert>
@@ -8,14 +10,15 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 using WindowDecisions = std::vector<std::pair<std::string, bool>>;
 
-static WindowDecisions middle_window(const Decisions &decisions)
+static WindowDecisions three_letter_window(const Decisions &decisions, int window_row)
 {
     WindowDecisions result;
     for (const auto &[down, row, start, word, accepted] : decisions) {
-        if (row == 1 && start == 0 && word.size() == 3) {
+        if (row == window_row && start == 0 && word.size() == 3) {
             result.emplace_back(word, accepted);
         }
     }
@@ -60,7 +63,7 @@ static void compare_rt_orders(bool tar_first, const WindowVariants &variants)
                     PlacementTrace trace{words, board, snapshot};
                     auto actual = trace.solve(*variant, fixture.patterns, rack);
                     assert(actual.across == counts.across && actual.down == counts.down);
-                    assert(middle_window(trace.decisions[transposed]) == expected);
+                    assert(three_letter_window(trace.decisions[transposed], 1) == expected);
                 }
             }
             auto [across, down] = fixture.compare_board("unmatched rack", board, "ZZ", variants);
@@ -79,7 +82,7 @@ static void compare_rack_groups_and_ruled_out_windows(const WindowVariants &vari
             Board board = board_at(0, 0, {blocked ? "ASX" : "AS.", ".A.", ".TO"});
             auto [across, down] = fixture.compare_board("rack groups", board, "RST", variants);
             // SAT uses ST; TAR and RAT use RT. The X.O crossing disallows all three.
-            WindowDecisions actual = middle_window(across);
+            WindowDecisions actual = three_letter_window(across, 1);
             std::sort(actual.begin(), actual.end());
             const WindowDecisions expected{{"RAT", !blocked}, {"SAT", !blocked}, {"TAR", false}};
             assert(actual == expected);
@@ -145,9 +148,66 @@ static void compare_duplicate_group_entries(const WindowVariants &variants)
         for (bool impossible : {false, true}) {
             Board board = board_at(0, 0, {impossible ? "..X" : "...", "A.."});
             const auto decisions = fixture.compare_board("duplicate RT entries", board, "RST", variants);
-            auto actual = middle_window(decisions[0]);
+            auto actual = three_letter_window(decisions[0], 1);
             std::sort(actual.begin(), actual.end());
             const WindowDecisions expected{{"ARS", !impossible}, {"ART", !impossible}, {"ART", !impossible}};
+            assert(actual == expected);
+        }
+    }
+    words.destroy();
+}
+
+static void compare_selective_anagram_windows()
+{
+    auto words = load_dictionary(selective_anagram_dictionary().c_str());
+    auto built = WordPatternTable::from_words(words);
+    // Supply a repeated dictionary ID, including in the v3 payload.
+    const auto *pattern = built.get({put_byte_128('A', 0, BOARD_SIZE), 1, 3});
+    assert(pattern);
+    const auto *bc = built.get_anagram(*pattern, benchmark::Rack("BC").tiles);
+    assert(bc && bc->word_indices.count == 2);
+    built.word_indices[bc->word_indices.start + 1] = built.word_indices[bc->word_indices.start];
+
+    char path[] = "/tmp/scrabble_selective_anagrams_XXXXXX";
+    int fd = mkstemp(path);
+    assert(fd >= 0 && close(fd) == 0);
+    assert(built.save(words, path));
+    auto loaded = WordPatternTable::load(words, path);
+    unlink(path);
+    assert(!loaded.is_empty());
+
+    const WindowVariants solvers{&benchmark::window_variant("packed"), &benchmark::window_variant("rack-neighbor")};
+    for (auto *table : {&built, &loaded}) {
+        PlacementComparison fixture{words, std::move(*table)};
+        for (bool down : {false, true}) {
+            auto board = board_at(0, 0, {"..X", "A..", "...", "A.."});
+            if (down) board.swap_views();
+            const auto decisions = fixture.compare_board("same pattern after early stop", board, "AABCI", solvers);
+            // X above the final gap rules out the first A.. window. The next accepts
+            // every matching ID, including two copies of ACB and the displaced BI key.
+            for (int row : {1, 3}) {
+                auto actual = three_letter_window(decisions[down], row);
+                std::sort(actual.begin(), actual.end());
+                const bool accepted = row == 3;
+                const WindowDecisions expected{{"AAA", accepted}, {"AAB", accepted}, {"AAC", accepted},
+                                               {"AAI", accepted}, {"ABI", accepted}, {"ACB", accepted},
+                                               {"ACB", accepted}, {"ACI", accepted}};
+                assert(actual == expected);
+            }
+        }
+        auto miss = fixture.compare_board("colliding miss", board_at(0, 0, {"A.."}), "GZ", solvers);
+        assert(three_letter_window(miss[0], 0).empty());
+
+        // AA. has 25 groups and two fixed tiles. One subset uses binary search,
+        // seven distinct single-tile subsets use the sorted merge.
+        for (const std::string rack : {"B", "ABCDEFG"}) {
+            auto decisions = fixture.compare_board("unindexed AA. pattern", board_at(0, 0, {"AA."}), rack, solvers);
+            auto actual = three_letter_window(decisions[0], 0);
+            std::sort(actual.begin(), actual.end());
+            WindowDecisions expected;
+            for (char letter : rack) {
+                expected.emplace_back(std::string("AA") + letter, true);
+            }
             assert(actual == expected);
         }
     }
@@ -197,7 +257,7 @@ static void compare_gap_keys_at_the_board_edge(const WindowVariants &variants)
         assert(board.perpendicular_check_set(1, 2) != PerpendicularCheckTable::all_letters);
         auto decisions = fixture.compare_board("one constrained gap of two", board, "RT", variants);
         const WindowDecisions expected{{"RAT", true}, {"TAR", false}};
-        assert(middle_window(decisions[0]) == expected);
+        assert(three_letter_window(decisions[0], 1) == expected);
     }
     words.destroy();
 }
@@ -410,6 +470,7 @@ int main(int argc, char **argv)
         compare_rack_groups_and_ruled_out_windows(variants);
         repeated_rack_letters_survive_cache_round_trip();
         compare_duplicate_group_entries(variants);
+        compare_selective_anagram_windows();
         one_tile_counts_in_both_directions_and_restores_the_board(variants);
         if (argc >= 3) {
             qualify_inputs(argv[1], argv[2], argv[0], mode, variants, profile_path);
