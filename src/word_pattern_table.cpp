@@ -152,16 +152,19 @@ WordPatternTable WordPatternTable::from_words(const WordTable &words)
             by_length[length].push_back({packed, static_cast<uint32_t>(i)});
         }
 
+        std::array<std::vector<uint16_t>, BOARD_SIZE + 1> fixed_masks;
         uint64_t record_count = 0;
         for (uint8_t length = 1; length <= BOARD_SIZE; ++length) {
             if (by_length[length].empty()) {
                 continue;
             }
-            for (uint16_t gaps = 1; gaps <= low_bit_mask_u16(length); ++gaps) {
-                if (__builtin_popcount(gaps) <= 7) {
-                    record_count += by_length[length].size();
+            const uint16_t all_slots = low_bit_mask_u16(length);
+            for (uint16_t mask = 0; mask < all_slots; ++mask) {
+                if (__builtin_popcount(all_slots ^ mask) <= 7) {
+                    fixed_masks[length].push_back(mask);
                 }
             }
+            record_count += uint64_t(fixed_masks[length].size()) * by_length[length].size();
         }
         if (record_count > UINT32_MAX) {
             return {};
@@ -173,15 +176,9 @@ WordPatternTable WordPatternTable::from_words(const WordTable &words)
         // bounds temporary storage by the number of dictionary words at one length.
         std::vector<PatternRecord> records;
         for (uint8_t length = 1; length <= BOARD_SIZE; ++length) {
-            if (by_length[length].empty()) {
-                continue;
-            }
             records.reserve(by_length[length].size());
-            const uint16_t all_slots = low_bit_mask_u16(length);
-            for (uint16_t fixed_mask = 0; fixed_mask < all_slots; ++fixed_mask) {
-                if (__builtin_popcount(all_slots ^ fixed_mask) <= 7) {
-                    build_pattern_bucket(table, by_length[length], length, fixed_mask, records);
-                }
+            for (uint16_t mask : fixed_masks[length]) {
+                build_pattern_bucket(table, by_length[length], length, mask, records);
             }
         }
     } catch (...) {

@@ -4,12 +4,10 @@ import argparse
 import csv
 import fcntl
 import gzip
-import hashlib
 import json
 import os
 import platform
 import random
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,7 +16,9 @@ from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from statistics import fmean
 
+from bench.measurement_support.benchmark_inputs import sha256
 from bench.measurement_support.paired_timings import DRAWS, SEED, Pair, summarize
+from bench.measurement_support.rack_neighbor_build import SOURCE_DIRS, build_worker
 from bench.selective_anagram.reference import CACHE, DICTIONARY, REVISION, ROOT
 
 STAGES = ("early", "middle", "late")
@@ -26,11 +26,6 @@ REPETITIONS = 40
 MANIFEST_SHA256 = "0349591e1aad857ed255c82741cd1b508d21d7f276c896fe94d37b92368afcad"
 FIELDS = ("case", "stage", "repetition", "order", "baseline_ns", "production_ns",
           "baseline_across", "baseline_down", "production_across", "production_down")
-
-
-def sha256(path):
-    with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def held_out(reference):
@@ -83,10 +78,6 @@ def report(reference, directory):
 
 
 HERE = Path(__file__).resolve().parent
-FLAGS = ["-std=c++17", "-O2", "-march=x86-64", "-Iinclude", "-Isrc", "-Ibench/measurement_support"]
-SOURCES = ["src/" + s + ".cpp" for s in ("board", "perpendicular_checks", "word_table", "word_pattern_table",
-           "utils", "solvers/shared/rack_subsets", "solvers/rack_neighbor/solver")]
-SOURCE_DIRS = ["src", "include", "bench/measurement_support"]
 DICT_SHA256 = "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd"
 
 
@@ -96,13 +87,7 @@ def git(*args):
 
 def build(revision, target):
     revision = git("rev-parse", "--verify", revision + "^{commit}")
-    target.mkdir()
-    archive = target / "source.tar"
-    subprocess.run(["git", "archive", "--output", archive, revision, *SOURCE_DIRS], cwd=ROOT, check=True)
-    subprocess.run(["tar", "-xf", archive], cwd=target, check=True)
-    shutil.copyfile(HERE / "timing.cpp", target / "timing.cpp")
-    command = ["clang++", *FLAGS, "timing.cpp", *SOURCES, "-o", "worker"]
-    subprocess.run(command, cwd=target, check=True)
+    command = build_worker(target, revision, HERE / "timing.cpp")
     trees = {path: git("rev-parse", f"{revision}:{path}") for path in SOURCE_DIRS}
     return dict(revision=revision, source_trees=trees, binary_sha256=sha256(target / "worker"),
                 command=command)

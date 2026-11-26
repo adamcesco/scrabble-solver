@@ -2,11 +2,13 @@
 
 import argparse
 import csv
-import hashlib
 import json
 import subprocess
 import tempfile
 from pathlib import Path
+
+from bench.measurement_support.benchmark_inputs import sha256
+from bench.measurement_support.rack_neighbor_build import FLAGS, build_worker
 
 from .reference import CACHE, DICTIONARY, REVISION, ROOT
 
@@ -15,31 +17,7 @@ EXPECTED_INPUTS = {
     DICTIONARY: "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
     BOARD: "8caacd03aa304f12e83c0eb527d3520144d779dfa555c92ed7f7d304bde56a47",
 }
-FLAGS = ["-std=c++17", "-O2", "-march=x86-64", "-Iinclude", "-Isrc", "-Ibench/measurement_support"]
-SOURCES = ["board", "perpendicular_checks", "word_table", "word_pattern_table", "utils",
-           "solvers/shared/rack_subsets", "solvers/rack_neighbor/solver"]
 DRIVER = Path(__file__).with_suffix(".cpp")
-
-
-def sha256(path):
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def compile_worker(temp, label, revision):
-    source = temp / label
-    source.mkdir()
-    archive = source / "source.tar"
-    subprocess.run(["git", "archive", "-o", archive, revision, "src", "include", "bench/measurement_support"],
-                   cwd=ROOT, check=True)
-    subprocess.run(["tar", "-xf", archive, "-C", source], check=True)
-    worker = source / "worker"
-    subprocess.run(["clang++", *FLAGS, DRIVER, *(f"src/{s}.cpp" for s in SOURCES), "-o", worker],
-                   cwd=source, check=True)
-    return worker
 
 
 def qualify(data, output, production):
@@ -53,8 +31,10 @@ def qualify(data, output, production):
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
         temp = Path(temporary)
-        prod = compile_worker(temp, "production", production)
-        old = compile_worker(temp, "pinned", REVISION)
+        build_worker(temp / "production", production, DRIVER)
+        build_worker(temp / "pinned", REVISION, DRIVER)
+        prod = temp / "production/worker"
+        old = temp / "pinned/worker"
         fresh = temp / "fresh.cache"
         existing = data / CACHE
         results = []
