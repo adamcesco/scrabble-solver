@@ -1,0 +1,27 @@
+{
+  "rack": "ABFHIKU",
+  "inputs_sha256": {
+    "dictionaries/sample_dictionary.txt": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+    "boards/sample_board.csv": "8caacd03aa304f12e83c0eb527d3520144d779dfa555c92ed7f7d304bde56a47"
+  },
+  "caches": {
+    "existing": {
+      "bytes": 13639098672,
+      "sha256": "66d069142a7cc04278597cf4df70ef03af8295d3b31cff201d2a8425d90689cb"
+    },
+    "fresh": {
+      "bytes": 13639098672,
+      "sha256": "66d069142a7cc04278597cf4df70ef03af8295d3b31cff201d2a8425d90689cb"
+    }
+  },
+  "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+  "flags": [
+    "-std=c++17",
+    "-O2",
+    "-march=x86-64",
+    "-Iinclude",
+    "-Isrc",
+    "-Ibench/measurement_support"
+  ],
+  "driver_sha256": "6c80120508283ca0234db414a5f4de21b075694cc3ff60fb502b2c500f8df591"
+}
