@@ -1,0 +1,37 @@
+{
+  "production_revision": "cd062932c8a7f91fc9a048d81d87484dd2286986",
+  "reference_revision": "823763cf735c1930fd357cff0bd5e155aa47341d",
+  "reference_solver": "place-and-restore",
+  "dictionary_sha256": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+  "reference_archive_sha256": "47b9507fab45d479669a3fd4e64401316f034df2062e837978a9f72fb2d2d4fa",
+  "build": {
+    "revision": "cd062932c8a7f91fc9a048d81d87484dd2286986",
+    "command": [
+      "clang++",
+      "-std=c++17",
+      "-O2",
+      "-march=x86-64",
+      "-Iinclude",
+      "-Isrc",
+      "-Ibench/measurement_support",
+      "-Itests",
+      "-DSCRABBLE_TRACE_PLACEMENTS",
+      "-UNDEBUG",
+      "bench/selective_anagram/qualification.cpp",
+      "src/board.cpp",
+      "src/perpendicular_checks.cpp",
+      "src/rack_subsets.cpp",
+      "src/solver.cpp",
+      "src/utils.cpp",
+      "src/word_pattern_table.cpp",
+      "src/word_table.cpp",
+      "tests/placement_trace.cpp",
+      "-o",
+      "worker"
+    ],
+    "driver_sha256": "b8cd222b69a933cede03fa701ea3a052ca6652fa5d7b03658835b27176032be1",
+    "binary_sha256": "e613bb1eab75a8b962140ae3f08d883ffef38f7527fbe19afc0e080e55554ca3"
+  },
+  "games": 126,
+  "comparisons": 252
+}

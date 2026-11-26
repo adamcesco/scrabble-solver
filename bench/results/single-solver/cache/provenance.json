@@ -1,0 +1,68 @@
+{
+  "rack": "ABFHIKU",
+  "inputs_sha256": {
+    "dictionaries/sample_dictionary.txt": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+    "boards/sample_board.csv": "8caacd03aa304f12e83c0eb527d3520144d779dfa555c92ed7f7d304bde56a47"
+  },
+  "caches": {
+    "existing": {
+      "bytes": 13639098672,
+      "sha256": "66d069142a7cc04278597cf4df70ef03af8295d3b31cff201d2a8425d90689cb"
+    },
+    "fresh": {
+      "bytes": 13639098672,
+      "sha256": "66d069142a7cc04278597cf4df70ef03af8295d3b31cff201d2a8425d90689cb"
+    }
+  },
+  "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+  "builds": {
+    "production": {
+      "revision": "cd062932c8a7f91fc9a048d81d87484dd2286986",
+      "command": [
+        "clang++",
+        "-std=c++17",
+        "-O2",
+        "-march=x86-64",
+        "-Iinclude",
+        "-Isrc",
+        "-Ibench/measurement_support",
+        "bench/selective_anagram/cache.cpp",
+        "src/board.cpp",
+        "src/perpendicular_checks.cpp",
+        "src/rack_subsets.cpp",
+        "src/solver.cpp",
+        "src/utils.cpp",
+        "src/word_pattern_table.cpp",
+        "src/word_table.cpp",
+        "-o",
+        "worker"
+      ],
+      "driver_sha256": "636a3fc333569c11f92b4f03de699b6fd37b9882cbd4699cd839d2cb796248a1",
+      "binary_sha256": "77a7676e8b87cad30715aef989f44fa3fa75164baac44092934471bf4def922c"
+    },
+    "pinned": {
+      "revision": "823763cf735c1930fd357cff0bd5e155aa47341d",
+      "command": [
+        "clang++",
+        "-std=c++17",
+        "-O2",
+        "-march=x86-64",
+        "-Iinclude",
+        "-Isrc",
+        "-Ibench/measurement_support",
+        "cache.cpp",
+        "src/board.cpp",
+        "src/perpendicular_checks.cpp",
+        "src/word_table.cpp",
+        "src/word_pattern_table.cpp",
+        "src/utils.cpp",
+        "src/solvers/shared/rack_subsets.cpp",
+        "src/solvers/rack_neighbor/solver.cpp",
+        "-o",
+        "worker"
+      ],
+      "driver_sha256": "6c80120508283ca0234db414a5f4de21b075694cc3ff60fb502b2c500f8df591",
+      "binary_sha256": "a2b6ec10c1ac1d1889062b6c2f61b8f55dd2f48d8e1def9e4590d49373ae96a1"
+    }
+  }
+}

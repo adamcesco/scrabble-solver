@@ -24,6 +24,10 @@ A legal, connected placement whose new tiles all lie in one row or column, with 
 
 A complete, uninterrupted run of two or more letters across or down that includes at least one tile placed by the move. Each run counts separately, so a single T that completes `AT` across and `AT` down forms two words.
 
+**Directional count**
+
+The number of accepted candidate decisions for one direction. A single A that completes `SEA` across and `TEA` down contributes one to each directional count and makes one move.
+
 **Normal board**
 
 The board in its playing orientation. Across words read left to right and down words read top to bottom.

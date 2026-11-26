@@ -25,4 +25,6 @@ python3 -m bench.selective_anagram.timing report "$work/reference" "$work/timing
 
 Each worker prepares all 96 held-out boards before timing. The command checks directional counts on each solve, alternates run order and reports baseline time minus production time with a game-level paired 95% interval. It exits unsuccessfully if the entire interval shows a slowdown. Raw blocks, build identities, paging counters and the summary are written to the output directory.
 
+The single-solver refactor matched the full candidate-decision reference and passed this timing check against its immediate predecessor. [Refactor qualification](results/single-solver/README.md)
+
 Archived comparisons include the retired validators, their memory and startup costs, and window-counter experiments. Reproduce them from the recorded revisions. [Historical benchmark guide](HISTORICAL.md) · [Result files](results/)

@@ -1,0 +1,110 @@
+{
+  "builds": {
+    "A": {
+      "revision": "2dde5e1500ac6ce61382359c2b88f6b16a212eef",
+      "command": [
+        "clang++",
+        "-std=c++17",
+        "-O2",
+        "-march=x86-64",
+        "-Iinclude",
+        "-Isrc",
+        "-Ibench/measurement_support",
+        "timing.cpp",
+        "src/board.cpp",
+        "src/perpendicular_checks.cpp",
+        "src/word_table.cpp",
+        "src/word_pattern_table.cpp",
+        "src/utils.cpp",
+        "src/solvers/shared/rack_subsets.cpp",
+        "src/solvers/rack_neighbor/solver.cpp",
+        "-o",
+        "worker"
+      ],
+      "driver_sha256": "ecb7b4b18685662fc56fb77bbdfe2eb25c4333a7c76048cd905edb72688360d3",
+      "binary_sha256": "de2dde1df49919b8d8da9d688654fadcc0d6be5a4d2a364688ffbaec2c625859"
+    },
+    "B": {
+      "revision": "cd062932c8a7f91fc9a048d81d87484dd2286986",
+      "command": [
+        "clang++",
+        "-std=c++17",
+        "-O2",
+        "-march=x86-64",
+        "-Iinclude",
+        "-Isrc",
+        "-Ibench/measurement_support",
+        "bench/selective_anagram/timing.cpp",
+        "src/board.cpp",
+        "src/perpendicular_checks.cpp",
+        "src/rack_subsets.cpp",
+        "src/solver.cpp",
+        "src/utils.cpp",
+        "src/word_pattern_table.cpp",
+        "src/word_table.cpp",
+        "-o",
+        "worker"
+      ],
+      "driver_sha256": "1821580effb66b8597dde8b1275093da7676f3a546fe0d869f7221e8203d6a21",
+      "binary_sha256": "dedd7bf676538dc4af5156e73afbbc1ceb8eb3bb8ce5168851a3fef2b3b93dd7"
+    }
+  },
+  "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin\n",
+  "coordinator_sha256": "9f32a1695c5693a3a590a7a759160f8b335a456282a8b465d27d29f5b68334e7",
+  "kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "python": "3.12.3",
+  "cpu_model": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+  "worker_cpu": 2,
+  "coordinator_cpu_affinity": [
+    6
+  ],
+  "cases_sha256": "0349591e1aad857ed255c82741cd1b508d21d7f276c896fe94d37b92368afcad",
+  "dictionary_sha256": "559faa1e0296166f8f4c6074b71211c045202accb6920424aaa0758cc7bce9cd",
+  "shuffle_seed": 15,
+  "warmup_rounds": 2,
+  "repetitions": 40,
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 15,
+  "cache_bytes": 13639098672,
+  "cache_sha256": "66d069142a7cc04278597cf4df70ef03af8295d3b31cff201d2a8425d90689cb",
+  "paging": {
+    "preflight": [
+      {
+        "A_major_faults": 0,
+        "B_major_faults": 5,
+        "pswpin": 1673715,
+        "pswpout": 6819458
+      },
+      {
+        "A_major_faults": 11630,
+        "B_major_faults": 5,
+        "pswpin": 1688603,
+        "pswpout": 6824658
+      },
+      {
+        "A_major_faults": 11630,
+        "B_major_faults": 5,
+        "pswpin": 1688605,
+        "pswpout": 6824658
+      },
+      {
+        "A_major_faults": 11630,
+        "B_major_faults": 5,
+        "pswpin": 1688608,
+        "pswpout": 6824658
+      }
+    ],
+    "before_blocks": {
+      "A_major_faults": 11630,
+      "B_major_faults": 5,
+      "pswpin": 1688608,
+      "pswpout": 6824658
+    },
+    "after_blocks": {
+      "A_major_faults": 11630,
+      "B_major_faults": 5,
+      "pswpin": 1688768,
+      "pswpout": 6824658
+    }
+  }
+}

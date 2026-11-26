@@ -41,8 +41,9 @@ build/qualification_worker: build/trace/qualification.o $(TRACE_OBJECTS)
 .SECONDARY:
 -include $(wildcard build/*.d build/tests/*.d build/trace/*.d)
 
-test: $(TEST_BINS) build/qualification_worker
+test: build/main $(TEST_BINS) build/qualification_worker
 	@set -e; for test in $(TEST_BINS); do ./$$test; done
+	python3 tests/cli_test.py
 	python3 -m bench.selective_anagram.qualification_test
 	python3 tests/replay_game_test.py
 	python3 tests/sample_turns_test.py
