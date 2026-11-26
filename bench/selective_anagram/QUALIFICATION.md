@@ -2,10 +2,10 @@
 
 From the repository root, run the qualifier with the full dictionary and its
 existing v3 cache. Supply a new output directory. The recorded release run used
-the production sources at `ca178f4`.
+the production sources at `afaba84`.
 
 ```sh
-flock /tmp/selective-anagram-full-run.lock python3 -m bench.selective_anagram.qualification /path/to/data /tmp/decisions --production ca178f4
+flock /tmp/selective-anagram-full-run.lock python3 -m bench.selective_anagram.qualification /path/to/data /tmp/decisions --production afaba84
 ```
 
 The runner extracts the selected production revision and builds all three public

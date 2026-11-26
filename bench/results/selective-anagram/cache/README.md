@@ -2,8 +2,8 @@
 
 Production and the pinned reader returned **254 across and 102 down** on all
 four paths using the sample board and rack `ABFHIKU`. Building from the full
-dictionary took 43.46 s and saving took 52.71 s. The build process peaked at
-13,168,892 KiB RSS. Both 13,639,098,672-byte v3 files had the same SHA-256.
+dictionary took 49.77 s and saving took 45.65 s. The build process peaked at
+13,169,108 KiB RSS. Both 13,639,098,672-byte v3 files had the same SHA-256.
 [Per-process observations](observations.csv)
 
 | Revision | Cache | Operation |
@@ -30,5 +30,5 @@ the machine.
 
 ```sh
 flock /tmp/selective-anagram-full-run.lock python3 -m bench.selective_anagram.cache \
-    /path/to/data /tmp/cache-report --production ca178f4
+    /path/to/data /tmp/cache-report --production afaba84
 ```

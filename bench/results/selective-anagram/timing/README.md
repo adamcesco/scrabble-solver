@@ -1,8 +1,8 @@
 # Prepared rack-neighbor solve time
 
-**Pass.** Production saved **88.55 µs per prepared solve** on the 96 held-out
-games. Its mean was 264.06 µs, down 25.11% from 352.60 µs at `823763c`. The
-paired 95% interval for mean time saved was **81.21 to 96.03 µs**. Its lower
+**Pass.** Production saved **83.83 µs per prepared solve** on the 96 held-out
+games. Its mean was 279.16 µs, down 23.09% from 363.00 µs at `823763c`. The
+paired 95% interval for mean time saved was **76.53 to 91.27 µs**. Its lower
 bound clears the sole performance gate of zero. [Full-precision estimate](summary.json)
 
 All 3,840 pairs contributed to the estimate. Each game supplied 40 pairs, and
@@ -11,10 +11,10 @@ archived across and down counts. The raw rows are in run order and include
 both counts and both elapsed times in nanoseconds. [Paired blocks](blocks.csv.gz)
 
 Workers ran on logical CPU 2 of an Intel Core i7-6700K, with the coordinator on
-CPU 6. The first preflight sweep incurred 915 major faults in the baseline
-worker, followed by two fault-free sweeps. Both workers recorded zero major
-faults during the timed schedule. Across the host, 92 pages were swapped in and
-2,028 out during that schedule. [Build, input and paging records](manifest.json)
+CPU 6. The workers completed 3 preflight sweeps, including two consecutive
+sweeps with zero major faults in both workers. Across the measured schedule,
+the baseline worker recorded 0 major faults and production recorded 0.
+Across the host, 433 pages were swapped in and 7,351 out. [Build, input and paging records](manifest.json)
 
 ## Reproduction
 
@@ -27,7 +27,7 @@ work=$(mktemp -d)
 tar -xzf bench/results/selective-anagram/reference.tar.gz -C "$work"
 taskset -c 6 python3 -m bench.selective_anagram.timing measure \
   /path/to/data "$work/reference" "$work/timing" \
-  --production ca178f4873e4cec14ad81c5631c0b0553be59442 --cpu 2
+  --production afaba84e902985ebb41e91ce4d10bcf1490d5d5e --cpu 2
 ```
 
 The coordinator extracts the source trees for both revisions, compiles the same

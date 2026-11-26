@@ -29,13 +29,13 @@
       ]
     },
     "B": {
-      "revision": "ca178f4873e4cec14ad81c5631c0b0553be59442",
+      "revision": "afaba84e902985ebb41e91ce4d10bcf1490d5d5e",
       "source_trees": {
-        "src": "ce4a0be993647340b453e7901e148b64f2170aee",
+        "src": "4632c0f2cefd67a9e032fcdd5b37c9f880d9e16e",
         "include": "b482ff1085560f91784e25989ba86b4be3c6f8d0",
-        "bench/measurement_support": "caddada78f0472cd80168ff273b504f5e149a90d"
+        "bench/measurement_support": "d449096a1b88f901a1dbe0890602bf023878aba9"
       },
-      "binary_sha256": "e52a261742094e664754d7a79bf3985dddff18faf68f1144936f744db0f7dc8e",
+      "binary_sha256": "de2dde1df49919b8d8da9d688654fadcc0d6be5a4d2a364688ffbaec2c625859",
       "command": [
         "clang++",
         "-std=c++17",
@@ -59,7 +59,7 @@
   },
   "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin\n",
   "driver_sha256": "ecb7b4b18685662fc56fb77bbdfe2eb25c4333a7c76048cd905edb72688360d3",
-  "coordinator_sha256": "1b550c4b135e9696f60156a30f55adaece5055f638cbd63ee5270de3a381a343",
+  "coordinator_sha256": "abbce282be1b2f391100806df5d75642b655fba7e755e48bf8d28302958ecfc7",
   "kernel": "6.18.58.1-microsoft-standard-WSL2",
   "python": "3.12.3",
   "cpu_model": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
@@ -79,41 +79,41 @@
   "paging": {
     "preflight": [
       {
-        "A_major_faults": 3,
-        "B_major_faults": 10,
-        "pswpin": 1595751,
-        "pswpout": 4162793
+        "A_major_faults": 4,
+        "B_major_faults": 26,
+        "pswpin": 1615031,
+        "pswpout": 5867059
       },
       {
-        "A_major_faults": 918,
-        "B_major_faults": 10,
-        "pswpin": 1596720,
-        "pswpout": 4162793
+        "A_major_faults": 1312,
+        "B_major_faults": 26,
+        "pswpin": 1616446,
+        "pswpout": 5867059
       },
       {
-        "A_major_faults": 918,
-        "B_major_faults": 10,
-        "pswpin": 1596723,
-        "pswpout": 4162793
+        "A_major_faults": 1312,
+        "B_major_faults": 26,
+        "pswpin": 1616455,
+        "pswpout": 5867059
       },
       {
-        "A_major_faults": 918,
-        "B_major_faults": 10,
-        "pswpin": 1596723,
-        "pswpout": 4162793
+        "A_major_faults": 1312,
+        "B_major_faults": 26,
+        "pswpin": 1616455,
+        "pswpout": 5867059
       }
     ],
     "before_blocks": {
-      "A_major_faults": 918,
-      "B_major_faults": 10,
-      "pswpin": 1596724,
-      "pswpout": 4162793
+      "A_major_faults": 1312,
+      "B_major_faults": 26,
+      "pswpin": 1616456,
+      "pswpout": 5867059
     },
     "after_blocks": {
-      "A_major_faults": 918,
-      "B_major_faults": 10,
-      "pswpin": 1596816,
-      "pswpout": 4164821
+      "A_major_faults": 1312,
+      "B_major_faults": 26,
+      "pswpin": 1616889,
+      "pswpout": 5874410
     }
   }
 }
