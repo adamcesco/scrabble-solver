@@ -12,6 +12,10 @@ The set of words valid for the game. Every word already on the board and every w
 
 A proposal to play one or more rack tiles together on specific empty squares, with all words judged on the resulting board. Placing S and C before an existing `AT` to form `SCAT` requires only `SCAT` to be checked along that row.
 
+**Candidate decision**
+
+An acceptance or rejection of a candidate placement for a particular word, starting square and direction. If `CAT` starting at H8 across is considered and rejected twice, that accounts for two candidate decisions.
+
 **Connected placement**
 
 A candidate placement in which at least one newly placed tile shares an edge with a tile already on the board. Corner-only contact leaves the placement disconnected.
@@ -55,6 +59,10 @@ The player's supply of up to seven tiles available for a move. Their order is im
 **Rack subset**
 
 A selection of tiles from the rack, identified by its letters and how many of each it contains. To form `FEEL` in a window with pattern `F...`, the rack subset must supply two Es and one L.
+
+**Anagram group**
+
+All dictionary words that match a given word pattern and fill its empty squares with exactly the same rack subset. For the pattern `F...` and subset `EEL`, `FEEL` and `FLEE` belong to the same anagram group.
 
 **Perpendicular word**
 
